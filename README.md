@@ -1,16 +1,3403 @@
-## Hi there 👋
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bulletins Pro</title>
+<!-- Google API -->
+<script src="https://apis.google.com/js/api.js"></script>
+<script src="https://accounts.google.com/gsi/client"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400;1,600&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@300;400&display=swap');
+:root {
+  --bg:#f2efe8; --surface:#fdfcf8; --ink:#1e1c18; --muted:#7a7567; --border:#ddd8cc;
+  --accent:#2e6b3e; --accent-l:#eaf3ec; --accent-b:#b8d9bf;
+  --warn:#b83232; --warn-l:#fceaea; --warn-b:#e8b4b4;
+  --amber:#8a5e00; --amber-l:#fef4e0; --amber-b:#e8cc80;
+  --blue:#1e4d7a; --blue-l:#eaf0f8; --blue-b:#b4cde8;
+  --purple:#5c2d91; --purple-l:#f2ecfb; --purple-b:#c9a8f0;
+  --sidebar:#1a1e26; --r:10px;
+  --teal:#1a6b5e; --teal-l:#e8f5f2; --teal-b:#9dd4ca;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'DM Sans',sans-serif;font-weight:300;background:var(--bg);color:var(--ink);min-height:100vh;}
+.app{display:flex;height:100vh;overflow:hidden;}
 
-<!--
-**Bulletinspro/bulletinspro** is a ✨ _special_ ✨ repository because its `README.md` (this file) appears on your GitHub profile.
+/* SIDEBAR */
+.sidebar{width:255px;min-width:255px;background:var(--sidebar);display:flex;flex-direction:column;overflow:hidden;box-shadow:2px 0 24px rgba(0,0,0,.18);}
+.sb-logo{padding:20px 16px 14px;border-bottom:1px solid rgba(255,255,255,.06);}
+.logo-t{font-family:'Lora',serif;font-size:1.35rem;color:#f0ece4;letter-spacing:-.01em;}
+.logo-t em{font-style:italic;color:#6ecf7f;}
+.logo-s{font-family:'DM Mono',monospace;font-size:.56rem;text-transform:uppercase;letter-spacing:.14em;color:rgba(255,255,255,.22);margin-top:3px;}
+.s-lbl{font-family:'DM Mono',monospace;font-size:.55rem;text-transform:uppercase;letter-spacing:.13em;color:rgba(255,255,255,.2);padding:12px 16px 5px;}
+.cls-list{flex:1;overflow-y:auto;padding:3px 7px;}
+.cls-item{padding:9px 10px;border-radius:7px;cursor:pointer;display:flex;align-items:center;gap:8px;margin-bottom:2px;transition:background .13s;color:rgba(255,255,255,.55);}
+.cls-item:hover{background:rgba(255,255,255,.06);color:rgba(255,255,255,.82);}
+.cls-item.active{background:rgba(110,207,127,.12);color:#6ecf7f;}
+.cls-dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.14);flex-shrink:0;transition:background .13s;}
+.cls-item.active .cls-dot{background:#6ecf7f;}
+.cls-info{flex:1;min-width:0;}
+.cls-name{font-size:.84rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.cls-meta{font-family:'DM Mono',monospace;font-size:.54rem;opacity:.35;text-transform:uppercase;margin-top:1px;}
+.cls-n{font-family:'DM Mono',monospace;font-size:.58rem;opacity:.28;flex-shrink:0;}
+.sb-del{background:none;border:none;color:rgba(255,255,255,.15);cursor:pointer;font-size:.65rem;padding:2px 4px;border-radius:3px;transition:all .12s;margin-left:2px;flex-shrink:0;line-height:1;}
+.sb-del:hover{color:#ff7b7b;background:rgba(255,80,80,.15);}
+.add-cls-btn{margin:4px 7px 9px;width:calc(100% - 14px);padding:8px;background:transparent;border:1px dashed rgba(255,255,255,.11);border-radius:7px;color:rgba(255,255,255,.26);font-family:'DM Mono',monospace;font-size:.6rem;text-transform:uppercase;letter-spacing:.09em;cursor:pointer;transition:all .14s;}
+.add-cls-btn:hover{border-color:rgba(110,207,127,.4);color:#6ecf7f;background:rgba(110,207,127,.05);}
+.sb-foot{padding:9px 7px;border-top:1px solid rgba(255,255,255,.06);display:flex;gap:4px;}
+.sb-fbtn{flex:1;padding:6px 2px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:6px;color:rgba(255,255,255,.3);font-family:'DM Mono',monospace;font-size:.53rem;text-transform:uppercase;letter-spacing:.05em;cursor:pointer;transition:all .13s;text-align:center;}
+.sb-fbtn:hover{background:rgba(255,255,255,.09);color:rgba(255,255,255,.7);}
 
-Here are some ideas to get you started:
+/* MAIN */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;}
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 20px;display:flex;align-items:center;justify-content:space-between;gap:10px;height:52px;flex-shrink:0;}
+.topbar-l{display:flex;align-items:center;gap:10px;min-width:0;}
+.cls-title{font-family:'Lora',serif;font-size:1.12rem;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.period-row{display:flex;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:2px;gap:1px;}
+.pb{padding:3px 9px;border:none;border-radius:4px;background:transparent;font-family:'DM Mono',monospace;font-size:.58rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);cursor:pointer;transition:all .12s;white-space:nowrap;}
+.pb.active{background:var(--surface);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.08);}
+.topbar-r{display:flex;gap:6px;flex-shrink:0;}
 
-- 🔭 I’m currently working on ...
-- 🌱 I’m currently learning ...
-- 👯 I’m looking to collaborate on ...
-- 🤔 I’m looking for help with ...
-- 💬 Ask me about ...
-- 📫 How to reach me: ...
-- 😄 Pronouns: ...
-- ⚡ Fun fact: ...
--->
+/* BUTTONS */
+.btn{padding:6px 13px;border-radius:7px;border:none;font-family:'DM Sans',sans-serif;font-size:.8rem;font-weight:400;cursor:pointer;transition:all .14s;display:inline-flex;align-items:center;gap:5px;white-space:nowrap;}
+.btn-g{background:var(--accent);color:#fff;}.btn-g:hover{background:#235430;}
+.btn-b{background:var(--blue);color:#fff;}.btn-b:hover{background:#163a5e;}
+.btn-o{background:transparent;color:var(--muted);border:1px solid var(--border);}.btn-o:hover{background:var(--bg);color:var(--ink);}
+.btn-sm{padding:4px 10px;font-size:.75rem;}
+
+/* TABS */
+.tabs{background:var(--surface);border-bottom:1px solid var(--border);display:flex;padding:0 20px;flex-shrink:0;}
+.tab{padding:10px 14px;font-family:'DM Mono',monospace;font-size:.6rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .12s;background:none;border-top:none;border-left:none;border-right:none;white-space:nowrap;}
+.tab:hover{color:var(--ink);}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+.tab.t-blue.active{color:var(--blue);border-bottom-color:var(--blue);}
+
+/* DEFAULTS BAR */
+.dbar{background:var(--surface);border-bottom:1px solid var(--border);padding:8px 20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;flex-shrink:0;}
+.dlbl{font-family:'DM Mono',monospace;font-size:.57rem;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);}
+.tone-row{display:flex;gap:3px;}
+.tone-btn{padding:4px 11px;border:1px solid var(--border);border-radius:5px;background:transparent;font-family:'DM Mono',monospace;font-size:.58rem;text-transform:uppercase;letter-spacing:.05em;cursor:pointer;color:var(--muted);transition:all .12s;}
+.tone-btn:hover{border-color:var(--accent);color:var(--accent);}
+.tone-btn.active.ferme{background:var(--warn-l);border-color:var(--warn-b);color:var(--warn);}
+.tone-btn.active.equilibre{background:var(--accent-l);border-color:var(--accent-b);color:var(--accent);}
+.tone-btn.active.encourageant{background:var(--amber-l);border-color:var(--amber-b);color:var(--amber);}
+.sel{padding:3px 8px;border:1px solid var(--border);border-radius:5px;font-family:'DM Sans',sans-serif;font-size:.75rem;background:var(--bg);outline:none;color:var(--ink);}
+.sel:focus{border-color:var(--accent);}
+
+/* CONTENT AREA */
+.content{flex:1;display:flex;overflow:hidden;}
+
+/* STUDENT PANEL */
+.st-panel{width:290px;min-width:290px;border-right:1px solid var(--border);display:flex;flex-direction:column;background:var(--surface);overflow:hidden;}
+.panel-head{padding:10px 14px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-shrink:0;}
+.panel-lbl{font-family:'DM Mono',monospace;font-size:.58rem;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);}
+.st-scroll{flex:1;overflow-y:auto;}
+
+/* STUDENT PILL ROW */
+.st-row{padding:9px 13px;border-bottom:1px solid var(--border);cursor:pointer;display:flex;align-items:center;gap:9px;transition:background .1s;position:relative;}
+.st-row:hover{background:var(--bg);}
+.st-row.active{background:var(--accent-l);border-left:3px solid var(--accent);padding-left:10px;}
+.st-avatar{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Lora',serif;font-size:.82rem;flex-shrink:0;}
+.av-m{background:#deeaf5;color:#1a3a5c;} .av-f{background:#f5e8f0;color:#5c1a4a;}
+.st-info{flex:1;min-width:0;}
+.st-name{font-size:.84rem;font-weight:400;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.st-meta{font-family:'DM Mono',monospace;font-size:.55rem;color:var(--muted);text-transform:uppercase;margin-top:2px;display:flex;align-items:center;gap:5px;}
+.mini-badge{display:inline-flex;padding:1px 5px;border-radius:3px;font-size:.52rem;text-transform:uppercase;letter-spacing:.04em;}
+.ob-purple{background:var(--purple-l);color:var(--purple);border:1px solid var(--purple-b);}
+.st-dot{width:7px;height:7px;border-radius:50%;background:var(--border);flex-shrink:0;}
+.st-dot.done{background:var(--accent);}
+.del-x{background:none;border:none;color:var(--border);cursor:pointer;font-size:.72rem;padding:2px 4px;border-radius:3px;transition:all .1s;margin-left:1px;}
+.del-x:hover{color:var(--warn);background:var(--warn-l);}
+
+/* ADD ROW */
+.add-row{padding:9px 13px;border-bottom:1px solid var(--border);background:var(--accent-l);}
+.add-form{display:flex;gap:5px;align-items:center;}
+.add-inp{flex:1;padding:5px 8px;border:1px solid var(--accent-b);border-radius:5px;font-family:'DM Sans',sans-serif;font-size:.8rem;background:#fff;color:var(--ink);outline:none;}
+.add-inp:focus{border-color:var(--accent);}
+.gender-tog{display:flex;border:1px solid var(--border);border-radius:5px;overflow:hidden;}
+.gbtn{padding:5px 9px;border:none;background:var(--bg);font-family:'DM Mono',monospace;font-size:.6rem;cursor:pointer;color:var(--muted);transition:all .1s;}
+.gbtn.active{background:var(--accent);color:#fff;}
+
+/* EDITOR PANEL */
+.ed-panel{flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--bg);}
+.ed-scroll{flex:1;overflow-y:auto;padding:20px 24px;display:block;}
+.ed-scroll>*{display:block;width:100%;box-sizing:border-box;}
+
+/* EDITOR HEADER */
+.ed-hdr{display:flex;align-items:center;gap:12px;margin-bottom:18px;}
+.ed-av{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Lora',serif;font-size:1.05rem;}
+.ed-name{font-family:'Lora',serif;font-size:1.22rem;letter-spacing:-.01em;}
+.ed-sub{font-family:'DM Mono',monospace;font-size:.57rem;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);margin-top:3px;}
+
+/* CARDS */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);margin-bottom:10px;overflow:hidden;display:block;width:100%;}
+.card-hd{padding:9px 14px;border-bottom:1px solid var(--border);font-family:'DM Mono',monospace;font-size:.58rem;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);display:flex;justify-content:space-between;align-items:center;}
+.card-bd{padding:12px 14px;}
+
+/* PILL TAGS — the new click-to-select system */
+.pill-grid{padding:10px 12px;display:flex;flex-wrap:wrap;gap:6px;}
+.pill{
+  padding:6px 13px;
+  border-radius:20px;
+  border:1.5px solid var(--border);
+  background:var(--surface);
+  font-size:.8rem;
+  color:var(--muted);
+  cursor:pointer;
+  transition:all .15s;
+  user-select:none;
+  line-height:1.3;
+}
+.pill:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-l);}
+.pill.sel{border-color:var(--accent);background:var(--accent-l);color:var(--accent);font-weight:500;}
+.pill.neg{border-color:var(--border);color:var(--muted);}
+.pill.neg:hover{border-color:var(--warn-b);color:var(--warn);background:var(--warn-l);}
+.pill.neg.sel{border-color:var(--warn-b);background:var(--warn-l);color:var(--warn);font-weight:500;}
+.pill.neutral{border-color:var(--border);}
+.pill.neutral:hover{border-color:var(--amber-b);color:var(--amber);background:var(--amber-l);}
+.pill.neutral.sel{border-color:var(--amber-b);background:var(--amber-l);color:var(--amber);font-weight:500;}
+
+/* GRADE / LEVEL / COMPETENCE SELECTOR */
+.grade-row{padding:10px 14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.grade-inp{width:60px;padding:5px 8px;border:1px solid var(--border);border-radius:5px;font-family:'DM Mono',monospace;font-size:.82rem;background:var(--bg);outline:none;text-align:center;}
+.grade-inp:focus{border-color:var(--accent);background:#fff;}
+.level-row{display:flex;gap:4px;flex-wrap:wrap;}
+.lvl-btn{padding:5px 11px;border:1.5px solid var(--border);border-radius:6px;background:transparent;font-size:.78rem;cursor:pointer;color:var(--muted);transition:all .12s;font-family:'DM Sans',sans-serif;}
+.lvl-btn:hover{border-color:var(--accent);color:var(--accent);}
+.lvl-btn.active{border-color:var(--accent);background:var(--accent-l);color:var(--accent);font-weight:500;}
+.lvl-btn.lv-insuf{}.lvl-btn.lv-insuf:hover,.lvl-btn.lv-insuf.active{border-color:var(--warn-b);background:var(--warn-l);color:var(--warn);}
+.lvl-btn.lv-fragile:hover,.lvl-btn.lv-fragile.active{border-color:var(--amber-b);background:var(--amber-l);color:var(--amber);}
+.comp-row{display:flex;gap:4px;flex-wrap:wrap;}
+.comp-btn{padding:5px 11px;border:1.5px solid var(--border);border-radius:6px;background:transparent;font-size:.78rem;cursor:pointer;color:var(--muted);transition:all .12s;}
+.comp-btn:hover{border-color:var(--blue-b);color:var(--blue);}
+.comp-btn.active{border-color:var(--blue-b);background:var(--blue-l);color:var(--blue);font-weight:500;}
+
+/* ORIENTATION */
+.orient-card{background:var(--surface);border:1px solid var(--purple-b);border-radius:var(--r);margin-bottom:10px;overflow:hidden;}
+.orient-hd{padding:9px 14px;background:var(--purple-l);border-bottom:1px solid var(--purple-b);display:flex;justify-content:space-between;align-items:center;}
+.orient-title{font-family:'DM Mono',monospace;font-size:.58rem;text-transform:uppercase;letter-spacing:.09em;color:var(--purple);}
+.tog-sw{width:32px;height:17px;background:var(--border);border-radius:9px;cursor:pointer;position:relative;transition:background .18s;border:none;flex-shrink:0;}
+.tog-sw.on{background:var(--purple);}
+.tog-sw::after{content:'';position:absolute;width:13px;height:13px;background:#fff;border-radius:50%;top:2px;left:2px;transition:left .18s;}
+.tog-sw.on::after{left:17px;}
+.orient-bd{padding:12px 14px;display:flex;flex-direction:column;gap:10px;}
+.olevel-row{display:flex;gap:4px;}
+.olbtn{flex:1;padding:6px 5px;border:1.5px solid var(--border);border-radius:6px;background:transparent;font-family:'DM Mono',monospace;font-size:.58rem;text-transform:uppercase;letter-spacing:.04em;cursor:pointer;color:var(--muted);transition:all .12s;text-align:center;}
+.olbtn:hover{border-color:var(--purple-b);color:var(--purple);}
+.olbtn.active{background:var(--purple-l);border-color:var(--purple-b);color:var(--purple);}
+.odesc{font-size:.78rem;color:var(--muted);line-height:1.55;padding:7px 10px;background:var(--bg);border-radius:6px;}
+.opath-row{display:flex;gap:4px;flex-wrap:wrap;}
+.opbtn{padding:5px 10px;border:1.5px solid var(--border);border-radius:6px;background:transparent;font-size:.78rem;cursor:pointer;color:var(--muted);transition:all .12s;}
+.opbtn:hover{border-color:var(--purple-b);color:var(--purple);}
+.opbtn.active{background:var(--purple-l);border-color:var(--purple-b);color:var(--purple);font-weight:500;}
+.onote{width:100%;padding:7px 10px;border:1px solid var(--border);border-radius:6px;font-family:'DM Sans',sans-serif;font-size:.8rem;background:var(--bg);outline:none;resize:none;line-height:1.5;}
+.onote:focus{border-color:var(--purple-b);background:#fff;}
+
+/* COMMENT OUTPUT */
+.cmt-hd{padding:9px 14px;background:var(--bg);border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;}
+.cmt-lbl{font-family:'DM Mono',monospace;font-size:.58rem;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);}
+.cmt-acts{display:flex;gap:5px;align-items:center;}
+.cchar{font-family:'DM Mono',monospace;font-size:.6rem;padding:2px 7px;border-radius:4px;background:var(--bg);border:1px solid var(--border);}
+.cchar.over{background:var(--warn-l);border-color:var(--warn-b);color:var(--warn);}
+.cchar.ok{background:var(--accent-l);border-color:var(--accent-b);color:var(--accent);}
+.cmt-ta{width:100%;min-height:120px;padding:13px;border:1px solid var(--border);border-radius:6px;font-family:'Lora',serif;font-size:.9rem;line-height:1.75;resize:vertical;background:var(--bg);color:var(--ink);outline:none;transition:border-color .12s;}
+.cmt-ta:focus{border-color:var(--accent);background:#fff;}
+.cmt-ta.gen{background:linear-gradient(90deg,var(--bg) 25%,var(--accent-l) 50%,var(--bg) 75%);background-size:200% 100%;animation:shim 1.4s infinite;pointer-events:none;}
+@keyframes shim{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.act-btn{padding:4px 10px;border:1px solid var(--border);border-radius:5px;background:transparent;font-family:'DM Mono',monospace;font-size:.58rem;text-transform:uppercase;letter-spacing:.05em;cursor:pointer;color:var(--muted);transition:all .12s;}
+.act-btn:hover{background:var(--bg);color:var(--ink);}
+.copy-btn{padding:4px 10px;border:1px solid var(--border);border-radius:5px;background:transparent;font-family:'DM Mono',monospace;font-size:.58rem;text-transform:uppercase;letter-spacing:.05em;cursor:pointer;color:var(--muted);transition:all .12s;}
+.copy-btn:hover{background:var(--accent);color:#fff;border-color:var(--accent);}
+.copy-btn.copied{background:var(--accent);color:#fff;border-color:var(--accent);}
+
+/* BULK */
+.bulk-panel{flex:1;overflow-y:auto;padding:20px 24px;}
+.bulk-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);margin-bottom:8px;overflow:hidden;}
+.bulk-hd{padding:8px 13px;background:var(--bg);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.bulk-name{font-size:.84rem;font-weight:400;}
+.bulk-meta{font-family:'DM Mono',monospace;font-size:.55rem;color:var(--muted);text-transform:uppercase;flex:1;}
+.bulk-bd{padding:10px 13px;display:flex;gap:8px;}
+.bulk-ta{flex:1;padding:9px 11px;border:1px solid var(--border);border-radius:5px;font-family:'Lora',serif;font-size:.86rem;line-height:1.7;resize:none;background:var(--bg);outline:none;min-height:80px;}
+.bulk-ta:focus{border-color:var(--accent);background:#fff;}
+.bulk-ta.gen{background:linear-gradient(90deg,var(--bg) 25%,var(--accent-l) 50%,var(--bg) 75%);background-size:200% 100%;animation:shim 1.4s infinite;}
+.bulk-acts{display:flex;flex-direction:column;gap:4px;}
+
+/* CLASS REVIEW */
+.cr-panel{flex:1;overflow-y:auto;padding:20px 24px;}
+.cr-card{background:var(--surface);border:1px solid var(--blue-b);border-radius:var(--r);margin-bottom:10px;overflow:hidden;}
+.cr-hd{padding:9px 14px;background:var(--blue-l);border-bottom:1px solid var(--blue-b);font-family:'DM Mono',monospace;font-size:.58rem;text-transform:uppercase;letter-spacing:.09em;color:var(--blue);}
+
+/* EMPTY */
+.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:var(--muted);text-align:center;padding:40px;}
+.empty-icon{font-size:2.2rem;margin-bottom:14px;opacity:.35;}
+.empty-t{font-family:'Lora',serif;font-size:1.1rem;margin-bottom:8px;color:var(--ink);opacity:.5;}
+.empty-s{font-size:.82rem;line-height:1.6;max-width:250px;}
+
+/* MODAL */
+.mo{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000;align-items:center;justify-content:center;}
+.mo.open{display:flex;}
+.modal{background:#fff;border-radius:12px;padding:26px;width:400px;max-width:92vw;box-shadow:0 24px 70px rgba(0,0,0,.18);}
+.mo-t{font-family:'Lora',serif;font-size:1.2rem;margin-bottom:18px;}
+.mo-lbl{font-family:'DM Mono',monospace;font-size:.58rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:5px;}
+.mo-inp{width:100%;padding:8px 11px;border:1px solid var(--border);border-radius:7px;font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none;margin-bottom:12px;}
+.mo-inp:focus{border-color:var(--accent);}
+.mo-sel{width:100%;padding:8px 11px;border:1px solid var(--border);border-radius:7px;font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none;background:var(--bg);margin-bottom:12px;}
+.mo-radio{display:flex;gap:8px;margin-bottom:12px;}
+.mo-radio label{display:flex;align-items:center;gap:5px;font-size:.82rem;cursor:pointer;}
+.mo-acts{display:flex;justify-content:flex-end;gap:7px;margin-top:16px;}
+.mo-row{display:flex;gap:8px;align-items:center;margin-bottom:12px;}
+.mo-row label{font-size:.82rem;color:var(--muted);}
+
+/* TOAST */
+.toast{position:fixed;bottom:20px;right:20px;background:var(--ink);color:#fff;padding:10px 17px;border-radius:7px;font-size:.8rem;opacity:0;transform:translateY(6px);transition:all .24s;z-index:9999;pointer-events:none;}
+.toast.show{opacity:1;transform:translateY(0);}
+
+/* GOOGLE DRIVE SYNC */
+.gdrive-bar{background:rgba(255,255,255,.03);border-top:1px solid rgba(255,255,255,.06);padding:7px 10px;display:flex;align-items:center;gap:7px;font-family:'DM Mono',monospace;font-size:.55rem;text-transform:uppercase;letter-spacing:.07em;flex-shrink:0;}
+.gd-dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.15);flex-shrink:0;transition:background .3s;}
+.gd-dot.connected{background:#34a853;}
+.gd-dot.syncing{background:#fbbc04;animation:pulse .8s infinite;}
+.gd-dot.error{background:#ea4335;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.gd-status{color:rgba(255,255,255,.28);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.gd-status.connected{color:#34a853;}
+.gd-status.error{color:#ea4335;}
+.gd-status.syncing{color:#fbbc04;}
+.gd-btn{padding:3px 8px;border:1px solid rgba(255,255,255,.12);border-radius:4px;background:transparent;font-family:'DM Mono',monospace;font-size:.52rem;text-transform:uppercase;letter-spacing:.05em;cursor:pointer;color:rgba(255,255,255,.35);transition:all .12s;white-space:nowrap;}
+.gd-btn:hover{background:rgba(255,255,255,.08);color:rgba(255,255,255,.7);}
+.gd-btn.primary{border-color:rgba(66,133,244,.6);color:#7ab3ff;}
+.gd-btn.primary:hover{background:rgba(66,133,244,.12);}
+.gd-lastsync{color:rgba(255,255,255,.18);font-size:.5rem;white-space:nowrap;}
+
+/* LOGIN SCREEN */
+.login-screen{position:fixed;inset:0;background:var(--sidebar);display:flex;align-items:center;justify-content:center;z-index:9999;flex-direction:column;gap:0;}
+.login-box{background:#1e2330;border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:40px 36px;width:340px;max-width:92vw;text-align:center;box-shadow:0 32px 80px rgba(0,0,0,.4);}
+.login-logo{font-family:'Lora',serif;font-size:2rem;color:#f0ece4;letter-spacing:-.02em;margin-bottom:6px;}
+.login-logo em{font-style:italic;color:#6ecf7f;}
+.login-sub{font-family:'DM Mono',monospace;font-size:.58rem;text-transform:uppercase;letter-spacing:.14em;color:rgba(255,255,255,.22);margin-bottom:32px;}
+.login-desc{font-size:.84rem;color:rgba(255,255,255,.4);line-height:1.6;margin-bottom:28px;}
+.google-btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:12px 20px;background:#fff;border:none;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.9rem;font-weight:500;color:#3c4043;cursor:pointer;transition:all .14s;box-shadow:0 2px 8px rgba(0,0,0,.2);}
+.google-btn:hover{background:#f8f9fa;box-shadow:0 4px 16px rgba(0,0,0,.3);}
+.google-btn svg{width:18px;height:18px;flex-shrink:0;}
+.login-note{font-family:'DM Mono',monospace;font-size:.52rem;color:rgba(255,255,255,.15);margin-top:16px;line-height:1.6;}
+
+/* USER PROFILE in sidebar */
+.sb-user{padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);display:flex;align-items:center;gap:8px;}
+.sb-avatar{width:28px;height:28px;border-radius:50%;object-fit:cover;flex-shrink:0;}
+.sb-avatar-init{width:28px;height:28px;border-radius:50%;background:rgba(110,207,127,.25);color:#6ecf7f;display:flex;align-items:center;justify-content:center;font-family:'Lora',serif;font-size:.8rem;flex-shrink:0;}
+.sb-user-info{flex:1;min-width:0;}
+.sb-user-name{font-size:.78rem;color:rgba(255,255,255,.7);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.sb-user-email{font-family:'DM Mono',monospace;font-size:.5rem;color:rgba(255,255,255,.22);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px;}
+.sb-logout{background:none;border:none;color:rgba(255,255,255,.18);cursor:pointer;font-size:.6rem;padding:3px 5px;border-radius:3px;transition:all .12s;flex-shrink:0;}
+.sb-logout:hover{color:#ff7b7b;background:rgba(255,80,80,.12);}
+
+/* ONBOARDING */
+.onboard-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9998;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(3px);}
+.onboard-box{background:#fff;border-radius:16px;width:480px;max-width:95vw;max-height:90vh;overflow:hidden;box-shadow:0 32px 80px rgba(0,0,0,.25);display:flex;flex-direction:column;}
+.onboard-top{padding:28px 28px 0;}
+.onboard-progress{display:flex;gap:5px;margin-bottom:20px;}
+.onboard-dot{flex:1;height:3px;border-radius:2px;background:#e0e0e0;transition:background .3s;}
+.onboard-dot.done{background:var(--accent);}
+.onboard-step{flex:1;overflow-y:auto;padding:0 28px 20px;}
+.onboard-icon{font-size:2.8rem;margin-bottom:12px;display:block;}
+.onboard-title{font-family:'Lora',serif;font-size:1.35rem;color:var(--ink);margin-bottom:8px;}
+.onboard-desc{font-size:.88rem;color:var(--muted);line-height:1.7;margin-bottom:16px;}
+.onboard-tips{display:flex;flex-direction:column;gap:8px;margin-bottom:8px;}
+.onboard-tip{display:flex;align-items:flex-start;gap:10px;background:var(--bg);border-radius:8px;padding:10px 12px;}
+.onboard-tip-icon{font-size:1.1rem;flex-shrink:0;margin-top:1px;}
+.onboard-tip-text{font-size:.82rem;color:var(--ink);line-height:1.55;}
+.onboard-tip-text strong{color:var(--accent);}
+.onboard-foot{padding:16px 28px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-shrink:0;}
+.onboard-counter{font-family:'DM Mono',monospace;font-size:.58rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);}
+.help-btn{background:none;border:1.5px solid rgba(255,255,255,.2);border-radius:50%;width:26px;height:26px;font-family:'Lora',serif;font-size:.82rem;color:rgba(255,255,255,.35);cursor:pointer;transition:all .14s;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.help-btn:hover{border-color:rgba(110,207,127,.6);color:#6ecf7f;background:rgba(110,207,127,.1);}
+
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+
+/* ── PP MODE ── */
+.sb-divider{padding:8px 16px 4px;display:flex;align-items:center;gap:8px;}
+.sb-div-line{flex:1;height:1px;background:rgba(255,255,255,.08);}
+.sb-div-lbl{font-family:'DM Mono',monospace;font-size:.52rem;text-transform:uppercase;letter-spacing:.12em;color:rgba(255,255,255,.19);white-space:nowrap;}
+.pp-item{padding:9px 10px;border-radius:7px;cursor:pointer;display:flex;align-items:center;gap:8px;margin:2px 7px;transition:background .13s;color:rgba(255,255,255,.52);}
+.pp-item:hover{background:rgba(255,255,255,.06);color:rgba(255,255,255,.8);}
+.pp-item.active{background:rgba(100,210,195,.12);color:#64d2c3;}
+.pp-dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.13);flex-shrink:0;}
+.pp-item.active .pp-dot{background:#64d2c3;}
+.add-pp-btn{margin:3px 7px 8px;width:calc(100% - 14px);padding:7px;background:transparent;border:1px dashed rgba(255,255,255,.09);border-radius:7px;color:rgba(255,255,255,.22);font-family:'DM Mono',monospace;font-size:.58rem;text-transform:uppercase;letter-spacing:.08em;cursor:pointer;transition:all .14s;}
+.add-pp-btn:hover{border-color:rgba(100,210,195,.4);color:#64d2c3;background:rgba(100,210,195,.05);}
+.pp-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;background:var(--teal-l);border:1px solid var(--teal-b);border-radius:5px;font-family:'DM Mono',monospace;font-size:.58rem;text-transform:uppercase;letter-spacing:.07em;color:var(--teal);}
+.pp-layout{display:flex;height:100%;overflow:hidden;}
+.pp-list-panel{width:290px;min-width:290px;border-right:1px solid var(--border);display:flex;flex-direction:column;background:var(--surface);overflow:hidden;}
+.pp-ed-panel{flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--bg);}
+.pp-ed-scroll{flex:1;overflow-y:auto;padding:20px 24px;}
+.pp-st-row{padding:9px 13px;border-bottom:1px solid var(--border);cursor:pointer;display:flex;align-items:center;gap:9px;transition:background .1s;}
+.pp-st-row:hover{background:var(--bg);}
+.pp-st-row.active{background:var(--teal-l);border-left:3px solid var(--teal);padding-left:10px;}
+.pp-st-dot{width:7px;height:7px;border-radius:50%;background:var(--border);flex-shrink:0;}
+.pp-st-dot.done{background:var(--teal);}
+.pp-card{background:var(--surface);border:1px solid var(--teal-b);border-radius:var(--r);margin-bottom:10px;overflow:hidden;}
+.pp-card-hd{padding:9px 14px;background:var(--teal-l);border-bottom:1px solid var(--teal-b);font-family:'DM Mono',monospace;font-size:.58rem;text-transform:uppercase;letter-spacing:.09em;color:var(--teal);}
+.pp-freetext{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:6px;font-family:'DM Sans',sans-serif;font-size:.84rem;line-height:1.6;background:var(--bg);outline:none;resize:vertical;min-height:70px;}
+.pp-freetext:focus{border-color:var(--teal);background:#fff;}
+.pp-vsco-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:10px 14px;}
+.pp-vsco-item{display:flex;flex-direction:column;gap:4px;}
+.pp-vsco-lbl{font-size:.68rem;color:var(--muted);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.05em;}
+.pp-vsco-inp{padding:5px 8px;border:1px solid var(--border);border-radius:5px;font-family:'DM Mono',monospace;font-size:.82rem;background:var(--bg);outline:none;text-align:center;width:100%;}
+.pp-vsco-inp:focus{border-color:var(--teal);background:#fff;}
+.pp-cmt-ta{width:100%;min-height:130px;padding:13px;border:1px solid var(--border);border-radius:6px;font-family:'Lora',serif;font-size:.9rem;line-height:1.75;resize:vertical;background:var(--bg);color:var(--ink);outline:none;transition:border-color .12s;}
+.pp-cmt-ta:focus{border-color:var(--teal);background:#fff;}
+.pp-cmt-ta.gen{background:linear-gradient(90deg,var(--bg) 25%,var(--teal-l) 50%,var(--bg) 75%);background-size:200% 100%;animation:shim 1.4s infinite;pointer-events:none;}
+.cchar.teal{background:var(--teal-l);border-color:var(--teal-b);color:var(--teal);}
+
+/* ── MOBILE RESPONSIVE ───────────────────────────────────────────────────────── */
+
+/* Mobile bottom nav */
+.mob-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--sidebar);border-top:1px solid rgba(255,255,255,.1);z-index:500;height:62px;flex-shrink:0;padding-bottom:env(safe-area-inset-bottom);}
+.mob-nav-inner{display:flex;height:62px;}
+.mob-tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:none;border:none;color:rgba(255,255,255,.3);cursor:pointer;transition:all .14s;font-family:'DM Mono',monospace;font-size:.45rem;text-transform:uppercase;letter-spacing:.05em;padding:8px 2px;position:relative;}
+.mob-tab:active{transform:scale(.94);}
+.mob-tab.active{color:#6ecf7f;}
+.mob-tab.active::after{content:'';position:absolute;bottom:0;left:25%;right:25%;height:2px;background:#6ecf7f;border-radius:2px 2px 0 0;}
+.mob-tab .mob-icon{font-size:1.3rem;line-height:1;}
+.mob-tab-pp.active{color:#64d2c3;}
+.mob-tab-pp.active::after{background:#64d2c3;}
+
+/* Mobile sidebar drawer */
+.mob-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:800;opacity:0;transition:opacity .22s;backdrop-filter:blur(2px);}
+.mob-overlay.open{opacity:1;}
+.sidebar.mob-open{transform:translateX(0) !important;}
+
+/* Mobile topbar menu button */
+.mob-menu-btn{display:none;background:none;border:none;color:var(--muted);cursor:pointer;font-size:1.3rem;padding:6px 8px;border-radius:8px;transition:all .12s;flex-shrink:0;line-height:1;}
+.mob-menu-btn:active{background:var(--bg);}
+
+/* Mobile student nav arrows */
+.mob-st-nav{display:none;position:fixed;bottom:62px;left:0;right:0;background:var(--surface);border-top:1px solid var(--border);padding:6px 10px;z-index:400;box-shadow:0 -2px 12px rgba(0,0,0,.06);}
+.mob-st-nav-inner{display:flex;align-items:center;gap:8px;}
+.mob-nav-arrow{flex:1;padding:9px;border:1px solid var(--border);border-radius:10px;background:transparent;font-size:.82rem;cursor:pointer;color:var(--muted);transition:all .12s;text-align:center;font-family:'DM Mono',monospace;font-size:.6rem;text-transform:uppercase;letter-spacing:.04em;}
+.mob-nav-arrow:active{background:var(--accent-l);border-color:var(--accent-b);color:var(--accent);}
+.mob-nav-arrow:disabled{opacity:.2;cursor:default;}
+.mob-st-label{flex:2;text-align:center;font-family:'DM Mono',monospace;font-size:.58rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);}
+
+/* Mobile generate button — floating */
+.mob-gen-fab{display:none;position:fixed;bottom:130px;right:14px;z-index:450;width:52px;height:52px;border-radius:50%;background:var(--accent);border:none;color:#fff;font-size:1.4rem;cursor:pointer;box-shadow:0 4px 20px rgba(46,107,62,.45);transition:all .16s;align-items:center;justify-content:center;}
+.mob-gen-fab:active{transform:scale(.93);box-shadow:0 2px 10px rgba(46,107,62,.35);}
+
+@media (max-width: 768px) {
+  /* Show mobile elements */
+  .mob-nav{display:flex;}
+  .mob-menu-btn{display:block;}
+
+  /* Hide desktop sidebar by default — slides in from left */
+  .sidebar{
+    position:fixed;top:0;left:0;bottom:0;z-index:900;
+    transform:translateX(-100%);
+    transition:transform .26s cubic-bezier(.4,0,.2,1);
+    width:min(300px, 85vw);min-width:unset;
+    box-shadow:none;
+  }
+  .sidebar.mob-open{box-shadow:8px 0 40px rgba(0,0,0,.35);}
+
+  /* App layout — critical: enough bottom padding to clear nav + student nav */
+  .app{flex-direction:column;height:100vh;overflow:hidden;}
+  .main{width:100%;display:flex;flex-direction:column;height:100vh;overflow:hidden;padding-bottom:0;}
+
+  /* Content must scroll independently with enough bottom clearance */
+  .content{flex:1;flex-direction:column;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding-bottom:160px;}
+
+  /* Hide desktop tabs & topbar gen button */
+  #view-tabs{display:none !important;}
+  #topbar-r{display:none !important;}
+
+  /* Topbar mobile — compact */
+  .topbar{padding:0 8px;height:50px;gap:6px;}
+  .cls-title{font-size:.9rem;max-width:160px;}
+  .period-row{gap:2px;flex-shrink:0;}
+  .pb{padding:4px 8px;font-size:.55rem;}
+
+  /* Tone bar — horizontal scroll */
+  .dbar{padding:6px 10px;gap:6px;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+  .dbar::-webkit-scrollbar{display:none;}
+  .tone-btn{padding:5px 10px;font-size:.56rem;white-space:nowrap;flex-shrink:0;}
+  .dlbl{flex-shrink:0;}
+
+  /* Content area */
+  .content{flex-direction:column;overflow:auto;}
+
+  /* Student list — compact horizontal scrollable chips on mobile */
+  .st-panel{
+    width:100%;min-width:unset;border-right:none;
+    border-bottom:1px solid var(--border);
+    max-height:none;height:auto;flex-shrink:0;
+  }
+  .st-scroll{
+    display:flex;flex-direction:row;flex-wrap:nowrap;
+    overflow-x:auto;-webkit-overflow-scrolling:touch;
+    padding:6px 10px;gap:6px;
+  }
+  .st-scroll::-webkit-scrollbar{display:none;}
+  .st-row{
+    flex-direction:column;align-items:center;justify-content:center;
+    min-width:52px;max-width:52px;padding:8px 4px;border-bottom:none;
+    border-radius:10px;border:1.5px solid var(--border);
+    background:var(--surface);gap:4px;flex-shrink:0;
+  }
+  .st-row:hover{background:var(--accent-l);}
+  .st-row.active{
+    background:var(--accent-l);border-color:var(--accent);
+    border-left:1.5px solid var(--accent);padding-left:4px;
+  }
+  .st-avatar{width:28px;height:28px;font-size:.75rem;}
+  .st-info{display:none;}
+  .st-dot{position:absolute;top:4px;right:4px;width:6px;height:6px;}
+  .st-row{position:relative;}
+  .del-x{position:absolute;top:2px;left:2px;font-size:.55rem;padding:1px 3px;}
+  .panel-head{padding:7px 10px;}
+
+  /* Add student row */
+  .add-row{padding:6px 10px;}
+
+  /* Editor panel */
+  .ed-panel{flex:1;min-height:0;overflow:auto;}
+  .ed-scroll{padding:10px 12px;padding-bottom:80px;}
+
+  /* Cards — tighter */
+  .card{margin-bottom:8px;}
+  .card-hd{padding:8px 12px;font-size:.55rem;}
+  .card-bd{padding:8px 10px;}
+
+  /* Pills — comfortable touch targets */
+  .pill{padding:9px 14px;font-size:.8rem;border-radius:22px;}
+  .pill-grid{padding:8px 10px;gap:7px;}
+
+  /* Grade/level rows */
+  .grade-row{padding:8px 10px;flex-wrap:wrap;}
+  .level-row{flex-wrap:wrap;}
+  .lvl-btn{padding:6px 12px;font-size:.76rem;}
+
+  /* Comment area */
+  .cmt-hd{padding:8px 12px;flex-wrap:wrap;}
+  .cmt-ta{min-height:100px;font-size:.88rem;padding:10px;}
+
+  /* Orientation card */
+  .orient-card{margin-bottom:8px;}
+  .orient-hd{padding:8px 12px;}
+  .orient-bd{padding:10px 12px;gap:8px;}
+  .olevel-row{gap:3px;}
+  .olbtn{padding:6px 4px;font-size:.54rem;}
+
+  /* PP layout */
+  .pp-layout{flex-direction:column;}
+  .pp-list-panel{
+    width:100%;min-width:unset;border-right:none;
+    border-bottom:1px solid var(--border);height:auto;flex-shrink:0;
+  }
+  /* PP student list — horizontal chips too */
+  #pp-st-scroll{
+    display:flex;flex-direction:row;flex-wrap:nowrap;
+    overflow-x:auto;-webkit-overflow-scrolling:touch;
+    padding:6px 10px;gap:6px;
+  }
+  #pp-st-scroll::-webkit-scrollbar{display:none;}
+  .pp-st-row{
+    flex-direction:column;align-items:center;justify-content:center;
+    min-width:52px;max-width:52px;padding:8px 4px;border-bottom:none;
+    border-radius:10px;border:1.5px solid var(--border);
+    background:var(--surface);gap:4px;flex-shrink:0;
+  }
+  .pp-st-row .st-info{display:none;}
+  .pp-st-row.active{
+    background:var(--teal-l);border-color:var(--teal);
+    border-left:1.5px solid var(--teal);padding-left:4px;
+  }
+  .pp-ed-panel{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+  .pp-ed-scroll{padding:10px 12px 20px 12px;}
+
+  /* Bulk view */
+  .bulk-panel{padding:10px 12px 20px 12px;}
+  .bulk-card{margin-bottom:8px;}
+  .bulk-hd{padding:7px 10px;flex-wrap:wrap;gap:5px;}
+  .bulk-bd{flex-direction:column;padding:8px 10px;gap:6px;}
+  .bulk-ta{min-height:80px;font-size:.85rem;}
+  .bulk-acts{flex-direction:row;justify-content:flex-end;gap:5px;}
+
+  /* Modal — slides up from bottom on mobile */
+  .mo{align-items:flex-end;padding-bottom:0;}
+  .modal{width:100%;max-width:100%;border-radius:16px 16px 0 0;padding:18px 14px;max-height:88vh;overflow-y:auto;}
+  .mo-t{font-size:1.05rem;margin-bottom:14px;}
+
+  /* Ed header */
+  .ed-hdr{gap:8px;margin-bottom:12px;}
+  .ed-name{font-size:1rem;}
+  .ed-av{width:36px;height:36px;font-size:.9rem;}
+
+  /* Buttons — minimum touch targets */
+  .btn{min-height:38px;}
+  .act-btn{min-height:34px;padding:6px 12px;font-size:.6rem;}
+  .copy-btn{min-height:34px;padding:6px 12px;font-size:.6rem;}
+  .tone-btn{min-height:34px;}
+  .lvl-btn{padding:8px 12px;font-size:.78rem;min-height:36px;}
+  .olbtn{padding:8px 4px;font-size:.54rem;min-height:34px;}
+  .pb{min-height:30px;}
+
+  /* Show floating gen button */
+  .mob-gen-fab{display:flex;}
+
+  /* Student nav bar — sits just above bottom nav */
+  .mob-st-nav{bottom:62px;}
+}
+
+@media (max-width: 390px) {
+  .st-row,.pp-st-row{min-width:46px;max-width:46px;}
+  .st-avatar{width:26px;height:26px;font-size:.7rem;}
+  .pill{padding:8px 12px;font-size:.76rem;}
+  .cls-title{font-size:.82rem;max-width:130px;}
+}
+</style>
+</head>
+<body>
+<!-- LOGIN SCREEN -->
+<div class="login-screen" id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">Bulletins<em>Pro</em></div>
+    <div class="login-sub">Générateur d'appréciations</div>
+    <div class="login-desc">Connectez-vous pour accéder à vos classes et sauvegarder vos données sur Google Drive.</div>
+    <button class="google-btn" onclick="gdAuth()">
+      <svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+      Se connecter avec Google
+    </button>
+    <div class="login-note">Vos données restent sur votre Google Drive personnel.<br>Aucune donnée n'est partagée entre professeurs.</div>
+  </div>
+</div>
+
+<div class="app" style="display:none" id="main-app">
+
+<!-- MOBILE OVERLAY (closes sidebar) -->
+<div class="mob-overlay" id="mob-overlay" onclick="closeMobSidebar()"></div>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <!-- USER PROFILE -->
+  <div class="sb-user" id="sb-user" style="display:none">
+    <div class="sb-avatar-init" id="sb-avatar-init"></div>
+    <div class="sb-user-info">
+      <div class="sb-user-name" id="sb-user-name"></div>
+      <div class="sb-user-email" id="sb-user-email"></div>
+    </div>
+    <button class="sb-logout" onclick="gdLogout()" title="Se déconnecter">⏻</button>
+  </div>
+  <div class="sb-logo">
+    <div class="logo-t">Bulletins<em>Pro</em></div>
+    <div class="logo-s">Générateur d'appréciations</div>
+  </div>
+  <div class="s-lbl">Mes classes</div>
+  <div class="cls-list" id="cls-list"></div>
+  <button class="add-cls-btn" onclick="openNewClass()">+ Nouvelle classe</button>
+  <div class="sb-divider"><div class="sb-div-line"></div><span class="sb-div-lbl">Prof. Principal</span><div class="sb-div-line"></div></div>
+  <div id="pp-list"></div>
+  <button class="add-pp-btn" onclick="openNewPP()">+ Nouvelle classe PP</button>
+  <div class="sb-foot">
+    <button class="sb-fbtn" onclick="exportAll()">⬇ Export</button>
+    <button class="sb-fbtn" onclick="importAll()">⬆ Import</button>
+    <button class="sb-fbtn" onclick="showStats()">📊 Stats</button>
+    <button class="sb-fbtn" onclick="showOnboarding(true)" title="Aide">❓ Aide</button>
+    <input type="file" id="imp-inp" accept=".json" style="display:none" onchange="doImport(event)">
+  </div>
+  <!-- GOOGLE DRIVE SYNC BAR -->
+  <div class="gdrive-bar" id="gdrive-bar">
+    <div class="gd-dot" id="gd-dot"></div>
+    <span class="gd-status" id="gd-status">Non connecté</span>
+    <span class="gd-lastsync" id="gd-lastsync"></span>
+    <button class="gd-btn primary" id="gd-btn" onclick="gdAuth()">Connecter Drive</button>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-l">
+      <button class="mob-menu-btn" onclick="openMobSidebar()">☰</button>
+      <span class="cls-title" id="cls-title">Sélectionner une classe</span>
+      <div class="period-row" id="period-row" style="display:none"></div>
+    </div>
+    <div class="topbar-r" id="topbar-r" style="display:none">
+      <span id="offline-badge" style="display:none;font-family:'DM Mono',monospace;font-size:.55rem;background:#fef4e0;border:1px solid #e8cc80;color:#8a5e00;padding:3px 8px;border-radius:5px;text-transform:uppercase;letter-spacing:.05em">📵 Hors-ligne</span>
+      <button class="btn btn-b btn-sm" onclick="goGenAll()">⚡ Générer tout</button>
+    </div>
+  </div>
+  <div id="view-tabs" style="display:none">
+    <div class="tabs">
+      <button class="tab active" onclick="setView('students')" id="tab-students">✏️ Élèves</button>
+      <button class="tab t-blue" onclick="setView('classrev')" id="tab-classrev">📋 Classe</button>
+      <button class="tab" onclick="setView('bulk')" id="tab-bulk">📄 Vue complète</button>
+    </div>
+  </div>
+  <div class="dbar" id="dbar" style="display:none">
+    <span class="dlbl">Ton :</span>
+    <div class="tone-row" id="tone-row">
+      <button class="tone-btn ferme" onclick="setClsTone('ferme',this)">Ferme</button>
+      <button class="tone-btn active equilibre" onclick="setClsTone('equilibre',this)">Équilibré</button>
+      <button class="tone-btn encourageant" onclick="setClsTone('encourageant',this)">Encourageant</button>
+    </div>
+  </div>
+  <div class="content" id="content">
+    <div class="empty" style="flex:1">
+      <div class="empty-icon">📚</div>
+      <div class="empty-t">Bienvenue dans Bulletins Pro</div>
+      <p class="empty-s">Créez votre première classe pour commencer à générer des appréciations.</p>
+      <br><button class="btn btn-g" onclick="openNewClass()" style="margin-top:8px">Créer une classe</button>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- MOBILE BOTTOM NAV -->
+<nav class="mob-nav" id="mob-nav">
+  <div class="mob-nav-inner">
+    <button class="mob-tab active" id="mobt-students" onclick="mobSetView('students')">
+      <span class="mob-icon">✏️</span>Élèves
+    </button>
+    <button class="mob-tab" id="mobt-classrev" onclick="mobSetView('classrev')">
+      <span class="mob-icon">📋</span>Classe
+    </button>
+    <button class="mob-tab" id="mobt-bulk" onclick="mobSetView('bulk')">
+      <span class="mob-icon">📄</span>Tout
+    </button>
+    <button class="mob-tab" id="mobt-gen" onclick="goGenAll()">
+      <span class="mob-icon">⚡</span>Générer
+    </button>
+    <button class="mob-tab" id="mobt-menu" onclick="openMobSidebar()">
+      <span class="mob-icon">☰</span>Classes
+    </button>
+  </div>
+</nav>
+
+<!-- MOBILE FLOATING GENERATE BUTTON -->
+<button class="mob-gen-fab" id="mob-gen-fab" onclick="mobGenCurrent()" title="Générer l'appréciation">⚡</button>
+
+<!-- MOBILE STUDENT NAV (prev/next) -->
+<div class="mob-st-nav" id="mob-st-nav" style="display:none">
+  <div class="mob-st-nav-inner">
+    <button class="mob-nav-arrow" id="mob-prev" onclick="mobPrevStudent()">← Préc.</button>
+    <span class="mob-st-label" id="mob-st-pos"></span>
+    <button class="mob-nav-arrow" id="mob-next" onclick="mobNextStudent()">Suiv. →</button>
+  </div>
+</div>
+
+<!-- MODAL NEW CLASS -->
+<div class="mo" id="mo-cls">
+  <div class="modal">
+    <div class="mo-t">Nouvelle classe</div>
+    <div class="mo-lbl">Nom de la classe</div>
+    <input class="mo-inp" id="nc-name" placeholder="ex: 3ème A, Terminale B..." onkeydown="if(event.key==='Enter')createClass()">
+    <div class="mo-lbl">Matière</div>
+    <select class="mo-sel" id="nc-subj"></select>
+    <div class="mo-lbl">Périodes</div>
+    <div class="mo-radio">
+      <label><input type="radio" name="nc-period" value="trimestre" checked> Trimestres (3)</label>
+      <label><input type="radio" name="nc-period" value="semestre"> Semestres (2)</label>
+    </div>
+    <div class="mo-lbl">Système d'évaluation</div>
+    <select class="mo-sel" id="nc-eval">
+      <option value="note">Note sur 20</option>
+      <option value="niveau">Niveau (Excellent → Très insuffisant)</option>
+      <option value="competence">Compétences (4 niveaux)</option>
+      <option value="mix">Mixte (niveau + compétences)</option>
+    </select>
+    <div class="mo-lbl">Nombre d'élèves (génération automatique des numéros)</div>
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px">
+      <input class="mo-inp" id="nc-count" type="number" min="1" max="38" placeholder="ex: 28" style="margin:0;width:90px">
+      <span style="font-size:.8rem;color:var(--muted)">élèves — ou laissez vide pour ajouter un par un</span>
+    </div>
+    <div class="mo-lbl">Limite de caractères par appréciation</div>
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px">
+      <input class="mo-inp" id="nc-charlimit" type="number" min="100" max="2000" placeholder="750" style="margin:0;width:90px">
+      <span style="font-size:.8rem;color:var(--muted)">caractères max (défaut : 750)</span>
+    </div>
+    <div class="mo-acts">
+      <button class="btn btn-o" onclick="closeMo('mo-cls')">Annuler</button>
+      <button class="btn btn-g" onclick="createClass()">Créer</button>
+    </div>
+  </div>
+</div>
+
+<!-- PP MODAL -->
+<div class="mo" id="mo-pp">
+  <div class="modal">
+    <div class="mo-t">Nouveau groupe — Professeur Principal</div>
+    <div class="mo-lbl">Nom de la classe / groupe</div>
+    <input class="mo-inp" id="pp-name" placeholder="ex: 3ème A, Terminale B..." onkeydown="if(event.key==='Enter')createPP()">
+    <div class="mo-row">
+      <div style="flex:1">
+        <div class="mo-lbl">Nombre d'élèves</div>
+        <input class="mo-inp" id="pp-count" type="number" min="1" max="38" placeholder="ex: 28" style="width:90px;margin:0">
+      </div>
+      <div style="flex:1">
+        <div class="mo-lbl">Périodes</div>
+        <div class="mo-radio" style="margin:0">
+          <label><input type="radio" name="pp-period" value="trimestre" checked> Trimestres</label>
+          <label><input type="radio" name="pp-period" value="semestre"> Semestres</label>
+        </div>
+      </div>
+    </div>
+    <div class="mo-acts">
+      <button class="btn btn-o" onclick="closeMo('mo-pp')">Annuler</button>
+      <button class="btn btn-g" onclick="createPP()">Créer</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- CONFIRM MODAL -->
+<div class="mo" id="mo-confirm">
+  <div class="modal" style="width:340px">
+    <div class="mo-t" id="mc-title" style="font-size:1.05rem"></div>
+    <p id="mc-msg" style="font-size:.84rem;color:var(--muted);margin-bottom:20px;line-height:1.5"></p>
+    <div class="mo-acts">
+      <button class="btn btn-o" id="mc-cancel">Annuler</button>
+      <button class="btn" id="mc-ok" style="background:var(--warn);color:#fff">Supprimer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ONBOARDING MODAL -->
+<div class="onboard-overlay" id="onboard-overlay" style="display:none" onclick="if(event.target===this)closeOnboarding()">
+  <div class="onboard-box">
+    <div class="onboard-top">
+      <div class="onboard-progress" id="onboard-progress"></div>
+    </div>
+    <div class="onboard-step" id="onboard-step"></div>
+    <div class="onboard-foot">
+      <span class="onboard-counter" id="onboard-counter"></span>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-o btn-sm" id="onboard-prev" onclick="onboardNav(-1)">← Précédent</button>
+        <button class="btn btn-g btn-sm" id="onboard-next" onclick="onboardNav(1)">Suivant →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── SUBJECT DEFINITIONS ───────────────────────────────────────────────────────
+const SUBJECTS = {
+  anglais:    {label:'Anglais',     type:'lang'},
+  francais:   {label:'Français',    type:'lang'},
+  espagnol:   {label:'Espagnol',    type:'lang'},
+  allemand:   {label:'Allemand',    type:'lang'},
+  maths:      {label:'Mathématiques', type:'academic'},
+  histoire:   {label:'Histoire-Géo',  type:'academic'},
+  sciences:   {label:'SVT',           type:'academic'},
+  physique:   {label:'Physique-Chimie',type:'academic'},
+  philo:      {label:'Philosophie',   type:'academic'},
+  ses:        {label:'SES',           type:'academic'},
+  eps:        {label:'EPS',           type:'pratique'},
+  arts:       {label:'Arts plastiques',type:'pratique'},
+  musique:    {label:'Musique',       type:'pratique'},
+  techno:     {label:'Technologie',   type:'pratique'},
+  general:    {label:'Général',       type:'academic'},
+};
+
+// ── CHECKBOX DEFINITIONS PER SUBJECT TYPE ────────────────────────────────────
+// valence: 'pos' | 'neg' | 'neutral'
+const VERDICT_PILLS = [
+  {id:'vd1', l:'Excellent trimestre',    weight: 5},
+  {id:'vd2', l:'Très bon trimestre',     weight: 4},
+  {id:'vd3', l:'Bon trimestre',          weight: 3},
+  {id:'vd4', l:'Trimestre satisfaisant', weight: 2},
+  {id:'vd5', l:'Trimestre encourageant', weight: 2},
+  {id:'vd6', l:'Trimestre décevant',     weight:-1},
+  {id:'vd7', l:'Trimestre insuffisant',  weight:-2},
+  {id:'vd8', l:'Trimestre inquiétant',   weight:-3},
+  {id:'vd9', l:'Trimestre très insuffisant', weight:-4},
+];
+
+// ── CORE BOXES — shared across all subjects, in display order ────────────────
+// Order: progression → travail → participation (generic) → [subject specific] → qualités → comportement → conseils
+const CORE_BOXES_ORDERED = ['progression','travail','participation','qualites','comportement','conseils'];
+
+const CORE_BOXES = {
+  progression: {
+    label:'Progression & Résultats',
+    items:[
+      {id:'pr1',l:'Excellents résultats',v:'pos'},
+      {id:'pr2',l:'Bons résultats',v:'pos'},
+      {id:'pr3',l:'Résultats satisfaisants',v:'pos'},
+      {id:'pr4',l:'Résultats fragiles',v:'neutral'},
+      {id:'pr5',l:'Résultats insuffisants',v:'neg'},
+      {id:'pr6',l:'Résultats très insuffisants',v:'neg'},
+      {id:'pr7',l:'Progression notable',v:'pos'},
+      {id:'pr8',l:'Progression régulière',v:'pos'},
+      {id:'pr9',l:'Progression stable',v:'neutral'},
+      {id:'pr10',l:'Progression irrégulière',v:'neutral'},
+      {id:'pr11',l:'Légère régression',v:'neg'},
+      {id:'pr12',l:'Régression notable',v:'neg'},
+      {id:'pr13',l:'En difficulté',v:'neg'},
+    ]
+  },
+  travail: {
+    label:'Travail & Effort',
+    items:[
+      {id:'tr1',l:'Travail sérieux et rigoureux',v:'pos'},
+      {id:'tr2',l:'Travail régulier',v:'pos'},
+      {id:'tr3',l:'Efforts soutenus',v:'pos'},
+      {id:'tr4',l:'Travail correct mais sans plus',v:'neutral'},
+      {id:'tr5',l:'Travail irrégulier',v:'neutral'},
+      {id:'tr6',l:'Peut largement mieux faire',v:'neg'},
+      {id:'tr7',l:'Peu d\'efforts en classe',v:'neg'},
+      {id:'tr8',l:'Aucun effort en classe',v:'neg'},
+      {id:'tr9',l:'Travail à la maison inexistant',v:'neg'},
+      {id:'tr10',l:'Travail à la maison insuffisant',v:'neg'},
+      {id:'tr11',l:'Devoirs toujours rendus',v:'pos'},
+      {id:'tr12',l:'Devoirs souvent oubliés',v:'neg'},
+      {id:'tr13',l:'Soin apporté au travail',v:'pos'},
+      {id:'tr14',l:'Travail souvent bâclé',v:'neg'},
+    ]
+  },
+  participation: {
+    label:'Participation en classe',
+    items:[
+      {id:'pa1',l:'Participe activement',v:'pos'},
+      {id:'pa2',l:'Pose de bonnes questions',v:'pos'},
+      {id:'pa3',l:'Engagement exemplaire',v:'pos'},
+      {id:'pa4',l:'Participation correcte',v:'neutral'},
+      {id:'pa5',l:'Participation timide',v:'neutral'},
+      {id:'pa6',l:'Participe peu',v:'neg'},
+      {id:'pa7',l:'Distrait(e) en classe',v:'neg'},
+      {id:'pa8',l:'Evite de prendre la parole',v:'neg'},
+    ]
+  },
+  qualites: {
+    label:'Qualités & Aptitudes',
+    items:[
+      {id:'qa1',l:'Curiosité intellectuelle',v:'pos'},
+      {id:'qa2',l:'Autonomie remarquable',v:'pos'},
+      {id:'qa3',l:'Esprit critique développé',v:'pos'},
+      {id:'qa4',l:'Créativité et originalité',v:'pos'},
+      {id:'qa5',l:'Persévérance',v:'pos'},
+      {id:'qa6',l:'Entraide avec les camarades',v:'pos'},
+      {id:'qa7',l:'Méthode de travail efficace',v:'pos'},
+      {id:'qa8',l:'Manque de méthode',v:'neg'},
+      {id:'qa9',l:'Manque d\'autonomie',v:'neg'},
+    ]
+  },
+  comportement: {
+    label:'Comportement & Attitude',
+    items:[
+      {id:'co1',l:'Comportement exemplaire',v:'pos'},
+      {id:'co2',l:'Attitude très positive',v:'pos'},
+      {id:'co3',l:'Respectueux(se) et sérieux(se)',v:'pos'},
+      {id:'co4',l:'Comportement correct',v:'neutral'},
+      {id:'co5',l:'Manque de concentration',v:'neg'},
+      {id:'co6',l:'Bavarde parfois',v:'neg'},
+      {id:'co7',l:'Bavardages incessants',v:'neg'},
+      {id:'co8',l:'Parfois perturbateur/trice',v:'neg'},
+      {id:'co9',l:'Très perturbateur/trice',v:'neg'},
+      {id:'co10',l:'Fait preuve de maturité',v:'pos'},
+      {id:'co11',l:'Attitude constructive',v:'pos'},
+    ]
+  },
+  conseils: {
+    label:'Objectifs & Conseils',
+    items:[
+      {id:'ob1',l:'Félicitations',v:'pos'},
+      {id:'ob2',l:'Encouragements',v:'pos'},
+      {id:'ob3',l:'Continuer sur cette lancée',v:'pos'},
+      {id:'ob4',l:'Être plus régulier(ière) à l\'écrit',v:'neutral'},
+      {id:'ob5',l:'Être plus régulier(ière) à l\'oral',v:'neutral'},
+      {id:'ob6',l:'Revoir les bases',v:'neutral'},
+      {id:'ob7',l:'Améliorer la méthode',v:'neutral'},
+      {id:'ob8',l:'Gagner en confiance',v:'neutral'},
+      {id:'ob9',l:'Implication accrue nécessaire',v:'neg'},
+      {id:'ob10',l:'Attitude constructive requise',v:'neg'},
+      {id:'ob11',l:'Respect à adopter en urgence',v:'neg'},
+      {id:'ob12',l:'Travail urgent et nécessaire',v:'neg'},
+    ]
+  },
+};
+
+// ── SUBJECT-SPECIFIC BOXES — inserted between participation and qualités ──────
+const SUBJECT_BOXES = {
+  lang: {
+    oral: {
+      label:'Expression orale & Prononciation',
+      items:[
+        {id:'lo1',l:'Bonne expression orale',v:'pos'},
+        {id:'lo2',l:'Prononciation travaillée',v:'pos'},
+        {id:'lo3',l:'Bon niveau de langue à l\'oral',v:'pos'},
+        {id:'lo4',l:'Aisance à l\'oral',v:'pos'},
+        {id:'lo5',l:'Hésitant(e) à l\'oral',v:'neg'},
+        {id:'lo6',l:'Prononciation à travailler',v:'neg'},
+        {id:'lo7',l:'Evite de parler en cours',v:'neg'},
+        {id:'lo8',l:'Accent et intonation à améliorer',v:'neg'},
+      ]
+    },
+    ecrit: {
+      label:'Expression écrite & Compréhension',
+      items:[
+        {id:'ec1',l:'Bonne compréhension écrite',v:'pos'},
+        {id:'ec2',l:'Expression écrite fluide',v:'pos'},
+        {id:'ec3',l:'Vocabulaire riche et varié',v:'pos'},
+        {id:'ec4',l:'Grammaire maîtrisée',v:'pos'},
+        {id:'ec5',l:'Bon niveau de langue à l\'écrit',v:'pos'},
+        {id:'ec6',l:'Difficultés en compréhension',v:'neg'},
+        {id:'ec7',l:'Erreurs grammaticales fréquentes',v:'neg'},
+        {id:'ec8',l:'Vocabulaire limité',v:'neg'},
+        {id:'ec9',l:'Expression écrite à développer',v:'neg'},
+      ]
+    }
+  },
+  academic: {
+    methode: {
+      label:'Méthode & Compétences disciplinaires',
+      items:[
+        {id:'me1',l:'Excellent sens de l\'analyse',v:'pos'},
+        {id:'me2',l:'Raisonnement rigoureux',v:'pos'},
+        {id:'me3',l:'Bonne organisation du travail',v:'pos'},
+        {id:'me4',l:'Rigueur dans les exercices',v:'pos'},
+        {id:'me5',l:'Bonne maîtrise des notions',v:'pos'},
+        {id:'me6',l:'Manque de rigueur',v:'neg'},
+        {id:'me7',l:'Raisonnement à structurer',v:'neg'},
+        {id:'me8',l:'Lacunes méthodologiques',v:'neg'},
+        {id:'me9',l:'Notions mal assimilées',v:'neg'},
+        {id:'me10',l:'Difficultés à l\'écrit',v:'neg'},
+      ]
+    }
+  },
+  pratique: {
+    pratique: {
+      label:'Pratique & Compétences techniques',
+      items:[
+        {id:'pp1',l:'Très bon niveau pratique',v:'pos'},
+        {id:'pp2',l:'Investissement remarquable',v:'pos'},
+        {id:'pp3',l:'Bon sens de l\'observation',v:'pos'},
+        {id:'pp4',l:'Créativité et sens artistique',v:'pos'},
+        {id:'pp5',l:'Niveau pratique satisfaisant',v:'neutral'},
+        {id:'pp6',l:'Pratique insuffisante',v:'neg'},
+        {id:'pp7',l:'Manque d\'implication pratique',v:'neg'},
+        {id:'pp8',l:'Ne s\'implique pas en atelier',v:'neg'},
+        {id:'pp9',l:'Gestes techniques à consolider',v:'neg'},
+      ]
+    },
+    theorie: {
+      label:'Théorie & Connaissances',
+      items:[
+        {id:'th1',l:'Bonnes connaissances théoriques',v:'pos'},
+        {id:'th2',l:'Bon lien théorie/pratique',v:'pos'},
+        {id:'th3',l:'Lacunes théoriques',v:'neg'},
+        {id:'th4',l:'Théorie à approfondir',v:'neg'},
+      ]
+    }
+  }
+};
+
+const CLASS_BOXES = {
+  niveau:{label:'Niveau & Atmosphère',items:[
+    {id:'cn1',l:'Classe de bon niveau',v:'pos'},{id:'cn2',l:'Niveau hétérogène',v:'neutral'},
+    {id:'cn3',l:'Ambiance de travail sérieuse',v:'pos'},{id:'cn4',l:'Classe agréable et dynamique',v:'pos'},
+    {id:'cn5',l:'Niveau insuffisant',v:'neg'},{id:'cn6',l:'Bonne cohésion',v:'pos'},
+  ]},
+  comportement:{label:'Comportement de groupe',items:[
+    {id:'cc1',l:'Comportement exemplaire',v:'pos'},{id:'cc2',l:'Perturbations récurrentes',v:'neg'},
+    {id:'cc3',l:'Respect mutuel établi',v:'pos'},{id:'cc4',l:'Bavardages trop fréquents',v:'neg'},
+    {id:'cc5',l:'Classe participative',v:'pos'},{id:'cc6',l:'Manque de concentration collective',v:'neg'},
+  ]},
+  forces:{label:'Points forts & faiblesses',items:[
+    {id:'cf1',l:'Fort engagement',v:'pos'},{id:'cf2',l:'Difficultés à l\'oral',v:'neg'},
+    {id:'cf3',l:'Bonne compréhension',v:'pos'},{id:'cf4',l:'Lacunes méthodologiques',v:'neg'},
+    {id:'cf5',l:'Créativité collective',v:'pos'},{id:'cf6',l:'Travail de groupe efficace',v:'pos'},
+  ]},
+  conseils:{label:'Conseils pour la classe',items:[
+    {id:'ca1',l:'Poursuivre les efforts',v:'pos'},{id:'ca2',l:'Mieux gérer le temps',v:'neutral'},
+    {id:'ca3',l:'Plus de rigueur',v:'neg'},{id:'ca4',l:'Belle dynamique à maintenir',v:'pos'},
+    {id:'ca5',l:'Révisions régulières',v:'neutral'},{id:'ca6',l:'Oser prendre la parole',v:'neutral'},
+  ]},
+};
+
+const STYLE_SEEDS = [
+  "Commence par une observation sur l'engagement ou la présence en classe.",
+  "Commence par évoquer la progression observée ce trimestre.",
+  "Commence par une remarque sur l'attitude générale de l'élève.",
+  "Commence par mentionner les résultats ou le niveau atteint.",
+  "Commence par noter les efforts fournis ou leur absence.",
+  "Commence par évoquer la participation à l'oral.",
+  "Commence par souligner une qualité particulière de l'élève.",
+  "Commence par une observation sur la méthode ou l'organisation.",
+];
+
+const ORIENT_DESCS = {
+  1:"Ton légèrement prospectif — pas de mention explicite d'orientation, mais une dimension tournée vers l'avenir.",
+  2:"La filière envisagée est mentionnée et intégrée naturellement dans l'appréciation.",
+  3:"Passage explicite soutenant le projet d'orientation, en citant les forces spécifiques de l'élève.",
+};
+
+// ── STATE ─────────────────────────────────────────────────────────────────────
+let S = {classes:{}, active:null, student:null, period:1, view:'students'};
+const load = ()=>{ try{const d=localStorage.getItem('bp3');if(d)S=JSON.parse(d);}catch(e){} };
+const save = ()=>{ try{localStorage.setItem('bp3',JSON.stringify(S));}catch(e){} gdScheduleSync(); };
+
+// ── GOOGLE DRIVE SYNC ─────────────────────────────────────────────────────────
+const GD = {
+  CLIENT_ID: '53337232566-t8b4l0ttrlhpdcff7tm9cshf5v1lg2d2.apps.googleusercontent.com',
+  SCOPES: 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email',
+  FILE_NAME: 'bulletinspro-data.json',
+  tokenClient: null,
+  accessToken: null,
+  fileId: null,
+  syncTimer: null,
+  lastSync: null,
+  syncing: false,
+  user: null,
+};
+
+function gdShowLoginScreen(show){
+  const ls=document.getElementById('login-screen');
+  const app=document.getElementById('main-app');
+  const mobnav=document.getElementById('mob-nav');
+  if(ls)ls.style.display=show?'flex':'none';
+  if(app)app.style.display=show?'none':'flex';
+  if(mobnav)mobnav.style.display=show?'none':'flex';
+}
+
+function gdSetUserProfile(user){
+  if(!user)return;
+  GD.user=user;
+  const userBar=document.getElementById('sb-user');
+  const nameEl=document.getElementById('sb-user-name');
+  const emailEl=document.getElementById('sb-user-email');
+  const initEl=document.getElementById('sb-avatar-init');
+  if(userBar)userBar.style.display='flex';
+  if(nameEl)nameEl.textContent=user.name||user.email||'Professeur';
+  if(emailEl)emailEl.textContent=user.email||'';
+  if(initEl)initEl.textContent=(user.name||user.email||'P')[0].toUpperCase();
+}
+
+async function gdFetchUserInfo(){
+  try{
+    const res=await fetch('https://www.googleapis.com/oauth2/v2/userinfo',{
+      headers:{Authorization:`Bearer ${GD.accessToken}`}
+    });
+    const user=await res.json();
+    gdSetUserProfile(user);
+    localStorage.setItem('bp3_user',JSON.stringify(user));
+  }catch(e){console.error('userinfo error',e);}
+}
+
+function gdSetStatus(state, msg, showBtn=false, btnLabel='', btnAction=''){
+  const dot=document.getElementById('gd-dot');
+  const status=document.getElementById('gd-status');
+  const btn=document.getElementById('gd-btn');
+  const last=document.getElementById('gd-lastsync');
+  dot.className='gd-dot'+(state?' '+state:'');
+  status.className='gd-status'+(state?' '+state:'');
+  status.textContent=msg;
+  if(GD.lastSync){const d=new Date(GD.lastSync);last.textContent='Sync '+d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0');}
+  else{last.textContent='';}
+  if(showBtn){btn.style.display='';btn.textContent=btnLabel;btn.onclick=new Function(btnAction);}
+  else{
+    // When connected, show a small disconnect option
+    if(state==='connected'){btn.style.display='';btn.textContent='✕';btn.className='gd-btn';btn.title='Déconnecter Drive';btn.onclick=gdDisconnect;}
+    else{btn.style.display='none';}
+  }
+}
+
+async function gdInit(){
+  try{
+    await new Promise((res,rej)=>{
+      const t=setTimeout(()=>rej(new Error('gapi timeout')),5000);
+      gapi.load('client',()=>{clearTimeout(t);res();});
+    });
+    // No discovery docs needed — we use fetch directly
+    await gapi.client.init({});
+  }catch(e){
+    console.warn('gapi init warning:',e);
+    // Continue anyway — fetch-based calls don't need gapi.client
+  }
+  // Restore token from localStorage
+  const saved=localStorage.getItem('bp3_gd');
+  const savedUser=localStorage.getItem('bp3_user');
+  if(saved){
+    try{
+      const t=JSON.parse(saved);
+      GD.accessToken=t.access_token;
+      GD.fileId=t.file_id||null;
+      if(savedUser)gdSetUserProfile(JSON.parse(savedUser));
+      gdShowLoginScreen(false);
+      gdSetStatus('syncing','Reconnexion…');
+      await gdLoadFromDrive();
+      return;
+    }catch(e){ localStorage.removeItem('bp3_gd'); }
+  }
+  // Show login screen
+  gdShowLoginScreen(true);
+  gdSetStatus('','Non connecté',true,'☁ Connecter Drive','gdAuth()');
+}
+
+function gdAuth(){
+  if(!GD.tokenClient){
+    GD.tokenClient=google.accounts.oauth2.initTokenClient({
+      client_id: GD.CLIENT_ID,
+      scope: GD.SCOPES,
+      callback: async(resp)=>{
+        if(resp.error){gdSetStatus('error','Connexion refusée',true,'↺ Réessayer','gdAuth()');return;}
+        GD.accessToken=resp.access_token;
+        gapi.client.setToken({access_token:GD.accessToken});
+        gdShowLoginScreen(false);
+        gdSetStatus('syncing','Connexion…');
+        await gdFetchUserInfo();
+        await gdLoadFromDrive();
+      }
+    });
+  }
+  GD.tokenClient.requestAccessToken();
+}
+
+async function gdLoadFromDrive(){
+  try{
+    gdSetStatus('syncing','Recherche du fichier…');
+    // Use fetch directly — more reliable on mobile than gapi.client
+    const listRes=await fetch(
+      `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(`name='${GD.FILE_NAME}' and trashed=false`)}&spaces=drive&fields=files(id,name)&pageSize=1`,
+      {headers:{Authorization:`Bearer ${GD.accessToken}`}}
+    );
+    if(!listRes.ok) throw new Error('list failed '+listRes.status);
+    const listData=await listRes.json();
+    const files=listData.files||[];
+
+    if(files.length>0){
+      GD.fileId=files[0].id;
+      gdSetStatus('syncing','Chargement des données…');
+      const getRes=await fetch(
+        `https://www.googleapis.com/drive/v3/files/${GD.fileId}?alt=media`,
+        {headers:{Authorization:`Bearer ${GD.accessToken}`}}
+      );
+      if(!getRes.ok) throw new Error('get failed '+getRes.status);
+      const remote=await getRes.json();
+      S=remote;
+      save();
+      renderSidebar();renderPPSidebar();
+      if(S.active&&S.classes[S.active])selectClass(S.active);
+      else if(S.activePP&&S.pp&&S.pp[S.activePP]){activePP=S.activePP;renderPPMain();}
+      GD.lastSync=new Date().toISOString();
+      localStorage.setItem('bp3_gd',JSON.stringify({access_token:GD.accessToken,file_id:GD.fileId}));
+      gdSetStatus('connected','Drive connecté',false);
+      toast('✓ Données chargées depuis Drive');
+    } else {
+      gdSetStatus('syncing','Création du fichier…');
+      await gdSaveToDrive();
+      gdSetStatus('connected','Drive connecté',false);
+      toast('✓ Drive connecté — fichier créé');
+      // Show onboarding for new users
+      setTimeout(()=>showOnboarding(),600);
+    }
+  }catch(e){
+    console.error('GD load error',e);
+    gdSetStatus('error','Erreur Drive',true,'↺ Reconnecter','gdAuth()');
+    localStorage.removeItem('bp3_gd');
+  }
+}
+
+async function gdSaveToDrive(){
+  if(!GD.accessToken||GD.syncing)return;
+  GD.syncing=true;
+  gdSetStatus('syncing','Synchronisation…');
+  try{
+    const content=JSON.stringify(S,null,2);
+    const blob=new Blob([content],{type:'application/json'});
+    if(GD.fileId){
+      // Update existing file
+      const form=new FormData();
+      form.append('metadata',new Blob([JSON.stringify({name:GD.FILE_NAME})],{type:'application/json'}));
+      form.append('file',blob);
+      await fetch(`https://www.googleapis.com/upload/drive/v3/files/${GD.fileId}?uploadType=multipart`,{
+        method:'PATCH',headers:{Authorization:`Bearer ${GD.accessToken}`},body:form
+      });
+    } else {
+      // Create new file
+      const form=new FormData();
+      form.append('metadata',new Blob([JSON.stringify({name:GD.FILE_NAME,mimeType:'application/json'})],{type:'application/json'}));
+      form.append('file',blob);
+      const res=await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart',{
+        method:'POST',headers:{Authorization:`Bearer ${GD.accessToken}`},body:form
+      });
+      const data=await res.json();
+      GD.fileId=data.id;
+      localStorage.setItem('bp3_gd',JSON.stringify({access_token:GD.accessToken,file_id:GD.fileId}));
+    }
+    GD.lastSync=new Date().toISOString();
+    gdSetStatus('connected','Drive connecté',false);
+  }catch(e){
+    console.error('GD save error',e);
+    gdSetStatus('error','Erreur sync',true,'↺ Reconnecter','gdAuth()');
+  } finally {
+    GD.syncing=false;
+  }
+}
+
+function gdScheduleSync(){
+  if(!GD.accessToken)return;
+  clearTimeout(GD.syncTimer);
+  GD.syncTimer=setTimeout(()=>gdSaveToDrive(),2000); // debounce 2s
+}
+
+function gdDisconnect(){
+  GD.accessToken=null;GD.fileId=null;GD.tokenClient=null;GD.user=null;
+  localStorage.removeItem('bp3_gd');
+  gdSetStatus('','Non connecté',true,'☁ Connecter Drive','gdAuth()');
+  toast('Déconnecté de Google Drive');
+}
+
+function gdLogout(){
+  // Clear all user data and show login screen
+  GD.accessToken=null;GD.fileId=null;GD.tokenClient=null;GD.user=null;
+  localStorage.removeItem('bp3_gd');
+  localStorage.removeItem('bp3_user');
+  localStorage.removeItem('bp3');
+  // Reset state
+  S={classes:{},active:null,student:null,period:1,view:'students'};
+  // Hide user profile
+  const userBar=document.getElementById('sb-user');
+  if(userBar)userBar.style.display='none';
+  // Reset sidebar
+  renderSidebar();renderPPSidebar();
+  // Show empty content
+  document.getElementById('cls-title').textContent='Sélectionner une classe';
+  document.getElementById('period-row').style.display='none';
+  document.getElementById('topbar-r').style.display='none';
+  document.getElementById('view-tabs').style.display='none';
+  document.getElementById('dbar').style.display='none';
+  document.getElementById('content').innerHTML='<div class="empty" style="flex:1"><div class="empty-icon">📚</div><div class="empty-t">Bienvenue dans Bulletins Pro</div><p class="empty-s">Créez votre première classe pour commencer.</p></div>';
+  gdSetStatus('','Non connecté',true,'☁ Connecter Drive','gdAuth()');
+  // Show login screen
+  gdShowLoginScreen(true);
+  toast('Déconnecté');
+}
+
+// Phrase memory (session only)
+const mem = {}; // classId -> Set
+function getMem(cid){if(!mem[cid])mem[cid]=new Set();return mem[cid];}
+function addMem(cid,txt){const m=getMem(cid);const w=txt.split(' ');for(let i=0;i<w.length-3;i++)m.add(w.slice(i,i+4).join(' ').toLowerCase());}
+function sampMem(cid){const arr=[...getMem(cid)];if(!arr.length)return '';return arr.sort(()=>.5-Math.random()).slice(0,10).join(' | ');}
+
+// ── BOOT — deferred; full init runs after all PP code is defined ──────────────
+load();
+buildSubjectDropdown(document.getElementById('nc-subj'));
+
+function buildSubjectDropdown(sel){
+  sel.innerHTML='';
+  Object.entries(SUBJECTS).forEach(([k,v])=>{
+    const o=document.createElement('option');
+    o.value=k; o.textContent=v.label; sel.appendChild(o);
+  });
+}
+
+// ── SIDEBAR ───────────────────────────────────────────────────────────────────
+function renderSidebar(){
+  const el=document.getElementById('cls-list');
+  const ids=Object.keys(S.classes);
+  el.innerHTML='';
+  if(!ids.length){el.innerHTML='<div style="padding:10px 12px;font-size:.78rem;color:rgba(255,255,255,.18);text-align:center">Aucune classe</div>';return;}
+  ids.forEach(id=>{
+    const c=S.classes[id];
+    const d=document.createElement('div');
+    d.className='cls-item'+(id===S.active?' active':'');
+    d.onclick=()=>selectClass(id);
+    d.innerHTML=`<div class="cls-dot"></div><div class="cls-info"><div class="cls-name">${c.name}</div><div class="cls-meta">${SUBJECTS[c.subject]?.label||c.subject} · ${c.periodType==='semestre'?'Sem.':'Trim.'}</div></div><span class="cls-n">${c.students.length}</span><button class="sb-del" title="Supprimer">✕</button>`;
+    const btn=d.querySelector('.sb-del');
+    btn.addEventListener('click',e=>{e.stopPropagation();deleteClass(id);});
+    el.appendChild(d);
+  });
+}
+
+// ── CLASS MANAGEMENT ──────────────────────────────────────────────────────────
+function openNewClass(){document.getElementById('nc-name').value='';document.getElementById('mo-cls').classList.add('open');setTimeout(()=>document.getElementById('nc-name').focus(),80);}
+function closeMo(id){document.getElementById(id).classList.remove('open');}
+function createClass(){
+  const name=document.getElementById('nc-name').value.trim(); if(!name)return;
+  const subject=document.getElementById('nc-subj').value;
+  const periodType=document.querySelector('input[name="nc-period"]:checked').value;
+  const evalType=document.getElementById('nc-eval').value;
+  const charLimit=parseInt(document.getElementById('nc-charlimit').value)||750;
+  const studentCount=parseInt(document.getElementById('nc-count').value)||0;
+  const id='c'+Date.now();
+  const students=[];
+  if(studentCount>0){
+    for(let i=1;i<=Math.min(studentCount,38);i++){
+      students.push({id:'s'+Date.now()+i,num:i,name:'',gender:'M',boxes:{},grade:'',level:'',comps:{},tone:null,orient:{on:false,level:1,path:'',note:''},comments:{}});
+    }
+  }
+  S.classes[id]={name,subject,periodType,evalType,charLimit,students,tone:'equilibre',classBoxes:{},classComments:{}};
+  closeMo('mo-cls'); save(); renderSidebar(); selectClass(id); toast(`"${name}" créée — ${students.length} élève(s)`);
+}
+
+function selectClass(id){S.active=id;S.student=null;S.period=1;S.view='students';save();renderSidebar();renderMain();closeMobSidebar();mobUpdateStudentNav();}
+
+function deleteClass(id){
+  const cls=S.classes[id]; if(!cls)return;
+  showConfirm(`Supprimer "${cls.name}" ?`, 'Toutes les appréciations seront perdues.', ()=>{
+    delete S.classes[id];
+    if(S.active===id){
+      S.active=null; S.student=null;
+      document.getElementById('cls-title').textContent='Sélectionner une classe';
+      document.getElementById('period-row').style.display='none';
+      document.getElementById('topbar-r').style.display='none';
+      document.getElementById('view-tabs').style.display='none';
+      document.getElementById('dbar').style.display='none';
+      document.getElementById('content').innerHTML='<div class="empty" style="flex:1"><div class="empty-icon">📚</div><div class="empty-t">Aucune classe sélectionnée</div><p class="empty-s">Créez ou sélectionnez une classe pour commencer.</p></div>';
+    }
+    save(); renderSidebar(); toast('Classe supprimée');
+  });
+}
+
+function deletePP(id){
+  const pp=S.pp&&S.pp[id]; if(!pp)return;
+  showConfirm(`Supprimer "${pp.name}" ?`, 'Tous les bilans PP seront perdus.', ()=>{
+    delete S.pp[id];
+    if(activePP===id){
+      activePP=null; S.activePP=null; activePPStudent=null;
+      document.getElementById('cls-title').textContent='Sélectionner une classe';
+      document.getElementById('period-row').style.display='none';
+      document.getElementById('topbar-r').style.display='none';
+      document.getElementById('view-tabs').style.display='none';
+      document.getElementById('dbar').style.display='none';
+      document.getElementById('content').innerHTML='<div class="empty" style="flex:1"><div class="empty-icon">🎓</div><div class="empty-t">Aucune classe PP sélectionnée</div></div>';
+    }
+    save(); renderSidebar(); toast('Groupe PP supprimé');
+  });
+}
+
+function showConfirm(title, msg, onConfirm){
+  const mo=document.getElementById('mo-confirm');
+  document.getElementById('mc-title').textContent=title;
+  document.getElementById('mc-msg').textContent=msg;
+  document.getElementById('mc-ok').onclick=()=>{mo.classList.remove('open');onConfirm();};
+  document.getElementById('mc-cancel').onclick=()=>mo.classList.remove('open');
+  mo.classList.add('open');
+}
+
+function setClsTone(tone,btn){
+  if(!S.active)return;
+  S.classes[S.active].tone=tone;
+  document.querySelectorAll('#tone-row .tone-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active'); save();
+}
+
+function setPeriod(n,btn){
+  S.period=n;
+  document.querySelectorAll('.period-row .pb').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active'); save(); renderMain();
+}
+
+// ── MAIN RENDER ───────────────────────────────────────────────────────────────
+function renderMain(){
+  // If PP is active instead of a class, route to PP renderer
+  if(!S.active && activePP && S.pp&&S.pp[activePP]){renderPPMain();return;}
+  const cls=S.classes[S.active]; if(!cls)return;
+  document.getElementById('cls-title').textContent=cls.name;
+
+  // Period buttons
+  const pr=document.getElementById('period-row');
+  pr.style.display='flex'; pr.innerHTML='';
+  const count=cls.periodType==='semestre'?2:3;
+  const labels=cls.periodType==='semestre'?['S1','S2']:['T1','T2','T3'];
+  for(let i=1;i<=count;i++){
+    const b=document.createElement('button');
+    b.className='pb'+(S.period===i?' active':'');
+    b.textContent=labels[i-1];
+    b.onclick=(()=>{const n=i;return function(){setPeriod(n,this);}})();
+    pr.appendChild(b);
+  }
+
+  document.getElementById('topbar-r').style.display='flex';
+  document.getElementById('view-tabs').style.display='block';
+  document.getElementById('dbar').style.display='flex';
+
+  // Tone
+  document.querySelectorAll('#tone-row .tone-btn').forEach(b=>b.classList.remove('active'));
+  const tb=document.querySelector(`#tone-row .tone-btn.${cls.tone||'equilibre'}`);
+  if(tb)tb.classList.add('active');
+
+  // Tabs
+  ['students','classrev','bulk'].forEach(v=>{
+    const t=document.getElementById('tab-'+v);
+    if(t)t.classList.toggle('active',S.view===v);
+  });
+
+  const content=document.getElementById('content');
+  if(S.view==='students') renderStudentsView(content);
+  else if(S.view==='classrev') renderClassRevView(content);
+  else if(S.view==='bulk') renderBulkView(content);
+}
+
+function setView(v){
+  S.view=v; save();
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  const t=document.getElementById('tab-'+v); if(t)t.classList.add('active');
+  const content=document.getElementById('content');
+  if(v==='students') renderStudentsView(content);
+  else if(v==='classrev') renderClassRevView(content);
+  else if(v==='bulk'){renderBulkView(content);generateAll();}
+}
+
+function goGenAll(){S.view='bulk';setView('bulk');}
+
+// ── STUDENTS VIEW ─────────────────────────────────────────────────────────────
+function renderStudentsView(content){
+  const cls=S.classes[S.active];
+  content.innerHTML=`
+    <div class="st-panel">
+      <div class="panel-head">
+        <span class="panel-lbl">Élèves (<span id="sc">${cls.students.length}</span>)</span>
+        <div style="display:flex;gap:4px">
+          <button class="btn btn-o btn-sm" onclick="openImportStudents()" title="Importer une liste">📥</button>
+          <button class="btn btn-o btn-sm" onclick="togAddRow()">+ Ajouter</button>
+        </div>
+      </div>
+      <div class="add-row" id="add-row" style="display:none">
+        <div class="add-form">
+          <input class="add-inp" id="ns-num" type="number" min="1" max="38" placeholder="N°" style="width:50px">
+          <input class="add-inp" id="ns-name" placeholder="Nom (optionnel)" style="flex:1">
+          <div class="gender-tog">
+            <button class="gbtn active" id="gb-m" onclick="selG('M')">M</button>
+            <button class="gbtn" id="gb-f" onclick="selG('F')">F</button>
+          </div>
+          <button class="btn btn-g btn-sm" onclick="addStudent()">OK</button>
+        </div>
+      </div>
+      <div class="st-scroll" id="st-scroll"></div>
+    </div>
+    <div class="ed-panel">
+      <div class="ed-scroll" id="ed-scroll">
+        <div class="empty"><div class="empty-icon">👆</div><div class="empty-t">Sélectionnez un élève</div><p class="empty-s">Cliquez sur un numéro dans la liste pour configurer le profil et générer l'appréciation.</p></div>
+      </div>
+    </div>`;
+  renderStudentList();
+  if(S.student&&cls.students.find(s=>s.id===S.student)) renderEditor(S.student);
+}
+
+let newG='M';
+function togAddRow(){const r=document.getElementById('add-row');r.style.display=r.style.display==='none'?'block':'none';if(r.style.display==='block')document.getElementById('ns-num').focus();}
+function selG(g){newG=g;document.getElementById('gb-m').classList.toggle('active',g==='M');document.getElementById('gb-f').classList.toggle('active',g==='F');}
+
+function addStudent(){
+  const numEl=document.getElementById('ns-num');
+  const nameEl=document.getElementById('ns-name');
+  const num=parseInt(numEl.value)||0;
+  if(num<1||num>38){toast('Numéro invalide (1–38)');return;}
+  const cls=S.classes[S.active];
+  if(cls.students.find(s=>s.num===num)){toast('Numéro déjà utilisé');return;}
+  const id='s'+Date.now();
+  const sname=nameEl?nameEl.value.trim():'';
+  cls.students.push({id,num,name:sname,gender:newG,boxes:{},grade:'',level:'',comps:{},tone:null,orient:{on:false,level:1,path:'',note:''},comments:{}});
+  cls.students.sort((a,b)=>a.num-b.num);
+  numEl.value=''; if(nameEl)nameEl.value='';
+  save(); renderStudentList(); document.getElementById('sc').textContent=cls.students.length; selectStudent(id);
+}
+
+function delStudent(id,e){
+  e.stopPropagation();
+  const cls=S.classes[S.active];
+  cls.students=cls.students.filter(s=>s.id!==id);
+  if(S.student===id){S.student=null;const sc=document.getElementById('ed-scroll');if(sc)sc.innerHTML='<div class="empty"><div class="empty-icon">👆</div><div class="empty-t">Sélectionnez un élève</div></div>';}
+  save(); renderStudentList(); const sc=document.getElementById('sc');if(sc)sc.textContent=cls.students.length;
+}
+
+function renderStudentList(){
+  const cls=S.classes[S.active]; if(!cls)return;
+  const scroll=document.getElementById('st-scroll'); if(!scroll)return;
+  scroll.innerHTML='';
+  cls.students.forEach(s=>{
+    const done=!!(s.comments&&s.comments[S.period]);
+    const hasO=s.orient&&s.orient.on;
+    const d=document.createElement('div');
+    d.className='st-row'+(s.id===S.student?' active':'');
+    d.onclick=()=>selectStudent(s.id);
+    d.innerHTML=`
+      <div class="st-avatar ${s.gender==='M'?'av-m':'av-f'}">${s.num}</div>
+      <div class="st-info">
+        <div class="st-name">${s.name || 'Élève n°'+s.num}</div>
+        <div class="st-meta">${s.gender==='M'?'M':'F'}${hasO?` <span class="mini-badge ob-purple">Orient. N${s.orient.level}</span>`:''}
+        </div>
+      </div>
+      <div class="st-dot ${done?'done':''}"></div>
+      <button class="del-x" onclick="delStudent('${s.id}',event)">✕</button>`;
+    scroll.appendChild(d);
+  });
+}
+
+function selectStudent(id){S.student=id;save();renderStudentList();renderEditor(id);mobUpdateStudentNav();}
+
+// ── EDITOR ────────────────────────────────────────────────────────────────────
+function getSubjectBoxes(subject){
+  const type=SUBJECTS[subject]?.type||'academic';
+  const subjectSections=SUBJECT_BOXES[type]||SUBJECT_BOXES.academic;
+  // Strict display order: progression, travail, participation, [subject-specific], qualites, comportement, conseils
+  const ordered={};
+  ordered.progression = CORE_BOXES.progression;
+  ordered.travail      = CORE_BOXES.travail;
+  ordered.participation= CORE_BOXES.participation;
+  Object.assign(ordered, subjectSections);   // subject-specific slots in here
+  ordered.qualites     = CORE_BOXES.qualites;
+  ordered.comportement = CORE_BOXES.comportement;
+  ordered.conseils     = CORE_BOXES.conseils;
+  return ordered;
+}
+
+function renderEditor(id){
+  const cls=S.classes[S.active];
+  const st=cls.students.find(s=>s.id===id); if(!st)return;
+  const scroll=document.getElementById('ed-scroll'); if(!scroll)return;
+  const tone=st.tone||cls.tone||'equilibre';
+  const comment=(st.comments&&st.comments[S.period])||'';
+  const orient=st.orient||{on:false,level:1,path:'',note:''};
+  const pLabel=cls.periodType==='semestre'?`Semestre ${S.period}`:`Trimestre ${S.period}`;
+  const charLimit=cls.charLimit||750;
+
+  let html=`
+    <div class="ed-hdr">
+      <div class="ed-av ${st.gender==='M'?'av-m':'av-f'}">${st.num}</div>
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <div class="ed-name">${st.name||'Élève n°'+st.num}</div>
+          <input value="${st.name||''}" placeholder="Ajouter un nom…" onchange="setSName('${st.id}',this.value)" style="padding:2px 7px;border:1px solid var(--border);border-radius:4px;font-size:.75rem;background:var(--bg);outline:none;color:var(--muted);width:150px">
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:4px">
+          <div class="gender-tog">
+            <button class="gbtn ${st.gender==='M'?'active':''}" onclick="setSGender('${st.id}','M',this)">M</button>
+            <button class="gbtn ${st.gender==='F'?'active':''}" onclick="setSGender('${st.id}','F',this)">F</button>
+          </div>
+          <div class="ed-sub">${pLabel} · ${SUBJECTS[cls.subject]?.label||cls.subject} · Max ${charLimit} car.</div>
+          <button onclick="resetAllBoxes('${id}')" style="padding:2px 8px;border:1px solid var(--border);border-radius:4px;font-size:.65rem;font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.05em;background:transparent;color:var(--muted);cursor:pointer;opacity:.6" title="Réinitialiser toutes les cases">↺ Tout reset</button>
+        </div>
+      </div>
+    </div>`;
+
+  // ORIENTATION
+  html+=`
+    <div class="orient-card">
+      <div class="orient-hd">
+        <span class="orient-title">🎯 Orientation (optionnel)</span>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:.7rem;color:var(--purple);opacity:.7">${orient.on?'Activé':'Désactivé'}</span>
+          <button class="tog-sw ${orient.on?'on':''}" onclick="togOrient('${id}',this)"></button>
+        </div>
+      </div>
+      <div id="ob-${id}" style="display:${orient.on?'block':'none'}">
+        <div class="orient-bd">
+          <div>
+            <div style="font-family:'DM Mono',monospace;font-size:.56rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:6px">Niveau d'intégration</div>
+            <div class="olevel-row">
+              ${[1,2,3].map(n=>`<button class="olbtn ${orient.level===n?'active':''}" onclick="setOL('${id}',${n},this)">N${n} — ${['Discret','Filière','Explicite'][n-1]}</button>`).join('')}
+            </div>
+            <div class="odesc" id="od-${id}">${ORIENT_DESCS[orient.level]}</div>
+          </div>
+          <div id="op-${id}" style="display:${orient.level>=2?'block':'none'}">
+            <div style="font-family:'DM Mono',monospace;font-size:.56rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:6px">Filière envisagée</div>
+            <div class="opath-row">
+              ${['Général','Technologique','Professionnel','Apprentissage','BTS/IUT','CPGE','Autre'].map(p=>`<button class="opbtn ${orient.path===p?'active':''}" onclick="setOP('${id}','${p}',this)">${p}</button>`).join('')}
+            </div>
+          </div>
+          <div id="on-${id}" style="display:${orient.level>=2?'block':'none'}">
+            <div style="font-family:'DM Mono',monospace;font-size:.56rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:5px">Précisions (optionnel)</div>
+            <textarea class="onote" rows="2" placeholder="ex: souhaite intégrer un lycée scientifique…" onchange="setON('${id}',this.value)">${orient.note||''}</textarea>
+          </div>
+        </div>
+      </div>
+    </div>`;
+
+  html+=`
+    <div class="card" style="border-color:var(--amber-b)">
+      <div class="card-hd" style="background:var(--amber-l);color:var(--amber)">Bilan global du trimestre <span style="font-weight:300;opacity:.7;font-size:.85em">(optionnel — laissez vide pour que l'IA choisisse)</span></div>
+      <div class="pill-grid">
+        ${VERDICT_PILLS.map(v=>{
+          const sel=st.verdict===v.id;
+          const cls2=v.weight>=3?'':v.weight>=1?'neutral':'neg';
+          return '<span class="pill '+cls2+' '+(sel?'sel':'')+'" onclick="setVerdict(\''+st.id+'\',\''+v.id+'\',this)">'+v.l+'</span>';
+        }).join('')}
+      </div>
+    </div>`;
+
+  html+=`
+    <div class="card">
+      <div class="card-hd">Ton & Évaluation</div>
+      <div class="card-bd" style="display:flex;flex-direction:column;gap:10px">
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <span style="font-size:.78rem;color:var(--muted)">Ton :</span>
+          <div class="tone-row">
+            <button class="tone-btn ferme ${tone==='ferme'?'active':''}" onclick="setSTone('ferme','${id}',this)">Ferme</button>
+            <button class="tone-btn equilibre ${tone==='equilibre'?'active':''}" onclick="setSTone('equilibre','${id}',this)">Équilibré</button>
+            <button class="tone-btn encourageant ${tone==='encourageant'?'active':''}" onclick="setSTone('encourageant','${id}',this)">Encourageant</button>
+          </div>
+          <span style="font-size:.7rem;color:var(--muted);opacity:.6">${st.tone?'(personnalisé)':'(défaut classe)'}</span>
+        </div>
+        ${renderEvalInput(cls,st)}
+      </div>
+    </div>`;
+
+
+  // SUBJECT-SPECIFIC + CORE BOXES
+  const allBoxes=getSubjectBoxes(cls.subject);
+  Object.entries(allBoxes).forEach(([key,sec])=>{
+    const itemIds=sec.items.map(i=>i.id);
+    const customPills=getCustomPills(S.active,key);
+    html+=`<div class="card"><div class="card-hd">${sec.label}<button onclick="resetCategoryBoxes('${id}','${itemIds.join(',')}')" style="padding:1px 6px;border:1px solid var(--border);border-radius:3px;font-size:.58rem;font-family:'DM Mono',monospace;background:transparent;color:var(--muted);cursor:pointer;opacity:.5;margin-left:6px" title="Réinitialiser cette catégorie">↺</button></div><div class="pill-grid">`;
+    sec.items.forEach(item=>{
+      const sel=!!(st.boxes&&st.boxes[item.id]);
+      const cls2=item.v==='neg'?'neg':item.v==='neutral'?'neutral':'';
+      html+=`<span class="pill ${cls2} ${sel?'sel':''}" onclick="togBox('${id}','${item.id}',this)">${item.l}</span>`;
+    });
+    // Custom pills for this category
+    customPills.forEach(item=>{
+      const sel=!!(st.boxes&&st.boxes[item.id]);
+      const cls2=item.v==='neg'?'neg':item.v==='neutral'?'neutral':'';
+      html+=`<span class="pill ${cls2} ${sel?'sel':''}" style="position:relative;padding-right:24px" onclick="togBox('${id}','${item.id}',this)">${item.l}<span onclick="event.stopPropagation();delCustomPill('${S.active}','${key}','${item.id}','${id}')" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);font-size:.6rem;opacity:.4;cursor:pointer" title="Supprimer">✕</span></span>`;
+    });
+    // Add custom pill button
+    html+=`<span class="pill" style="border-style:dashed;opacity:.5" onclick="addCustomPill('${id}','${key}')">+ Ajouter</span>`;
+    html+=`</div></div>`;
+  });
+
+  // COMMENT
+  html+=`
+    <div class="card">
+      <div class="cmt-hd">
+        <span class="cmt-lbl">Appréciation — ${pLabel}</span>
+        <div class="cmt-acts">
+          <span class="cchar ${comment.length>charLimit?'over':comment.length>0?'ok':''}" id="cc-${id}">${comment.length}/${charLimit}</span>
+          <button class="act-btn" onclick="genOne('${id}')">↻ Générer</button>
+          <button class="act-btn" id="voice-btn-${id}" onclick="toggleVoice('${id}')" title="Saisie vocale">🎙️</button>
+          <button class="copy-btn" id="cpb-${id}" onclick="copyC('${id}')">Copier</button>
+        </div>
+      </div>
+      <div class="card-bd">
+        <textarea class="cmt-ta" id="cta-${id}" placeholder="Cliquez sur « Générer » ou rédigez manuellement…" oninput="onCI('${id}',this.value)">${comment}</textarea>
+      </div>
+    </div>`;
+
+  scroll.innerHTML=html;
+}
+
+function renderEvalInput(cls,st){
+  const ev=cls.evalType;
+  if(ev==='note'){
+    return `<div style="display:flex;align-items:center;gap:7px"><span style="font-size:.78rem;color:var(--muted)">Moyenne :</span><input class="grade-inp" value="${st.grade||''}" placeholder="—" onchange="setSGrade('${st.id}',this.value)"><span style="font-size:.75rem;color:var(--muted)">/20</span></div>`;
+  }
+  if(ev==='niveau'||ev==='mix'){
+    const levels=[['excellent','Excellent'],['bien','Bien'],['satisfaisant','Satisfaisant'],['fragile','Fragile','lv-fragile'],['insuffisant','Insuffisant','lv-insuf']];
+    const btns=levels.map(([v,l,extra])=>`<button class="lvl-btn ${extra||''} ${st.level===v?'active':''}" onclick="setSLevel('${st.id}','${v}',this)">${l}</button>`).join('');
+    let out=`<div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap"><span style="font-size:.78rem;color:var(--muted)">Niveau :</span><div class="level-row">${btns}</div></div>`;
+    if(ev==='mix') out+=renderCompetences(st);
+    return out;
+  }
+  if(ev==='competence'){return renderCompetences(st);}
+  return '';
+}
+function renderCompetences(st){
+  const comps=[['maitrise','Maîtrisé'],['partiellement','Partiellement maîtrisé'],['en_cours','En cours'],['non_maitrise','Non maîtrisé']];
+  const btns=comps.map(([v,l])=>`<button class="comp-btn ${st.comps&&st.comps['global']===v?'active':''}" onclick="setComp('${st.id}','global','${v}',this)">${l}</button>`).join('');
+  return `<div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap"><span style="font-size:.78rem;color:var(--muted)">Compétences :</span><div class="comp-row">${btns}</div></div>`;
+}
+
+// ── STUDENT SETTERS ───────────────────────────────────────────────────────────
+function getSt(id){return S.classes[S.active].students.find(s=>s.id===id);}
+
+function resetAllBoxes(id){
+  const st=getSt(id);
+  st.boxes={};
+  save(); renderEditor(id); toast('Cases réinitialisées');
+}
+
+function resetCategoryBoxes(id,itemIdsStr){
+  const st=getSt(id); if(!st.boxes)st.boxes={};
+  itemIdsStr.split(',').forEach(iid=>{ delete st.boxes[iid]; });
+  save(); renderEditor(id);
+}
+function setVerdict(id,vid,el){
+  const st=getSt(id);
+  // toggle — click same pill again to deselect
+  if(st.verdict===vid){ st.verdict=null; el.classList.remove('sel'); }
+  else {
+    st.verdict=vid;
+    el.closest('.pill-grid').querySelectorAll('.pill').forEach(p=>p.classList.remove('sel'));
+    el.classList.add('sel');
+  }
+  save();
+}
+function setSName(id,val){const st=getSt(id);st.name=val;save();renderStudentList();}
+function setSGender(id,g,btn){
+  const st=getSt(id); st.gender=g; save(); renderStudentList();
+  btn.closest('.gender-tog').querySelectorAll('.gbtn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  // update avatar colour in header
+  document.querySelectorAll('.ed-av').forEach(av=>{av.className='ed-av '+(g==='M'?'av-m':'av-f');});
+}
+function setSTone(tone,id,btn){const st=getSt(id);st.tone=tone;btn.closest('.tone-row').querySelectorAll('.tone-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');save();}
+function setSGrade(id,v){getSt(id).grade=v;save();}
+function setSLevel(id,v,btn){const st=getSt(id);st.level=v;btn.closest('.level-row').querySelectorAll('.lvl-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');save();}
+function setComp(id,key,v,btn){const st=getSt(id);if(!st.comps)st.comps={};st.comps[key]=v;btn.closest('.comp-row').querySelectorAll('.comp-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');save();}
+
+function togBox(sid,itemId,el){
+  const st=getSt(sid); if(!st.boxes)st.boxes={};
+  st.boxes[itemId]=!st.boxes[itemId];
+  el.classList.toggle('sel',st.boxes[itemId]);
+  save();
+}
+
+function togOrient(id,btn){
+  const st=getSt(id); if(!st.orient)st.orient={on:false,level:1,path:'',note:''};
+  st.orient.on=!st.orient.on; btn.classList.toggle('on',st.orient.on);
+  btn.previousElementSibling.textContent=st.orient.on?'Activé':'Désactivé';
+  document.getElementById('ob-'+id).style.display=st.orient.on?'block':'none';
+  save(); renderStudentList();
+}
+function setOL(id,level,btn){
+  const st=getSt(id); st.orient.level=level;
+  btn.closest('.olevel-row').querySelectorAll('.olbtn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');
+  document.getElementById('od-'+id).textContent=ORIENT_DESCS[level];
+  const show=level>=2;
+  document.getElementById('op-'+id).style.display=show?'block':'none';
+  document.getElementById('on-'+id).style.display=show?'block':'none';
+  save(); renderStudentList();
+}
+function setOP(id,path,btn){const st=getSt(id);st.orient.path=path;btn.closest('.opath-row').querySelectorAll('.opbtn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');save();}
+function setON(id,v){getSt(id).orient.note=v;save();}
+
+function onCI(id,val){saveCmt(id,val);updCC(id,val);}
+function saveCmt(id,val){const st=getSt(id);if(!st.comments)st.comments={};st.comments[S.period]=val;save();renderStudentList();}
+function updCC(id,val){
+  const el=document.getElementById('cc-'+id);if(!el)return;
+  const cls=S.classes[S.active];
+  const lim=(cls&&cls.charLimit)||750;
+  el.textContent=`${val.length}/${lim}`;
+  el.className='cchar'+(val.length>lim?' over':val.length>0?' ok':'');
+}
+function copyC(id){const ta=document.getElementById('cta-'+id);if(!ta?.value)return;navigator.clipboard.writeText(ta.value).then(()=>{const b=document.getElementById('cpb-'+id);b.textContent='✓ Copié';b.classList.add('copied');setTimeout(()=>{b.textContent='Copier';b.classList.remove('copied');},1800);});}
+
+// ── PROMPT BUILDERS ───────────────────────────────────────────────────────────
+function buildPrompt(st,cls,period,seed,memSamp){
+  const allBoxes=getSubjectBoxes(cls.subject);
+  const checked=[];
+  Object.values(allBoxes).forEach(sec=>sec.items.forEach(item=>{if(st.boxes&&st.boxes[item.id])checked.push(item.l);}));
+
+  const tone=st.tone||cls.tone||'equilibre';
+  const toneDesc={
+    ferme:'ferme et direct(e) — les manquements sont nommés clairement, sans détour, mais dans un registre professionnel',
+    equilibre:'équilibré(e) — les points positifs et les axes de progrès sont évoqués avec nuance',
+    encourageant:'positif(ve) et encourageant(e) — valorise les efforts, souligne le potentiel, termine sur une note d\'espoir',
+  }[tone];
+
+  const subLabel={
+    anglais:'en anglais',francais:'en français',espagnol:'en espagnol',allemand:'en allemand',
+    maths:'en mathématiques',histoire:'en histoire-géographie',sciences:'en SVT',
+    physique:'en physique-chimie',philo:'en philosophie',ses:'en SES',
+    eps:'en EPS',arts:'en arts plastiques',musique:'en musique',techno:'en technologie',general:'',
+  }[cls.subject]||'';
+
+  const pLabel=cls.periodType==='semestre'?`semestre ${period}`:`trimestre ${period}`;
+  const periodCtx=(cls.periodType==='semestre'?{
+    1:"Premier semestre — premier bilan. Pas de référence au passé. Ton : mise en route, potentiel.",
+    2:"Second et dernier semestre. La dernière phrase conclut l'année et dit si l'élève est prêt(e) pour l'année suivante. Cette phrase remplace la conclusion habituelle, elle ne s'y ajoute pas.",
+  }:{
+    1:"Premier trimestre — premier bilan. Pas de référence au passé. Ton : mise en route, potentiel.",
+    2:"Deuxième trimestre — mi-parcours. Ton : évolution depuis le début d'année, cap pour la fin. Ne pas ajouter de contenu supplémentaire, juste nuancer le ton en ce sens.",
+    3:"Troisième trimestre — fin d'année. La dernière phrase conclut l'année et dit si l'élève est prêt(e) pour la classe suivante. Cette phrase remplace la conclusion habituelle, elle ne s'y ajoute pas.",
+  })[period]||'';
+  const gender=st.gender==='F'?'fille':'garçon';
+  const accord=st.gender==='F'?'féminin':'masculin';
+
+  const charLimit=cls.charLimit||750;
+  const targetMax=Math.round(charLimit*0.92);
+  const targetMin=Math.max(Math.round(charLimit*0.70), charLimit-200);
+  let evalCtx='';
+  if(cls.evalType==='note'&&st.grade) evalCtx=`Moyenne : ${st.grade}/20. `;
+  if((cls.evalType==='niveau'||cls.evalType==='mix')&&st.level) evalCtx+=`Niveau : ${st.level}. `;
+  if((cls.evalType==='competence'||cls.evalType==='mix')&&st.comps?.global){
+    const compLabels={'maitrise':'Maîtrisé','partiellement':'Partiellement maîtrisé','en_cours':'En cours','non_maitrise':'Non maîtrisé'};
+    evalCtx+=`Compétences : ${compLabels[st.comps.global]||st.comps.global}. `;
+  }
+
+  let orientCtx='';
+  if(st.orient?.on){
+    orientCtx=`\nORIENTATION (${['','Discret','Filière mentionnée','Explicite'][st.orient.level]}) : ${ORIENT_DESCS[st.orient.level]}`;
+    if(st.orient.path) orientCtx+=` Filière : ${st.orient.path}.`;
+    if(st.orient.note) orientCtx+=` Détails : ${st.orient.note}.`;
+  }
+
+  const memCtx=memSamp?`\nEXPRESSIONS DÉJÀ UTILISÉES POUR CETTE CLASSE (à éviter absolument pour garantir la variété) :\n${memSamp}`:'';
+
+  // Verdict context
+  const verdictObj = st.verdict ? VERDICT_PILLS.find(v=>v.id===st.verdict) : null;
+  const verdictCtx = verdictObj
+    ? `BILAN GLOBAL CHOISI PAR L'ENSEIGNANT : "${verdictObj.l}" — ce mot ou cette expression DOIT apparaître au tout début de l'appréciation, en ouverture.`
+    : `BILAN GLOBAL : l'enseignant n'a pas choisi d'expression d'ouverture — choisis toi-même la plus adaptée au profil parmi : "Excellent trimestre", "Très bon trimestre", "Bon trimestre", "Trimestre satisfaisant", "Trimestre encourageant", "Trimestre décevant", "Trimestre insuffisant", "Trimestre inquiétant", "Trimestre très insuffisant". Place-la en tout début d'appréciation.`;
+
+  return `Tu es un professeur français expérimenté rédigeant une appréciation de bulletin scolaire.
+
+CONTEXTE TEMPOREL : ${pLabel} — ${periodCtx}
+
+CONTEXTE : Cette appréciation est une parmi environ 12 que l'élève recevra ce trimestre. Elle doit être concise, lisible, utile. Les parents et l'élève doivent en retenir l'essentiel en quelques secondes.
+
+ÉLÈVE : ${gender}, tous les accords au ${accord} SANS EXCEPTION. Période : ${pLabel}${subLabel ? ' — ' + subLabel : ''}.
+${evalCtx}
+${verdictCtx}
+
+OBSERVATIONS DE L'ENSEIGNANT :
+${checked.length ? checked.map(i => '• ' + i).join('\n') : '• Profil standard'}
+${orientCtx}${memCtx}
+
+PRINCIPE FONDAMENTAL — SYNTHÈSE, PAS INVENTAIRE :
+Les observations ci-dessus sont un portrait de l'élève, pas une liste de choses à mentionner. Ton rôle est de SYNTHÉTISER : dégager l'impression d'ensemble et l'exprimer en quelques phrases naturelles. Un élève très positif avec un seul bémol (ex: bavardages) = une appréciation courte et positive avec une nuance légère. Un élève en difficulté = donner l'idée générale du problème, pas énumérer chaque manquement.
+
+STRUCTURE (guide souple, pas un plan rigide) :
+① Ouvre par le bilan global choisi. Une phrase d'ensemble.
+② En 1 ou 2 phrases : ce qui caractérise cet élève ce trimestre (travail, attitude, compétences — fondu ensemble si possible).
+③ Conclus par une phrase prospective : encouragement précis, conseil actionnable, ou mise en garde constructive.
+
+RÈGLE DU POSITIF EN PREMIER : même pour un élève en difficulté, trouve d'abord ce qui va (volonté, progrès minimes, qualité personnelle) avant les manquements. Les points négatifs se formulent en termes de ce qui doit changer, jamais comme un jugement définitif.
+
+RÈGLES TECHNIQUES ABSOLUES :
+1. Longueur STRICTE : entre ${targetMin} et ${targetMax} caractères espaces inclus. Objectif idéal : ${Math.round((targetMin+targetMax)/2)} caractères. JAMAIS au-dessus de ${targetMax}.${charLimit<=400?' Format court imposé : 2-3 phrases maximum, aller droit au but, pas de développement.':' Si le profil est simple, 3 phrases suffisent.'}
+2. Texte FLUIDE et CONTINU — aucune liste, aucun tiret. Connecteurs variés : "Cependant,", "Néanmoins,", "Par ailleurs,", "Tout en saluant… on notera que", "C'est pourquoi", "Ainsi,", etc.
+3. Ne mentionne pas chaque observation séparément. Si 3 éléments vont dans le même sens, une seule formulation synthétique suffit.
+4. Accord au ${accord} PARTOUT (adjectifs, participes, pronoms).
+5. Ton : ${toneDesc}.
+6. Registre professionnel et soutenu.
+7. Répondre UNIQUEMENT avec l'appréciation rédigée, sans guillemets, sans titre, sans commentaire.`;
+}
+
+function buildClassPrompt(cls,period){
+  const checked=[];
+  Object.values(CLASS_BOXES).forEach(sec=>sec.items.forEach(item=>{if(cls.classBoxes&&cls.classBoxes[item.id])checked.push(item.l);}));
+  const pLabel=cls.periodType==='semestre'?`semestre ${period}`:`trimestre ${period}`;
+  const toneDesc={ferme:'ferme et exigeant',equilibre:'équilibré et professionnel',encourageant:'positif et valorisant'}[cls.tone||'equilibre'];
+  return `Tu es un professeur français. Rédige l'appréciation générale d'une CLASSE pour le bulletin.
+
+Classe : ${cls.name} — ${SUBJECTS[cls.subject]?.label||cls.subject} — ${pLabel} — ${cls.students.length} élèves
+
+Éléments observés :
+${checked.length?checked.map(i=>'• '+i).join('\n'):'• Classe correcte dans l\'ensemble'}
+
+RÈGLES :
+1. Texte continu et fluide, 350–650 caractères, jamais de liste.
+2. Parle de la classe comme d'un collectif (la classe, les élèves, le groupe…).
+3. Relie les idées avec des connecteurs logiques variés.
+4. Ton : ${toneDesc}.
+5. Termine par un conseil ou un encouragement collectif.
+6. Répondre UNIQUEMENT avec l'appréciation, sans guillemets ni commentaire.`;
+}
+
+// ── CLAUDE API ────────────────────────────────────────────────────────────────
+function fitToLimit(txt, limit){
+  if(!txt || txt.length <= limit) return txt;
+  // Try to cut at last sentence boundary within limit
+  const sub = txt.slice(0, limit);
+  // Find last sentence-ending punctuation (. ! ?)
+  const lastEnd = Math.max(sub.lastIndexOf('.'), sub.lastIndexOf('!'), sub.lastIndexOf('?'));
+  if(lastEnd > limit * 0.5) return txt.slice(0, lastEnd + 1).trim();
+  // Fallback: cut at last space
+  const lastSpace = sub.lastIndexOf(' ');
+  return txt.slice(0, lastSpace).trim();
+}
+
+const _k='Z3NrX2t2eGx0UTVuWm50d0FKdEI4M1dHZHliM0ZZZUdYNUlDcnozZGpNU3pEQVFPcHdGR1li';
+let _apiKey=atob(_k);
+
+async function callClaude(prompt){
+  try{
+    const r=await fetch('https://api.groq.com/openai/v1/chat/completions',{
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'Authorization':`Bearer ${_apiKey}`
+      },
+      body:JSON.stringify({
+        model:'llama-3.3-70b-versatile',
+        max_tokens:1000,
+        messages:[{role:'user',content:prompt}]
+      })
+    });
+    if(!r.ok){toast('Erreur API '+r.status);return '';}
+    const d=await r.json();
+    return d.choices?.[0]?.message?.content?.trim()||'';
+  }catch(e){toast('Erreur de connexion');return '';}
+}
+
+async function genOne(sid){
+  const cls=S.classes[S.active]; const st=getSt(sid); if(!st)return;
+  const ta=document.getElementById('cta-'+sid); if(!ta)return;
+  ta.classList.add('gen'); ta.value='Rédaction en cours…';
+  try{
+    const seed=STYLE_SEEDS[Math.floor(Math.random()*STYLE_SEEDS.length)];
+    const txt=fitToLimit(await callClaude(buildPrompt(st,cls,S.period,seed,sampMem(S.active))), cls.charLimit||750);
+    ta.classList.remove('gen'); ta.value=txt;
+    addMem(S.active,txt); saveCmt(sid,txt); updCC(sid,txt);
+  }catch(e){ta.classList.remove('gen');ta.value='';toast('Erreur de génération');}
+}
+
+async function generateAll(){
+  const cls=S.classes[S.active]; if(!cls||!cls.students.length)return;
+  renderBulkView(document.getElementById('content'));
+  for(let i=0;i<cls.students.length;i++){
+    await genBulk(cls.students[i].id);
+    toast(`${i+1}/${cls.students.length} rédigées…`);
+  }
+  toast(`✓ ${cls.students.length} appréciations générées !`);
+}
+
+async function genBulk(sid){
+  const cls=S.classes[S.active]; const st=getSt(sid); if(!st)return;
+  const ta=document.getElementById('bta-'+sid); if(!ta)return;
+  ta.classList.add('gen');
+  try{
+    const seed=STYLE_SEEDS[Math.floor(Math.random()*STYLE_SEEDS.length)];
+    const txt=fitToLimit(await callClaude(buildPrompt(st,cls,S.period,seed,sampMem(S.active))), cls.charLimit||750);
+    ta.classList.remove('gen'); ta.value=txt;
+    addMem(S.active,txt); bulkSave(sid,txt);
+  }catch(e){ta.classList.remove('gen');toast('Erreur génération');}
+}
+
+// ── CLASS REVIEW ──────────────────────────────────────────────────────────────
+function renderClassRevView(content){
+  const cls=S.classes[S.active];
+  const comment=(cls.classComments&&cls.classComments[S.period])||'';
+  const pLabel=cls.periodType==='semestre'?`Semestre ${S.period}`:`Trimestre ${S.period}`;
+  let html=`<div class="cr-panel">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:10px">
+      <div><div style="font-family:'Lora',serif;font-size:1.25rem">${cls.name} — Appréciation de classe</div>
+      <div style="font-family:'DM Mono',monospace;font-size:.58rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-top:3px">${pLabel} · ${cls.students.length} élèves</div></div>
+    </div>`;
+  Object.entries(CLASS_BOXES).forEach(([,sec])=>{
+    html+=`<div class="cr-card"><div class="cr-hd">${sec.label}</div><div class="pill-grid">`;
+    sec.items.forEach(item=>{
+      const sel=!!(cls.classBoxes&&cls.classBoxes[item.id]);
+      const c2=item.v==='neg'?'neg':item.v==='neutral'?'neutral':'';
+      html+=`<span class="pill ${c2} ${sel?'sel':''}" onclick="togClsBox('${item.id}',this)">${item.l}</span>`;
+    });
+    html+=`</div></div>`;
+  });
+  html+=`<div class="card" style="margin-top:10px">
+    <div class="cmt-hd">
+      <span class="cmt-lbl" style="color:var(--blue)">Appréciation de classe — ${pLabel}</span>
+      <div class="cmt-acts">
+        <span class="cchar ${comment.length>650?'over':comment.length>0?'ok':''}" id="cr-cc">${comment.length}/650</span>
+        <button class="act-btn" onclick="genClassRev()">↻ Générer</button>
+        <button class="copy-btn" id="cr-cp" onclick="copyCR()">Copier</button>
+      </div>
+    </div>
+    <div class="card-bd"><textarea class="cmt-ta" id="cr-ta" style="font-family:'Lora',serif" placeholder="Générez ou rédigez l'appréciation générale de la classe…" oninput="onCRI(this.value)">${comment}</textarea></div>
+  </div></div>`;
+  content.innerHTML=html;
+}
+
+function togClsBox(itemId,el){
+  const cls=S.classes[S.active]; if(!cls.classBoxes)cls.classBoxes={};
+  cls.classBoxes[itemId]=!cls.classBoxes[itemId];
+  el.classList.toggle('sel',cls.classBoxes[itemId]);
+  save();
+}
+function onCRI(val){const cls=S.classes[S.active];if(!cls.classComments)cls.classComments={};cls.classComments[S.period]=val;save();const el=document.getElementById('cr-cc');if(el){el.textContent=`${val.length}/650`;el.className='cchar'+(val.length>650?' over':val.length>0?' ok':'');}}
+async function genClassRev(){
+  const cls=S.classes[S.active]; const ta=document.getElementById('cr-ta'); if(!ta)return;
+  ta.classList.add('gen'); ta.value='Rédaction en cours…';
+  try{const txt=fitToLimit(await callClaude(buildClassPrompt(cls,S.period)), cls.charLimit||750);ta.classList.remove('gen');ta.value=txt;onCRI(txt);}
+  catch(e){ta.classList.remove('gen');ta.value='';toast('Erreur');}
+}
+function copyCR(){const ta=document.getElementById('cr-ta');if(!ta?.value)return;navigator.clipboard.writeText(ta.value).then(()=>{const b=document.getElementById('cr-cp');b.textContent='✓ Copié';b.classList.add('copied');setTimeout(()=>{b.textContent='Copier';b.classList.remove('copied');},1800);});}
+
+// ── BULK VIEW ─────────────────────────────────────────────────────────────────
+function renderBulkView(content){
+  const cls=S.classes[S.active]; if(!cls)return;
+  const pLabel=cls.periodType==='semestre'?`Semestre ${S.period}`:`Trimestre ${S.period}`;
+  let html=`<div class="bulk-panel">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+      <div style="font-family:'Lora',serif;font-size:1.22rem">${cls.name} — ${pLabel}</div>
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-o btn-sm" onclick="copyAll()">📋 Tout copier</button>
+        <button class="btn btn-o btn-sm" onclick="doCSV()">⬇ CSV</button>
+        <button class="btn btn-o btn-sm" onclick="exportPDF()">📄 PDF</button>
+        <button class="btn btn-o btn-sm" onclick="exportWord()">📝 Word</button>
+      </div>
+    </div>`;
+  cls.students.forEach(st=>{
+    const comment=(st.comments&&st.comments[S.period])||'';
+    const hasO=st.orient?.on;
+    html+=`<div class="bulk-card">
+      <div class="bulk-hd">
+        <div class="st-avatar ${st.gender==='M'?'av-m':'av-f'}" style="width:26px;height:26px;font-size:.75rem;flex-shrink:0">${st.num}</div>
+        <span class="bulk-name">Élève n°${st.num}</span>
+        <span class="bulk-meta">${st.gender}${hasO?` · Orient. N${st.orient.level}`:''}</span>
+        <span class="cchar ${comment.length>(cls.charLimit||750)?'over':comment.length>0?'ok':''}" id="bcc-${st.id}">${comment.length}/${cls.charLimit||750}</span>
+      </div>
+      <div class="bulk-bd">
+        <textarea class="bulk-ta" id="bta-${st.id}" oninput="bulkSave('${st.id}',this.value)">${comment}</textarea>
+        <div class="bulk-acts">
+          <button class="copy-btn" onclick="copyOne('${st.id}')">Copy</button>
+          <button class="act-btn" onclick="genBulk('${st.id}')">↻</button>
+        </div>
+      </div>
+    </div>`;
+  });
+  html+=`</div>`;
+  content.innerHTML=html;
+}
+
+function bulkSave(id,val){
+  const st=getSt(id); if(!st)return;
+  if(!st.comments)st.comments={}; st.comments[S.period]=val; save();
+  const el=document.getElementById('bcc-'+id);if(el){el.textContent=`${val.length}/750`;el.className='cchar'+(val.length>750?' over':val.length>0?' ok':'');}
+}
+function copyOne(id){const ta=document.getElementById('bta-'+id);if(ta?.value)navigator.clipboard.writeText(ta.value).then(()=>toast('Copié !'));}
+function copyAll(){
+  const cls=S.classes[S.active];
+  const lines=cls.students.map(s=>{const c=(s.comments&&s.comments[S.period])||'';return `Élève n°${s.num}\n${c}`;}).join('\n\n---\n\n');
+  navigator.clipboard.writeText(lines).then(()=>toast('Toutes les appréciations copiées !'));
+}
+function doCSV(){
+  const cls=S.classes[S.active];
+  const pLabel=cls.periodType==='semestre'?`S${S.period}`:`T${S.period}`;
+  let csv='Numéro,Genre,Période,Orientation,Appréciation\n';
+  cls.students.forEach(s=>{
+    const c=((s.comments&&s.comments[S.period])||'').replace(/"/g,'""');
+    const orient=s.orient?.on?`N${s.orient.level}${s.orient.path?' - '+s.orient.path:''}` :'';
+    csv+=`"${s.num}","${s.gender}","${pLabel}","${orient}","${c}"\n`;
+  });
+  const blob=new Blob([csv],{type:'text/csv'});const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download=`${cls.name}_${pLabel}.csv`;a.click();URL.revokeObjectURL(url);
+  toast('CSV exporté');
+}
+
+// ── IMPORT / EXPORT ───────────────────────────────────────────────────────────
+function exportAll(){
+  const blob=new Blob([JSON.stringify(S,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='bulletinspro_v3.json';a.click();URL.revokeObjectURL(url);toast('Sauvegarde exportée');
+}
+function importAll(){document.getElementById('imp-inp').click();}
+function doImport(e){
+  const f=e.target.files[0];if(!f)return;
+  const r=new FileReader();r.onload=ev=>{try{S=JSON.parse(ev.target.result);save();renderSidebar();if(S.active&&S.classes[S.active])selectClass(S.active);toast('Données importées');}catch{toast('Fichier invalide');}};r.readAsText(f);e.target.value='';
+}
+
+// ── EXPORT PDF ────────────────────────────────────────────────────────────────
+function exportPDF(){
+  const cls=S.classes[S.active]; if(!cls)return;
+  const pLabel=cls.periodType==='semestre'?`Semestre ${S.period}`:`Trimestre ${S.period}`;
+  const subj=SUBJECTS[cls.subject]?.label||cls.subject;
+  const today=new Date().toLocaleDateString('fr-FR',{day:'2-digit',month:'long',year:'numeric'});
+
+  // Compute class stats
+  const notes=cls.students.map(s=>parseFloat(s.grade)).filter(n=>!isNaN(n));
+  const avg=notes.length?( notes.reduce((a,b)=>a+b,0)/notes.length).toFixed(2):null;
+  const max=notes.length?Math.max(...notes).toFixed(2):null;
+  const min=notes.length?Math.min(...notes).toFixed(2):null;
+  const done=cls.students.filter(s=>s.comments&&s.comments[S.period]&&s.comments[S.period].length>0).length;
+
+  // Build rows
+  const rows=cls.students.map((st,i)=>{
+    const c=(st.comments&&st.comments[S.period])||'';
+    const name=st.name||`Élève n°${st.num}`;
+    const noteStr=cls.evalType==='note'&&st.grade?`<td style="${tdStyle};width:50px;text-align:center;font-weight:600">${st.grade}/20</td>`
+      :cls.evalType==='niveau'&&st.level?`<td style="${tdStyle};width:70px;text-align:center;font-size:10px">${st.level}</td>`
+      :`<td style="${tdStyle};width:50px"></td>`;
+    const bg=i%2===0?'#ffffff':'#f8f9fb';
+    return `<tr style="background:${bg}">
+      <td style="${tdStyle};width:30px;text-align:center;color:#888;font-size:11px">${st.num}</td>
+      <td style="${tdStyle};width:140px;font-weight:500">${name}</td>
+      ${noteStr}
+      <td style="${tdStyle};line-height:1.55;font-size:11.5px">${c||'<em style="color:#bbb">Non rédigée</em>'}</td>
+    </tr>`;
+  }).join('');
+
+  const tdStyle='border:1px solid #e0e0e0;padding:7px 9px;vertical-align:top';
+
+  const statsLine=avg?`<span>Moyenne&nbsp;: <strong>${avg}/20</strong></span> &nbsp;·&nbsp; <span>Max&nbsp;: ${max}</span> &nbsp;·&nbsp; <span>Min&nbsp;: ${min}</span> &nbsp;·&nbsp;`:'';
+
+  const html=`<!DOCTYPE html>
+<html lang="fr"><head><meta charset="UTF-8">
+<title>${cls.name} — ${subj} — ${pLabel}</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:Arial,sans-serif;font-size:12px;color:#1a1a1a;background:#fff;padding:30px 36px;}
+  .header{border-bottom:3px solid #1a3a6b;padding-bottom:14px;margin-bottom:18px;display:flex;justify-content:space-between;align-items:flex-end;}
+  .header-left h1{font-size:20px;color:#1a3a6b;font-weight:700;letter-spacing:-.3px;}
+  .header-left h2{font-size:13px;color:#555;font-weight:400;margin-top:3px;}
+  .header-right{text-align:right;font-size:11px;color:#666;line-height:1.8;}
+  .header-right strong{color:#1a3a6b;}
+  .meta-bar{display:flex;gap:20px;background:#f0f4fb;border:1px solid #d0daf0;border-radius:6px;padding:8px 14px;margin-bottom:16px;font-size:11px;color:#444;}
+  .meta-item strong{color:#1a3a6b;}
+  table{width:100%;border-collapse:collapse;font-size:12px;}
+  thead tr{background:#1a3a6b;color:#fff;}
+  thead th{padding:8px 9px;text-align:left;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.04em;}
+  .footer{margin-top:20px;display:flex;justify-content:space-between;align-items:flex-start;font-size:11px;color:#555;border-top:1px solid #e0e0e0;padding-top:12px;}
+  .footer-stats{line-height:1.8;}
+  .footer-sign{text-align:right;line-height:2;}
+  .sign-box{border:1px solid #ccc;border-radius:4px;padding:6px 20px;display:inline-block;color:#999;font-size:11px;}
+  .print-btn{position:fixed;top:16px;right:16px;padding:10px 20px;background:#1a3a6b;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;box-shadow:0 2px 8px rgba(0,0,0,.15);}
+  .print-btn:hover{background:#153061;}
+  @media print{.print-btn{display:none!important;}body{padding:15px 20px;}@page{margin:1.5cm;}}
+</style></head><body>
+
+<button class="print-btn" onclick="window.print()">🖨️ Imprimer / PDF</button>
+
+<div class="header">
+  <div class="header-left">
+    <h1>${cls.name} — ${subj}</h1>
+    <h2>Appréciations — ${pLabel}</h2>
+  </div>
+  <div class="header-right">
+    <div>Édité le <strong>${today}</strong></div>
+    <div>${cls.students.length} élèves · ${done} appréciations rédigées</div>
+  </div>
+</div>
+
+<div class="meta-bar">
+  <div class="meta-item">Classe&nbsp;: <strong>${cls.name}</strong></div>
+  <div class="meta-item">Matière&nbsp;: <strong>${subj}</strong></div>
+  <div class="meta-item">Période&nbsp;: <strong>${pLabel}</strong></div>
+  <div class="meta-item">Évaluation&nbsp;: <strong>${{note:'Notes /20',niveau:'Niveaux',competence:'Compétences',mix:'Mixte'}[cls.evalType]||cls.evalType}</strong></div>
+</div>
+
+<table>
+  <thead>
+    <tr>
+      <th style="width:30px">N°</th>
+      <th style="width:140px">Élève</th>
+      <th style="width:60px">${cls.evalType==='note'?'Note':'Niveau'}</th>
+      <th>Appréciation du professeur</th>
+    </tr>
+  </thead>
+  <tbody>${rows}</tbody>
+</table>
+
+<div class="footer">
+  <div class="footer-stats">
+    ${statsLine}
+    <span>${done}/${cls.students.length} appréciations rédigées</span>
+  </div>
+  <div class="footer-sign">
+    <div style="margin-bottom:4px;color:#888">Signature du professeur</div>
+    <div class="sign-box">___________________</div>
+  </div>
+</div>
+
+</body></html>`;
+
+  const w=window.open('','_blank');
+  w.document.write(html);
+  w.document.close();
+  toast('📄 PDF prêt — cliquez Imprimer');
+}
+
+// ── EXPORT WORD ───────────────────────────────────────────────────────────────
+function exportWord(){
+  const cls=S.classes[S.active]; if(!cls)return;
+  const pLabel=cls.periodType==='semestre'?`Semestre ${S.period}`:`Trimestre ${S.period}`;
+  const subj=SUBJECTS[cls.subject]?.label||cls.subject;
+
+  // Build RTF content (opens in Word without external libs)
+  let rtf=`{\\rtf1\\ansi\\deff0
+{\\fonttbl{\\f0 Georgia;}{\\f1 Arial;}}
+{\\colortbl;\\red46\\green107\\blue62;\\red100\\green100\\blue100;}
+\\paperw11906\\paperh16838\\margl1440\\margr1440\\margt1440\\margb1440
+\\f1\\fs28\\b\\cf1 ${cls.name} — Appréciations\\b0\\par
+\\f1\\fs18\\cf2 ${subj} · ${pLabel} · ${cls.students.length} élèves\\cf0\\par\\par
+`;
+  cls.students.forEach(st=>{
+    const c=((st.comments&&st.comments[S.period])||'Non rédigée').replace(/[\\{}]/g,'\\$&');
+    const name=(st.name||`Élève n°${st.num}`).replace(/[\\{}]/g,'\\$&');
+    rtf+=`\\f1\\fs20\\b ${name}\\b0\\par\\f0\\fs20 ${c}\\par\\par`;
+  });
+  rtf+='}';
+
+  const blob=new Blob([rtf],{type:'application/rtf'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download=`${cls.name}_${pLabel}.rtf`;a.click();
+  URL.revokeObjectURL(url);
+  toast('Fichier Word (.rtf) exporté');
+}
+
+// ── VOICE INPUT ───────────────────────────────────────────────────────────────
+let voiceRecognition=null;
+let voiceActive=false;
+let voiceTargetId=null;
+
+function startVoice(targetId){
+  if(!('webkitSpeechRecognition' in window)&&!('SpeechRecognition' in window)){
+    toast('Saisie vocale non supportée sur ce navigateur');return;
+  }
+  voiceTargetId=targetId;
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  voiceRecognition=new SR();
+  voiceRecognition.lang='fr-FR';
+  voiceRecognition.continuous=true;
+  voiceRecognition.interimResults=true;
+
+  voiceRecognition.onstart=()=>{
+    voiceActive=true;
+    const btn=document.getElementById('voice-btn-'+targetId);
+    if(btn){btn.textContent='⏹';btn.style.background='var(--warn)';btn.style.color='#fff';}
+    toast('🎙️ Parlez maintenant…');
+  };
+
+  voiceRecognition.onresult=(e)=>{
+    let final='';
+    for(let i=e.resultIndex;i<e.results.length;i++){
+      if(e.results[i].isFinal)final+=e.results[i][0].transcript;
+    }
+    if(final){
+      const ta=document.getElementById('cta-'+targetId)||document.getElementById('ppcta-'+targetId);
+      if(ta){
+        ta.value=(ta.value?ta.value+' ':'')+final;
+        ta.dispatchEvent(new Event('input'));
+      }
+    }
+  };
+
+  voiceRecognition.onerror=()=>{stopVoice();toast('Erreur micro');};
+  voiceRecognition.onend=()=>stopVoice();
+  voiceRecognition.start();
+}
+
+function stopVoice(){
+  if(voiceRecognition)voiceRecognition.stop();
+  voiceActive=false;
+  if(voiceTargetId){
+    const btn=document.getElementById('voice-btn-'+voiceTargetId);
+    if(btn){btn.textContent='🎙️';btn.style.background='';btn.style.color='';}
+  }
+}
+
+function toggleVoice(targetId){
+  if(voiceActive&&voiceTargetId===targetId){stopVoice();}
+  else{if(voiceActive)stopVoice();startVoice(targetId);}
+}
+
+// ── STATS ─────────────────────────────────────────────────────────────────────
+function showStats(){
+  const mo=document.getElementById('mo-stats');
+  if(!mo){buildStatsModal();return;}
+  refreshStats();
+  mo.classList.add('open');
+}
+
+function buildStatsModal(){
+  const div=document.createElement('div');
+  div.className='mo';div.id='mo-stats';
+  div.innerHTML=`<div class="modal" style="width:520px;max-height:85vh;overflow-y:auto">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
+      <div class="mo-t" style="margin:0">📊 Statistiques</div>
+      <button class="btn btn-o btn-sm" onclick="document.getElementById('mo-stats').classList.remove('open')">✕</button>
+    </div>
+    <div id="stats-content"></div>
+  </div>`;
+  div.addEventListener('click',e=>{if(e.target===div)div.classList.remove('open');});
+  document.body.appendChild(div);
+  refreshStats();
+  div.classList.add('open');
+}
+
+function refreshStats(){
+  const el=document.getElementById('stats-content');if(!el)return;
+  const periods={trimestre:['T1','T2','T3'],semestre:['S1','S2']};
+  let html='';
+  let totalDone=0,totalAll=0;
+
+  // Classes stats
+  const clsIds=Object.keys(S.classes);
+  if(clsIds.length){
+    html+=`<div style="font-family:'DM Mono',monospace;font-size:.58rem;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);margin-bottom:10px">Mes classes</div>`;
+    clsIds.forEach(id=>{
+      const cls=S.classes[id];
+      const subj=SUBJECTS[cls.subject]?.label||cls.subject;
+      const ps=periods[cls.periodType]||periods.trimestre;
+      html+=`<div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:8px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <div>
+            <div style="font-weight:500;font-size:.9rem">${cls.name}</div>
+            <div style="font-family:'DM Mono',monospace;font-size:.54rem;color:var(--muted);text-transform:uppercase;margin-top:2px">${subj} · ${cls.students.length} élèves</div>
+          </div>
+        </div>`;
+      ps.forEach((pl,i)=>{
+        const p=i+1;
+        const done=cls.students.filter(s=>s.comments&&s.comments[p]&&s.comments[p].length>0).length;
+        const total=cls.students.length;
+        const pct=total?Math.round(done/total*100):0;
+        totalDone+=done;totalAll+=total;
+        const color=pct===100?'var(--accent)':pct>50?'var(--amber)':'var(--warn)';
+        html+=`<div style="margin-bottom:6px">
+          <div style="display:flex;justify-content:space-between;font-family:'DM Mono',monospace;font-size:.56rem;text-transform:uppercase;margin-bottom:3px">
+            <span style="color:var(--muted)">${pl}</span>
+            <span style="color:${color}">${done}/${total} — ${pct}%</span>
+          </div>
+          <div style="height:5px;background:var(--border);border-radius:3px;overflow:hidden">
+            <div style="height:100%;width:${pct}%;background:${color};border-radius:3px;transition:width .4s"></div>
+          </div>
+        </div>`;
+      });
+      html+=`</div>`;
+    });
+  }
+
+  // PP stats
+  const ppIds=Object.keys(S.pp||{});
+  if(ppIds.length){
+    html+=`<div style="font-family:'DM Mono',monospace;font-size:.58rem;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);margin:14px 0 10px">Prof. Principal</div>`;
+    ppIds.forEach(id=>{
+      const pp=S.pp[id];
+      const ps=periods[pp.periodType]||periods.trimestre;
+      html+=`<div style="background:var(--surface);border:1px solid var(--teal-b);border-radius:10px;padding:12px 14px;margin-bottom:8px">
+        <div style="font-weight:500;font-size:.9rem;margin-bottom:10px">${pp.name} <span style="font-family:'DM Mono',monospace;font-size:.54rem;color:var(--teal);text-transform:uppercase;margin-left:6px">PP</span></div>`;
+      ps.forEach((pl,i)=>{
+        const p=i+1;
+        const done=pp.students.filter(s=>s.comments&&s.comments[p]&&s.comments[p].length>0).length;
+        const total=pp.students.length;
+        const pct=total?Math.round(done/total*100):0;
+        totalDone+=done;totalAll+=total;
+        const color=pct===100?'var(--teal)':pct>50?'var(--amber)':'var(--warn)';
+        html+=`<div style="margin-bottom:6px">
+          <div style="display:flex;justify-content:space-between;font-family:'DM Mono',monospace;font-size:.56rem;text-transform:uppercase;margin-bottom:3px">
+            <span style="color:var(--muted)">${pl}</span>
+            <span style="color:${color}">${done}/${total} — ${pct}%</span>
+          </div>
+          <div style="height:5px;background:var(--border);border-radius:3px;overflow:hidden">
+            <div style="height:100%;width:${pct}%;background:${color};border-radius:3px;transition:width .4s"></div>
+          </div>
+        </div>`;
+      });
+      html+=`</div>`;
+    });
+  }
+
+  // Global summary
+  if(totalAll>0){
+    const globalPct=Math.round(totalDone/totalAll*100);
+    html=`<div style="background:linear-gradient(135deg,var(--accent-l),var(--bg));border:1px solid var(--accent-b);border-radius:10px;padding:14px 16px;margin-bottom:16px;display:flex;align-items:center;gap:14px">
+      <div style="font-family:'Lora',serif;font-size:2rem;color:var(--accent);font-weight:600">${globalPct}%</div>
+      <div><div style="font-size:.9rem;font-weight:500">Complétion globale</div>
+      <div style="font-family:'DM Mono',monospace;font-size:.58rem;color:var(--muted);text-transform:uppercase;margin-top:2px">${totalDone} / ${totalAll} appréciations rédigées</div></div>
+    </div>`+html;
+  } else {
+    html=`<div style="text-align:center;padding:30px;color:var(--muted);font-size:.84rem">Aucune donnée encore — créez des classes et rédigez des appréciations.</div>`;
+  }
+
+  el.innerHTML=html;
+}
+
+// ── CUSTOM PILLS ─────────────────────────────────────────────────────────────
+// Custom pills stored per class: S.classes[id].customPills = {categoryKey: [{id, l, v}]}
+
+function getCustomPills(clsId, catKey){
+  return (S.classes[clsId]?.customPills?.[catKey])||[];
+}
+
+function addCustomPill(studentId, catKey){
+  const cls=S.classes[S.active]; if(!cls)return;
+  const label=window.prompt('Nom de votre observation :');
+  if(!label||!label.trim())return;
+
+  // Ask valence
+  const valMap={'1':'pos','2':'neutral','3':'neg'};
+  const v=window.prompt('Ton (1=Positif, 2=Neutre, 3=Négatif) :','1');
+  const valence=valMap[v?.trim()]||'pos';
+
+  if(!cls.customPills)cls.customPills={};
+  if(!cls.customPills[catKey])cls.customPills[catKey]=[];
+  const id='cp_'+Date.now();
+  cls.customPills[catKey].push({id,l:label.trim(),v:valence});
+  save();
+  // Re-render editor
+  renderEditor(studentId);
+  toast('✓ Observation ajoutée');
+}
+
+function delCustomPill(clsId, catKey, pillId, studentId){
+  const cls=S.classes[clsId]; if(!cls?.customPills?.[catKey])return;
+  cls.customPills[catKey]=cls.customPills[catKey].filter(p=>p.id!==pillId);
+  // Also remove from all students' boxes
+  cls.students.forEach(st=>{if(st.boxes)delete st.boxes[pillId];});
+  save();
+  renderEditor(studentId);
+  toast('Observation supprimée');
+}
+
+// ── IMPORT ÉLÈVES CSV/EXCEL ───────────────────────────────────────────────────
+function openImportStudents(){
+  // Build modal
+  let mo=document.getElementById('mo-import-students');
+  if(!mo){
+    mo=document.createElement('div');
+    mo.className='mo';mo.id='mo-import-students';
+    mo.innerHTML=`<div class="modal" style="width:460px">
+      <div class="mo-t">📥 Importer une liste d'élèves</div>
+      <p style="font-size:.82rem;color:var(--muted);margin-bottom:14px;line-height:1.6">
+        Importez un fichier <strong>CSV</strong> ou collez une liste directement.<br>
+        Format attendu : <code style="background:var(--bg);padding:1px 5px;border-radius:3px">Numéro,Prénom Nom,Genre</code>
+      </p>
+      <div class="mo-lbl">Option 1 — Fichier CSV/Excel</div>
+      <input type="file" id="imp-students-file" accept=".csv,.txt,.xlsx" style="margin-bottom:12px;font-size:.8rem;width:100%" onchange="previewImportFile(event)">
+      <div class="mo-lbl">Option 2 — Coller une liste (un élève par ligne)</div>
+      <textarea id="imp-students-text" class="mo-inp" rows="6" style="font-family:monospace;font-size:.78rem;resize:vertical" placeholder="1,Marie Dupont,F&#10;2,Lucas Martin,M&#10;3,Emma Bernard,F&#10;..."></textarea>
+      <div id="imp-preview" style="margin-top:10px;font-size:.78rem;color:var(--accent);font-family:'DM Mono',monospace"></div>
+      <div style="margin-top:10px;font-size:.76rem;color:var(--muted);background:var(--bg);padding:8px 10px;border-radius:6px">
+        💡 <strong>Formats acceptés :</strong><br>
+        • <code>1,Marie Dupont,F</code> — avec numéro, nom, genre<br>
+        • <code>Marie Dupont</code> — juste le nom (numéro auto)<br>
+        • <code>1 Marie</code> ou <code>Marie F</code> — formats flexibles
+      </div>
+      <div class="mo-acts">
+        <button class="btn btn-o" onclick="closeMo('mo-import-students')">Annuler</button>
+        <button class="btn btn-g" onclick="doImportStudents()">Importer</button>
+      </div>
+    </div>`;
+    mo.addEventListener('click',e=>{if(e.target===mo)mo.classList.remove('open');});
+    document.body.appendChild(mo);
+  }
+  document.getElementById('imp-students-text').value='';
+  document.getElementById('imp-preview').textContent='';
+  mo.classList.add('open');
+}
+
+function previewImportFile(e){
+  const f=e.target.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=ev=>{
+    document.getElementById('imp-students-text').value=ev.target.result;
+    const lines=ev.target.result.split('\n').filter(l=>l.trim()).length;
+    document.getElementById('imp-preview').textContent=`✓ ${lines} lignes détectées`;
+  };
+  r.readAsText(f);
+}
+
+function parseImportLine(line, autoNum){
+  line=line.trim();
+  if(!line)return null;
+
+  // Detect separator
+  const sep=line.includes(';')?';':',';
+  const parts=line.split(sep).map(p=>p.trim());
+
+  let num=autoNum, name='', gender='M';
+
+  if(parts.length>=3){
+    // Format: num,name,gender
+    const n=parseInt(parts[0]);
+    if(!isNaN(n)){num=n;name=parts[1];}
+    else{name=parts[0];}
+    const g=parts[parts.length-1].toUpperCase();
+    if(g==='F'||g==='FILLE'||g==='FEMININE')gender='F';
+  } else if(parts.length===2){
+    const n=parseInt(parts[0]);
+    if(!isNaN(n)){num=n;name=parts[1];}
+    else{
+      name=parts[0];
+      const g=parts[1].toUpperCase();
+      if(g==='F'||g==='FILLE')gender='F';
+    }
+  } else {
+    // Single value — just a name
+    name=parts[0];
+    // Auto-detect gender from last char hint
+    if(name.endsWith('(F)')||name.endsWith(' F')){gender='F';name=name.replace(/\s*\(F\)|\s+F$/,'').trim();}
+  }
+
+  // Auto-detect gender from common French first names ending
+  const fn=name.split(' ')[0]?.toLowerCase()||'';
+  const femNames=['marie','emma','lea','lucie','camille','alice','chloe','chloé','julie','sarah','laura','manon','jade','inès','ines','amelie','amélie','elodie','élodie','oceane','océane','pauline','mathilde','charlotte','anais','anaïs'];
+  if(femNames.includes(fn))gender='F';
+
+  return {num,name,gender};
+}
+
+function doImportStudents(){
+  if(!S.active)return;
+  const cls=S.classes[S.active];
+  const text=document.getElementById('imp-students-text').value;
+  if(!text.trim()){toast('Aucune donnée à importer');return;}
+
+  const lines=text.split('\n').filter(l=>l.trim());
+  // Skip header line if detected
+  const startLine=lines[0]?.toLowerCase().includes('nom')||lines[0]?.toLowerCase().includes('prenom')?1:0;
+
+  let added=0,skipped=0;
+  let autoNum=cls.students.length>0?Math.max(...cls.students.map(s=>s.num))+1:1;
+
+  lines.slice(startLine).forEach(line=>{
+    const parsed=parseImportLine(line,autoNum);
+    if(!parsed||!parsed.name)return;
+
+    // Skip if number already exists
+    if(cls.students.find(s=>s.num===parsed.num)){skipped++;autoNum++;return;}
+
+    cls.students.push({
+      id:'s'+Date.now()+Math.random(),
+      num:parsed.num,
+      name:parsed.name,
+      gender:parsed.gender,
+      boxes:{},grade:'',level:'',comps:{},
+      tone:null,
+      orient:{on:false,level:1,path:'',note:''},
+      comments:{}
+    });
+    autoNum=parsed.num+1;
+    added++;
+  });
+
+  cls.students.sort((a,b)=>a.num-b.num);
+  save();
+  closeMo('mo-import-students');
+  renderStudentList();
+  const sc=document.getElementById('sc');if(sc)sc.textContent=cls.students.length;
+  toast(`✓ ${added} élève(s) importé(s)${skipped?` · ${skipped} ignoré(s)`:''}`);
+}
+// ── ONBOARDING ────────────────────────────────────────────────────────────────
+const ONBOARD_STEPS = [
+  {
+    icon: '👋',
+    title: 'Bienvenue dans BulletinsPro !',
+    desc: 'Générez des appréciations de bulletin scolaire en quelques clics grâce à l\'IA. Voici comment démarrer en 4 étapes.',
+    tips: [
+      {icon:'☁️', text:'Vos données sont <strong>sauvegardées automatiquement</strong> sur votre Google Drive personnel.'},
+      {icon:'📱', text:'L\'app fonctionne sur <strong>ordinateur, tablette et mobile</strong> — même sans connexion internet.'},
+      {icon:'🔒', text:'Chaque prof a <strong>son propre espace</strong> — personne ne voit vos données.'},
+    ]
+  },
+  {
+    icon: '📚',
+    title: 'Créez votre première classe',
+    desc: 'Commencez par créer une classe en cliquant sur "+ Nouvelle classe" dans la barre latérale.',
+    tips: [
+      {icon:'🎓', text:'Choisissez la <strong>matière</strong> (maths, anglais, EPS...) pour des observations adaptées.'},
+      {icon:'📊', text:'Sélectionnez votre <strong>système d\'évaluation</strong> : note /20, niveaux ou compétences.'},
+      {icon:'📥', text:'Importez directement votre <strong>liste d\'élèves en CSV</strong> via le bouton 📥 — plus rapide !'},
+    ]
+  },
+  {
+    icon: '✏️',
+    title: 'Remplissez le profil de chaque élève',
+    desc: 'Sélectionnez un élève, puis cochez les observations qui le décrivent. Plus vous cochez, plus l\'appréciation sera précise.',
+    tips: [
+      {icon:'🟢', text:'Les pills <strong>vertes</strong> sont positives, <strong>rouges</strong> négatives, <strong>ambre</strong> neutres.'},
+      {icon:'➕', text:'Ajoutez vos <strong>propres observations</strong> avec le bouton "+ Ajouter" dans chaque catégorie.'},
+      {icon:'🎯', text:'Activez l\'<strong>orientation</strong> si l\'élève a un projet de filière à mentionner.'},
+    ]
+  },
+  {
+    icon: '⚡',
+    title: 'Générez les appréciations',
+    desc: 'Cliquez sur "Générer" pour qu\'une appréciation soit rédigée automatiquement. Vous pouvez la modifier avant de la copier.',
+    tips: [
+      {icon:'🔄', text:'Cliquez plusieurs fois sur <strong>↻ Générer</strong> pour avoir des variantes différentes.'},
+      {icon:'🎙️', text:'Utilisez la <strong>saisie vocale</strong> 🎙️ pour dicter directement votre appréciation.'},
+      {icon:'📄', text:'En vue <strong>📄 Tout</strong>, générez toutes les appréciations d\'un coup avec ⚡ Générer tout.'},
+    ]
+  },
+  {
+    icon: '📤',
+    title: 'Exportez vos appréciations',
+    desc: 'Quand tout est rédigé, exportez en PDF ou Word pour les copier dans Pronote ou votre logiciel de bulletins.',
+    tips: [
+      {icon:'📄', text:'<strong>PDF</strong> : mise en page officielle avec en-tête, tableau et zone de signature.'},
+      {icon:'📝', text:'<strong>Word (.rtf)</strong> : s\'ouvre dans Word, LibreOffice ou Pages — éditable.'},
+      {icon:'📋', text:'<strong>Copier tout</strong> : toutes les appréciations dans le presse-papier en un clic.'},
+    ]
+  },
+];
+
+let onboardStep=0;
+
+function showOnboarding(force=false){
+  const seen=localStorage.getItem('bp3_onboard');
+  if(seen&&!force)return;
+  onboardStep=0;
+  renderOnboardStep();
+  document.getElementById('onboard-overlay').style.display='flex';
+}
+
+function closeOnboarding(){
+  document.getElementById('onboard-overlay').style.display='none';
+  localStorage.setItem('bp3_onboard','1');
+}
+
+function onboardNav(dir){
+  onboardStep+=dir;
+  if(onboardStep<0)onboardStep=0;
+  if(onboardStep>=ONBOARD_STEPS.length){closeOnboarding();return;}
+  renderOnboardStep();
+}
+
+function renderOnboardStep(){
+  const s=ONBOARD_STEPS[onboardStep];
+  const total=ONBOARD_STEPS.length;
+  const prog=document.getElementById('onboard-progress');
+  prog.innerHTML=Array.from({length:total},(_,i)=>
+    `<div class="onboard-dot${i<=onboardStep?' done':''}"></div>`
+  ).join('');
+  const tipsHtml=s.tips.map(t=>`
+    <div class="onboard-tip">
+      <span class="onboard-tip-icon">${t.icon}</span>
+      <span class="onboard-tip-text">${t.text}</span>
+    </div>`).join('');
+  document.getElementById('onboard-step').innerHTML=`
+    <span class="onboard-icon">${s.icon}</span>
+    <div class="onboard-title">${s.title}</div>
+    <div class="onboard-desc">${s.desc}</div>
+    <div class="onboard-tips">${tipsHtml}</div>
+  `;
+  document.getElementById('onboard-counter').textContent=`${onboardStep+1} / ${total}`;
+  const prev=document.getElementById('onboard-prev');
+  const next=document.getElementById('onboard-next');
+  prev.style.display=onboardStep===0?'none':'';
+  next.textContent=onboardStep===total-1?"C'est parti ! 🚀":'Suivant →';
+}
+
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2400);}
+
+document.querySelectorAll('.mo').forEach(el=>el.addEventListener('click',e=>{if(e.target===el)el.classList.remove('open');}));
+
+// ══════════════════════════════════════════════════════════════════════════════
+// PROFESSEUR PRINCIPAL MODE
+// ══════════════════════════════════════════════════════════════════════════════
+
+const PP_BOXES = {
+  themes: {
+    label: 'Thèmes récurrents signalés par les professeurs',
+    items: [
+      // Positive recurring
+      {id:'th1',l:'Investissement salué par plusieurs profs',v:'pos'},
+      {id:'th2',l:'Sérieux et régularité reconnus',v:'pos'},
+      {id:'th3',l:'Attitude positive relevée en général',v:'pos'},
+      {id:'th4',l:'Bonne progression d\'ensemble',v:'pos'},
+      {id:'th5',l:'Élève apprécié(e) de l\'équipe pédagogique',v:'pos'},
+      // Neutral/mixed
+      {id:'th6',l:'Résultats hétérogènes selon les matières',v:'neutral'},
+      {id:'th7',l:'Efforts insuffisants relevés par plusieurs profs',v:'neutral'},
+      {id:'th8',l:'Implication variable selon les disciplines',v:'neutral'},
+      // Negative recurring
+      {id:'th9',l:'Manque de travail signalé par l\'ensemble',v:'neg'},
+      {id:'th10',l:'Comportement perturbateur noté par plusieurs',v:'neg'},
+      {id:'th11',l:'Devoirs non rendus de manière répétée',v:'neg'},
+      {id:'th12',l:'Concentration insuffisante en classe',v:'neg'},
+      {id:'th13',l:'Bavardages signalés par plusieurs enseignants',v:'neg'},
+    ]
+  },
+  competences: {
+    label: 'Compétences transversales observées',
+    items: [
+      {id:'cp1',l:'Bon raisonnement logique',v:'pos'},
+      {id:'cp2',l:'Bonne expression écrite',v:'pos'},
+      {id:'cp3',l:'Bonne expression orale',v:'pos'},
+      {id:'cp4',l:'Capacité d\'analyse développée',v:'pos'},
+      {id:'cp5',l:'Bonne mémorisation',v:'pos'},
+      {id:'cp6',l:'Autonomie dans le travail',v:'pos'},
+      {id:'cp7',l:'Difficultés en raisonnement',v:'neg'},
+      {id:'cp8',l:'Difficultés à l\'expression orale',v:'neg'},
+      {id:'cp9',l:'Difficultés à l\'expression écrite',v:'neg'},
+      {id:'cp10',l:'Difficultés de mémorisation',v:'neg'},
+      {id:'cp11',l:'Participation orale insuffisante',v:'neg'},
+      {id:'cp12',l:'Manque d\'autonomie',v:'neg'},
+      {id:'cp13',l:'Difficultés de concentration',v:'neg'},
+    ]
+  },
+  progression: {
+    label: 'Progression générale ce trimestre',
+    items: [
+      {id:'pg1',l:'Très belle progression d\'ensemble',v:'pos'},
+      {id:'pg2',l:'Progression encourageante',v:'pos'},
+      {id:'pg3',l:'Résultats en progrès régulier',v:'pos'},
+      {id:'pg4',l:'Trimestre stable',v:'neutral'},
+      {id:'pg5',l:'Bilan mitigé',v:'neutral'},
+      {id:'pg6',l:'Trimestre en deçà des attentes',v:'neg'},
+      {id:'pg7',l:'Régression préoccupante',v:'neg'},
+      {id:'pg8',l:'Situation urgente à redresser',v:'neg'},
+    ]
+  },
+  viescolaire: {
+    label: 'Vie scolaire',
+    items: [
+      {id:'vs1',l:'Ponctualité exemplaire',v:'pos'},
+      {id:'vs2',l:'Présence irréprochable',v:'pos'},
+      {id:'vs3',l:'Retards réguliers',v:'neg'},
+      {id:'vs4',l:'Absences répétées',v:'neg'},
+      {id:'vs5',l:'Absences injustifiées',v:'neg'},
+      {id:'vs6',l:'Bonne intégration dans la classe',v:'pos'},
+      {id:'vs7',l:'Difficultés relationnelles',v:'neg'},
+      {id:'vs8',l:'A fait l\'objet d\'un suivi particulier',v:'neutral'},
+    ]
+  },
+  conseils: {
+    label: 'Conclusion & Conseils du professeur principal',
+    items: [
+      {id:'ca1',l:'Félicitations — résultats remarquables',v:'pos'},
+      {id:'ca2',l:'Encouragements — continuer sur cette voie',v:'pos'},
+      {id:'ca3',l:'Doit maintenir ses efforts',v:'neutral'},
+      {id:'ca4',l:'Doit consolider son travail',v:'neutral'},
+      {id:'ca5',l:'Redoubler d\'efforts est indispensable',v:'neg'},
+      {id:'ca6',l:'Un sursaut est nécessaire et urgent',v:'neg'},
+      {id:'ca7',l:'Entretien avec la famille souhaitable',v:'neg'},
+      {id:'ca8',l:'Suivi renforcé mis en place',v:'neg'},
+    ]
+  },
+};
+
+const PP_STYLE_SEEDS = [
+  "Commence par un bilan global de l'implication de l'élève dans la classe.",
+  "Commence par évoquer la progression observée à travers les matières.",
+  "Commence par une remarque sur l'attitude générale et la vie scolaire.",
+  "Commence par noter le profil global de l'élève tel que perçu par l'équipe pédagogique.",
+  "Commence par évoquer les points forts qui ressortent du conseil de classe.",
+  "Commence par une observation sur les compétences transversales.",
+];
+
+// PP state
+let activePP = null;
+let activePPStudent = null;
+let activePPPeriod = 1;
+
+// Phrase memory for PP (session)
+const ppMem = {};
+function getPPMem(id){if(!ppMem[id])ppMem[id]=new Set();return ppMem[id];}
+function addPPMem(id,txt){const m=getPPMem(id);const w=txt.split(' ');for(let i=0;i<w.length-3;i++)m.add(w.slice(i,i+4).join(' ').toLowerCase());}
+function sampPPMem(id){const arr=[...getPPMem(id)];if(!arr.length)return '';return arr.sort(()=>.5-Math.random()).slice(0,10).join(' | ');}
+
+// ── PP SIDEBAR ────────────────────────────────────────────────────────────────
+function renderPPSidebar(){
+  const el=document.getElementById('pp-list'); if(!el)return;
+  const ids=Object.keys(S.pp||{});
+  el.innerHTML='';
+  ids.forEach(id=>{
+    const p=S.pp[id];
+    const d=document.createElement('div');
+    d.className='pp-item'+(id===activePP?' active':'');
+    d.onclick=()=>selectPP(id);
+    d.innerHTML=`<div class="pp-dot"></div><div class="cls-info"><div class="cls-name">${p.name}</div><div class="cls-meta">PP · ${p.periodType==='semestre'?'Sem.':'Trim.'}</div></div><span class="cls-n">${p.students.length}</span><button class="sb-del" title="Supprimer">✕</button>`;
+    const pbtn=d.querySelector('.sb-del');
+    pbtn.addEventListener('click',e=>{e.stopPropagation();deletePP(id);});
+    el.appendChild(d);
+  });
+}
+
+// ── PP MANAGEMENT ─────────────────────────────────────────────────────────────
+function openNewPP(){document.getElementById('pp-name').value='';document.getElementById('mo-pp').classList.add('open');setTimeout(()=>document.getElementById('pp-name').focus(),80);}
+
+function createPP(){
+  const name=document.getElementById('pp-name').value.trim(); if(!name)return;
+  const periodType=document.querySelector('input[name="pp-period"]:checked').value;
+  const count=parseInt(document.getElementById('pp-count').value)||0;
+  const id='pp'+Date.now();
+  if(!S.pp)S.pp={};
+  const students=[];
+  for(let i=1;i<=count;i++){
+    students.push({id:'pps'+Date.now()+i,num:i,gender:'M',boxes:{},viesco:{absences:'',retards:'',demipen:''},notes:'',orient:{on:false,level:1,path:'',note:''},comments:{}});
+  }
+  S.pp[id]={name,periodType,tone:'equilibre',students,comments:{}};
+  closeMo('mo-pp'); save(); renderPPSidebar(); selectPP(id);
+  toast(`PP "${name}" créée${count?' — '+count+' élèves ajoutés':''}`);
+}
+
+function selectPP(id){
+  // Deselect regular class
+  S.active=null; S.student=null; S.view='students';
+  activePP=id; S.activePP=id; activePPStudent=null; activePPPeriod=1;
+  save(); renderSidebar(); renderPPSidebar(); renderPPMain();
+}
+
+// ── PP MAIN AREA ──────────────────────────────────────────────────────────────
+function renderPPMain(){
+  const pp=S.pp[activePP]; if(!pp)return;
+
+  // Topbar
+  document.getElementById('cls-title').innerHTML=`<span style="font-family:'Lora',serif">${pp.name}</span> <span class="pp-badge">Prof. Principal</span>`;
+
+  // Period buttons
+  const pr=document.getElementById('period-row');
+  pr.style.display='flex'; pr.innerHTML='';
+  const count=pp.periodType==='semestre'?2:3;
+  const labels=pp.periodType==='semestre'?['S1','S2']:['T1','T2','T3'];
+  for(let i=1;i<=count;i++){
+    const b=document.createElement('button');
+    b.className='pb'+(activePPPeriod===i?' active':'');
+    b.textContent=labels[i-1];
+    const n=i;
+    b.onclick=function(){activePPPeriod=n;document.querySelectorAll('.period-row .pb').forEach(x=>x.classList.remove('active'));this.classList.add('active');save();renderPPStudentList();if(activePPStudent)renderPPEditor(activePPStudent);};
+    pr.appendChild(b);
+  }
+
+  // Top right — generate all
+  const tr=document.getElementById('topbar-r');
+  tr.style.display='flex';
+  tr.innerHTML=`<button class="btn btn-sm" style="background:var(--teal);color:#fff" onclick="ppGenAll()">⚡ Générer tout</button>`;
+
+  // Hide regular tabs & dbar, show content
+  document.getElementById('view-tabs').style.display='none';
+  document.getElementById('dbar').style.display='none';
+
+  const content=document.getElementById('content');
+  renderPPLayout(content);
+}
+
+function renderPPLayout(content){
+  const pp=S.pp[activePP];
+  content.innerHTML=`
+    <div class="pp-layout">
+      <div class="pp-list-panel">
+        <div class="panel-head">
+          <span class="panel-lbl">Élèves (<span id="pp-sc">${pp.students.length}</span>)</span>
+          <button class="btn btn-o btn-sm" onclick="togPPAddRow()">+ Ajouter</button>
+        </div>
+        <div class="add-row" id="pp-add-row" style="display:none">
+          <div class="add-form">
+            <input class="add-inp" id="pp-ns-num" type="number" min="1" max="38" placeholder="N°" style="width:55px">
+            <div class="gender-tog">
+              <button class="gbtn active" id="pp-gb-m" onclick="ppSelG('M')">M</button>
+              <button class="gbtn" id="pp-gb-f" onclick="ppSelG('F')">F</button>
+            </div>
+            <button class="btn btn-g btn-sm" onclick="addPPStudent()">OK</button>
+          </div>
+        </div>
+        <div class="st-scroll" id="pp-st-scroll"></div>
+      </div>
+      <div class="pp-ed-panel">
+        <div class="pp-ed-scroll" id="pp-ed-scroll">
+          <div class="empty"><div class="empty-icon">🎓</div><div class="empty-t">Sélectionnez un élève</div><p class="empty-s">Le professeur principal synthétise les observations de toute l'équipe pédagogique en un bilan global fluide et personnalisé.</p></div>
+        </div>
+      </div>
+    </div>`;
+  renderPPStudentList();
+  if(activePPStudent&&pp.students.find(s=>s.id===activePPStudent)) renderPPEditor(activePPStudent);
+}
+
+// ── PP STUDENTS ───────────────────────────────────────────────────────────────
+let ppNewG='M';
+function togPPAddRow(){const r=document.getElementById('pp-add-row');r.style.display=r.style.display==='none'?'block':'none';if(r.style.display==='block')document.getElementById('pp-ns-num').focus();}
+function ppSelG(g){ppNewG=g;document.getElementById('pp-gb-m').classList.toggle('active',g==='M');document.getElementById('pp-gb-f').classList.toggle('active',g==='F');}
+
+function addPPStudent(){
+  const numEl=document.getElementById('pp-ns-num');
+  const num=parseInt(numEl.value)||0;
+  if(num<1||num>38){toast('Numéro invalide');return;}
+  const pp=S.pp[activePP];
+  if(pp.students.find(s=>s.num===num)){toast('Numéro déjà utilisé');return;}
+  const id='pps'+Date.now();
+  pp.students.push({id,num,gender:ppNewG,boxes:{},viesco:{absences:'',retards:'',demipen:''},notes:'',orient:{on:false,level:1,path:'',note:''},comments:{}});
+  pp.students.sort((a,b)=>a.num-b.num);
+  numEl.value=''; save(); renderPPStudentList();
+  document.getElementById('pp-sc').textContent=pp.students.length;
+  selectPPStudent(id);
+}
+
+function delPPStudent(id,e){
+  e.stopPropagation();
+  const pp=S.pp[activePP];
+  pp.students=pp.students.filter(s=>s.id!==id);
+  if(activePPStudent===id){activePPStudent=null;const sc=document.getElementById('pp-ed-scroll');if(sc)sc.innerHTML='<div class="empty"><div class="empty-icon">🎓</div><div class="empty-t">Sélectionnez un élève</div></div>';}
+  save(); renderPPStudentList(); const sc=document.getElementById('pp-sc');if(sc)sc.textContent=pp.students.length;
+}
+
+function renderPPStudentList(){
+  const pp=S.pp[activePP]; if(!pp)return;
+  const scroll=document.getElementById('pp-st-scroll'); if(!scroll)return;
+  scroll.innerHTML='';
+  pp.students.forEach(s=>{
+    const done=!!(s.comments&&s.comments[activePPPeriod]);
+    const hasO=s.orient&&s.orient.on;
+    const d=document.createElement('div');
+    d.className='pp-st-row'+(s.id===activePPStudent?' active':'');
+    d.onclick=()=>selectPPStudent(s.id);
+    d.innerHTML=`
+      <div class="st-avatar ${s.gender==='M'?'av-m':'av-f'}">${s.num}</div>
+      <div class="st-info">
+        <div class="st-name">Élève n°${s.num}</div>
+        <div class="st-meta">${s.gender==='M'?'M':'F'}${hasO?` <span class="mini-badge ob-purple">Orient. N${s.orient.level}</span>`:''}
+        </div>
+      </div>
+      <div class="pp-st-dot ${done?'done':''}"></div>
+      <button class="del-x" onclick="delPPStudent('${s.id}',event)">✕</button>`;
+    scroll.appendChild(d);
+  });
+}
+
+function selectPPStudent(id){activePPStudent=id;save();renderPPStudentList();renderPPEditor(id);}
+
+function getPPSt(id){return S.pp[activePP].students.find(s=>s.id===id);}
+
+// ── PP EDITOR ─────────────────────────────────────────────────────────────────
+function renderPPEditor(id){
+  const pp=S.pp[activePP];
+  const st=getPPSt(id); if(!st)return;
+  const scroll=document.getElementById('pp-ed-scroll'); if(!scroll)return;
+  const pLabel=pp.periodType==='semestre'?`Semestre ${activePPPeriod}`:`Trimestre ${activePPPeriod}`;
+  const comment=(st.comments&&st.comments[activePPPeriod])||'';
+  const orient=st.orient||{on:false,level:1,path:'',note:''};
+  const vs=st.viesco||{absences:'',retards:'',demipen:''};
+  const ppTone=pp.tone||'equilibre';
+
+  let html=`
+    <div class="ed-hdr">
+      <div class="ed-av ${st.gender==='M'?'av-m':'av-f'}">${st.num}</div>
+      <div><div class="ed-name">Élève n°${st.num} <span style="font-size:.75rem;font-style:italic;color:var(--muted)">— bilan PP</span></div>
+      <div class="ed-sub">${st.gender==='M'?'Masculin':'Féminin'} · ${pLabel} · ${pp.name}</div></div>
+    </div>
+
+    <!-- TON -->
+    <div class="card">
+      <div class="card-hd">Ton du bilan</div>
+      <div class="card-bd">
+        <div class="tone-row">
+          <button class="tone-btn ferme ${ppTone==='ferme'?'active':''}" onclick="setPPTone('ferme',this)">Ferme</button>
+          <button class="tone-btn equilibre ${ppTone==='equilibre'?'active':''}" onclick="setPPTone('equilibre',this)">Équilibré</button>
+          <button class="tone-btn encourageant ${ppTone==='encourageant'?'active':''}" onclick="setPPTone('encourageant',this)">Encourageant</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIE SCOLAIRE avec champs numériques -->
+    <div class="pp-card">
+      <div class="pp-card-hd">Vie scolaire — chiffres du trimestre</div>
+      <div class="pp-vsco-grid">
+        <div class="pp-vsco-item">
+          <span class="pp-vsco-lbl">Absences (j)</span>
+          <input class="pp-vsco-inp" type="number" min="0" value="${vs.absences||''}" placeholder="0" onchange="setPPVS('${id}','absences',this.value)">
+        </div>
+        <div class="pp-vsco-item">
+          <span class="pp-vsco-lbl">Retards</span>
+          <input class="pp-vsco-inp" type="number" min="0" value="${vs.retards||''}" placeholder="0" onchange="setPPVS('${id}','retards',this.value)">
+        </div>
+        <div class="pp-vsco-item">
+          <span class="pp-vsco-lbl">Demi-pens.</span>
+          <select class="pp-vsco-inp" onchange="setPPVS('${id}','demipen',this.value)">
+            <option value="">—</option>
+            <option value="oui" ${vs.demipen==='oui'?'selected':''}>Oui</option>
+            <option value="non" ${vs.demipen==='non'?'selected':''}>Non</option>
+          </select>
+        </div>
+      </div>
+    </div>`;
+
+  // PILL BOXES
+  Object.entries(PP_BOXES).forEach(([,sec])=>{
+    html+=`<div class="pp-card"><div class="pp-card-hd">${sec.label}</div><div class="pill-grid">`;
+    sec.items.forEach(item=>{
+      const sel=!!(st.boxes&&st.boxes[item.id]);
+      const cls2=item.v==='neg'?'neg':item.v==='neutral'?'neutral':'';
+      html+=`<span class="pill ${cls2} ${sel?'sel':''}" onclick="togPPBox('${id}','${item.id}',this)">${item.l}</span>`;
+    });
+    html+=`</div></div>`;
+  });
+
+  // ORIENTATION
+  html+=`
+    <div class="orient-card">
+      <div class="orient-hd">
+        <span class="orient-title">🎯 Orientation (optionnel)</span>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:.7rem;color:var(--purple);opacity:.7">${orient.on?'Activé':'Désactivé'}</span>
+          <button class="tog-sw ${orient.on?'on':''}" onclick="togPPOrient('${id}',this)"></button>
+        </div>
+      </div>
+      <div id="ppob-${id}" style="display:${orient.on?'block':'none'}">
+        <div class="orient-bd">
+          <div>
+            <div style="font-family:'DM Mono',monospace;font-size:.56rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:6px">Niveau d'intégration</div>
+            <div class="olevel-row">
+              ${[1,2,3].map(n=>`<button class="olbtn ${orient.level===n?'active':''}" onclick="setPPOL('${id}',${n},this)">N${n} — ${['Discret','Filière','Explicite'][n-1]}</button>`).join('')}
+            </div>
+            <div class="odesc" id="ppod-${id}">${ORIENT_DESCS[orient.level]}</div>
+          </div>
+          <div id="ppop-${id}" style="display:${orient.level>=2?'block':'none'}">
+            <div style="font-family:'DM Mono',monospace;font-size:.56rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:6px">Filière envisagée</div>
+            <div class="opath-row">
+              ${['Général','Technologique','Professionnel','Apprentissage','BTS/IUT','CPGE','Autre'].map(p=>`<button class="opbtn ${orient.path===p?'active':''}" onclick="setPPOP('${id}','${p}',this)">${p}</button>`).join('')}
+            </div>
+          </div>
+          <div id="ppon-${id}" style="display:${orient.level>=2?'block':'none'}">
+            <div style="font-family:'DM Mono',monospace;font-size:.56rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:5px">Projet ou précisions</div>
+            <textarea class="onote" rows="2" placeholder="ex: souhaite intégrer un lycée scientifique, projet médecine…" onchange="setPPON('${id}',this.value)">${orient.note||''}</textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- NOTES LIBRES -->
+    <div class="pp-card">
+      <div class="pp-card-hd">Notes libres du professeur principal</div>
+      <div class="card-bd">
+        <textarea class="pp-freetext" placeholder="Contexte particulier, suivi pastoral, éléments que vous seul connaissez et qui doivent orienter le ton ou le contenu du bilan…" onchange="setPPNotes('${id}',this.value)">${st.notes||''}</textarea>
+      </div>
+    </div>
+
+    <!-- OUTPUT -->
+    <div class="card">
+      <div class="cmt-hd">
+        <span class="cmt-lbl" style="color:var(--teal)">Bilan PP — ${pLabel}</span>
+        <div class="cmt-acts">
+          <span class="cchar ${comment.length>750?'over':comment.length>0?'teal':''}" id="ppcc-${id}">${comment.length}/750</span>
+          <button class="act-btn" onclick="ppGenOne('${id}')">↻ Générer</button>
+          <button class="act-btn" id="voice-btn-${id}" onclick="toggleVoice('${id}')" title="Saisie vocale">🎙️</button>
+          <button class="copy-btn" id="ppcpb-${id}" onclick="ppCopy('${id}')">Copier</button>
+        </div>
+      </div>
+      <div class="card-bd">
+        <textarea class="pp-cmt-ta" id="ppcta-${id}" placeholder="Cliquez sur « Générer » pour créer le bilan du professeur principal, ou rédigez manuellement…" oninput="ppOnCI('${id}',this.value)">${comment}</textarea>
+      </div>
+    </div>`;
+
+  scroll.innerHTML=html;
+}
+
+// ── PP SETTERS ────────────────────────────────────────────────────────────────
+function setPPTone(tone,btn){const pp=S.pp[activePP];pp.tone=tone;btn.closest('.tone-row').querySelectorAll('.tone-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');save();}
+function setPPVS(id,key,val){const st=getPPSt(id);if(!st.viesco)st.viesco={};st.viesco[key]=val;save();}
+function setPPNotes(id,val){getPPSt(id).notes=val;save();}
+function togPPBox(sid,itemId,el){const st=getPPSt(sid);if(!st.boxes)st.boxes={};st.boxes[itemId]=!st.boxes[itemId];el.classList.toggle('sel',st.boxes[itemId]);save();}
+function togPPOrient(id,btn){const st=getPPSt(id);if(!st.orient)st.orient={on:false,level:1,path:'',note:''};st.orient.on=!st.orient.on;btn.classList.toggle('on',st.orient.on);btn.previousElementSibling.textContent=st.orient.on?'Activé':'Désactivé';document.getElementById('ppob-'+id).style.display=st.orient.on?'block':'none';save();renderPPStudentList();}
+function setPPOL(id,level,btn){const st=getPPSt(id);st.orient.level=level;btn.closest('.olevel-row').querySelectorAll('.olbtn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');document.getElementById('ppod-'+id).textContent=ORIENT_DESCS[level];const show=level>=2;document.getElementById('ppop-'+id).style.display=show?'block':'none';document.getElementById('ppon-'+id).style.display=show?'block':'none';save();renderPPStudentList();}
+function setPPOP(id,path,btn){getPPSt(id).orient.path=path;btn.closest('.opath-row').querySelectorAll('.opbtn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');save();}
+function setPPON(id,v){getPPSt(id).orient.note=v;save();}
+function ppOnCI(id,val){const pp=S.pp[activePP];const st=getPPSt(id);if(!st.comments)st.comments={};st.comments[activePPPeriod]=val;save();renderPPStudentList();const el=document.getElementById('ppcc-'+id);if(el){el.textContent=`${val.length}/750`;el.className='cchar'+(val.length>750?' over':val.length>0?' teal':'');}}
+function ppCopy(id){const ta=document.getElementById('ppcta-'+id);if(!ta?.value)return;navigator.clipboard.writeText(ta.value).then(()=>{const b=document.getElementById('ppcpb-'+id);b.textContent='✓ Copié';b.classList.add('copied');setTimeout(()=>{b.textContent='Copier';b.classList.remove('copied');},1800);});}
+
+// ── PP PROMPT ─────────────────────────────────────────────────────────────────
+function buildPPPrompt(st,pp,period,seed,memSamp){
+  const checked=[];
+  Object.values(PP_BOXES).forEach(sec=>sec.items.forEach(item=>{if(st.boxes&&st.boxes[item.id])checked.push(item.l);}));
+
+  const tone=pp.tone||'equilibre';
+  const toneDesc={
+    ferme:'ferme — les points problématiques sont nommés clairement, dans un registre institutionnel et professionnel',
+    equilibre:'équilibré — points positifs et axes d\'amélioration sont pesés avec nuance et bienveillance professionnelle',
+    encourageant:'positif et encourageant — valorise les efforts, montre confiance dans le potentiel de l\'élève',
+  }[tone];
+
+  const pLabel=pp.periodType==='semestre'?`semestre ${period}`:`trimestre ${period}`;
+  const gender=st.gender==='F'?'fille':'garçon';
+  const accord=st.gender==='F'?'féminin':'masculin';
+  const vs=st.viesco||{};
+
+  let vieScoCxt='';
+  if(vs.absences&&parseInt(vs.absences)>0) vieScoCxt+=`Absences : ${vs.absences} jour(s). `;
+  if(vs.retards&&parseInt(vs.retards)>0) vieScoCxt+=`Retards : ${vs.retards}. `;
+  if(vieScoCxt) vieScoCxt=`\nVie scolaire : ${vieScoCxt}`;
+
+  let orientCtx='';
+  if(st.orient?.on){
+    orientCtx=`\nORIENTATION : ${ORIENT_DESCS[st.orient.level]}`;
+    if(st.orient.path) orientCtx+=` Filière envisagée : ${st.orient.path}.`;
+    if(st.orient.note) orientCtx+=` Projet : ${st.orient.note}.`;
+  }
+
+  const notesCtx=st.notes?`\nNOTES DU PP (contexte confidentiel à intégrer avec discrétion) : ${st.notes}`:'';
+  const memCtx=memSamp?`\nEXPRESSIONS DÉJÀ UTILISÉES (à éviter pour garantir la variété) :\n${memSamp}`:'';
+
+  return `Tu es un professeur principal expérimenté rédigeant le bilan trimestriel global d'un élève pour le bulletin scolaire.
+
+ÉLÈVE : ${gender}, accord au ${accord} OBLIGATOIRE. ${pLabel} — Classe : ${pp.name}.
+${vieScoCxt}${orientCtx}${notesCtx}
+
+OBSERVATIONS SYNTHÉTISÉES DE L'ÉQUIPE PÉDAGOGIQUE :
+${checked.length?checked.map(i=>'• '+i).join('\n'):'• Bilan général correct, sans remarque particulière'}
+
+STYLE D'ENTRÉE EN MATIÈRE : ${seed}
+${memCtx}
+
+RÈGLES STRICTES — toutes obligatoires :
+1. Ce texte est un BILAN GLOBAL rédigé par le professeur principal — pas une appréciation de matière.
+2. Le registre est institutionnel, synthétique, conclusif. C'est la voix de l'équipe pédagogique au complet.
+3. Texte FLUIDE et CONTINU, entre 400 et 750 caractères. JAMAIS de liste, de tirets, de points numérotés.
+4. Relie toutes les idées avec des connecteurs variés : "Cependant,", "Par ailleurs,", "Néanmoins,", "Tout en saluant…, on soulignera que", "Dans l'ensemble,", "Au fil du trimestre,", "L'équipe pédagogique souligne que", etc.
+5. Accord grammatical au ${accord} SANS EXCEPTION.
+6. Ne commence PAS par "Il / Elle" seul. Commence par une formule plus élaborée : "Au terme de ce trimestre,", "Le conseil de classe souligne…", "L'ensemble des professeurs…", "Au fil de ce semestre…", etc.
+7. Ton : ${toneDesc}.
+8. Termine par un conseil, un encouragement ou une mise en garde ferme selon le ton.
+9. Répondre UNIQUEMENT avec le bilan rédigé, sans guillemets, sans titre, sans commentaire.`;
+}
+
+// ── PP GENERATION ─────────────────────────────────────────────────────────────
+async function ppGenOne(sid){
+  const pp=S.pp[activePP]; const st=getPPSt(sid); if(!st)return;
+  const ta=document.getElementById('ppcta-'+sid); if(!ta)return;
+  ta.classList.add('gen'); ta.value='Rédaction du bilan en cours…';
+  try{
+    const seed=PP_STYLE_SEEDS[Math.floor(Math.random()*PP_STYLE_SEEDS.length)];
+    const txt=fitToLimit(await callClaude(buildPPPrompt(st,pp,activePPPeriod,seed,sampPPMem(activePP))), 750);
+    ta.classList.remove('gen'); ta.value=txt;
+    addPPMem(activePP,txt); ppOnCI(sid,txt);
+  }catch(e){ta.classList.remove('gen');ta.value='';toast('Erreur de génération');}
+}
+
+async function ppGenAll(){
+  const pp=S.pp[activePP]; if(!pp||!pp.students.length)return;
+  // Show bulk-style output in editor area
+  const panel=document.getElementById('pp-ed-scroll');
+  if(!panel)return;
+  const pLabel=pp.periodType==='semestre'?`Semestre ${activePPPeriod}`:`Trimestre ${activePPPeriod}`;
+  let html=`<div style="padding-bottom:20px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+      <div style="font-family:'Lora',serif;font-size:1.2rem">${pp.name} — Bilans PP — ${pLabel}</div>
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-o btn-sm" onclick="ppCopyAll()">📋 Tout copier</button>
+        <button class="btn btn-o btn-sm" onclick="ppDoCSV()">⬇ CSV</button>
+      </div>
+    </div>`;
+  pp.students.forEach(st=>{
+    const comment=(st.comments&&st.comments[activePPPeriod])||'';
+    html+=`<div class="bulk-card">
+      <div class="bulk-hd">
+        <div class="st-avatar ${st.gender==='M'?'av-m':'av-f'}" style="width:26px;height:26px;font-size:.75rem;flex-shrink:0">${st.num}</div>
+        <span class="bulk-name">Élève n°${st.num}</span>
+        <span class="bulk-meta">${st.gender}${st.orient?.on?` · Orient. N${st.orient.level}`:''}</span>
+        <span class="cchar ${comment.length>750?'over':comment.length>0?'teal':''}" id="ppbcc-${st.id}">${comment.length}/750</span>
+      </div>
+      <div class="bulk-bd">
+        <textarea class="bulk-ta" id="ppbta-${st.id}" oninput="ppBulkSave('${st.id}',this.value)">${comment}</textarea>
+        <div class="bulk-acts">
+          <button class="copy-btn" onclick="ppCopyOne('${st.id}')">Copy</button>
+          <button class="act-btn" onclick="ppGenOneBulk('${st.id}')">↻</button>
+        </div>
+      </div>
+    </div>`;
+  });
+  html+=`</div>`;
+  panel.innerHTML=html;
+
+  // Generate sequentially
+  for(let i=0;i<pp.students.length;i++){
+    await ppGenOneBulk(pp.students[i].id);
+    toast(`${i+1}/${pp.students.length} bilans rédigés…`);
+  }
+  toast(`✓ ${pp.students.length} bilans PP générés !`);
+}
+
+async function ppGenOneBulk(sid){
+  const pp=S.pp[activePP]; const st=getPPSt(sid); if(!st)return;
+  const ta=document.getElementById('ppbta-'+sid); if(!ta)return;
+  ta.classList.add('gen');
+  try{
+    const seed=PP_STYLE_SEEDS[Math.floor(Math.random()*PP_STYLE_SEEDS.length)];
+    const txt=fitToLimit(await callClaude(buildPPPrompt(st,pp,activePPPeriod,seed,sampPPMem(activePP))), 750);
+    ta.classList.remove('gen'); ta.value=txt;
+    addPPMem(activePP,txt); ppBulkSave(sid,txt);
+  }catch(e){ta.classList.remove('gen');toast('Erreur génération');}
+}
+
+function ppBulkSave(id,val){
+  const st=getPPSt(id); if(!st)return;
+  if(!st.comments)st.comments={}; st.comments[activePPPeriod]=val; save();
+  const el=document.getElementById('ppbcc-'+id);if(el){el.textContent=`${val.length}/750`;el.className='cchar'+(val.length>750?' over':val.length>0?' teal':'');}
+}
+function ppCopyOne(id){const ta=document.getElementById('ppbta-'+id);if(ta?.value)navigator.clipboard.writeText(ta.value).then(()=>toast('Copié !'));}
+function ppCopyAll(){
+  const pp=S.pp[activePP];
+  const pLabel=pp.periodType==='semestre'?`S${activePPPeriod}`:`T${activePPPeriod}`;
+  const lines=pp.students.map(s=>{const c=(s.comments&&s.comments[activePPPeriod])||'';return `Élève n°${s.num}\n${c}`;}).join('\n\n---\n\n');
+  navigator.clipboard.writeText(lines).then(()=>toast('Tous les bilans copiés !'));
+}
+function ppDoCSV(){
+  const pp=S.pp[activePP];
+  const pLabel=pp.periodType==='semestre'?`S${activePPPeriod}`:`T${activePPPeriod}`;
+  let csv='Numéro,Genre,Période,Orientation,Absences,Retards,Bilan PP\n';
+  pp.students.forEach(s=>{
+    const c=((s.comments&&s.comments[activePPPeriod])||'').replace(/"/g,'""');
+    const orient=s.orient?.on?`N${s.orient.level}${s.orient.path?' - '+s.orient.path:''}` :'';
+    csv+=`"${s.num}","${s.gender}","${pLabel}","${orient}","${s.viesco?.absences||0}","${s.viesco?.retards||0}","${c}"\n`;
+  });
+  const blob=new Blob([csv],{type:'text/csv'});const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download=`PP_${pp.name}_${pLabel}.csv`;a.click();URL.revokeObjectURL(url);
+  toast('CSV PP exporté');
+}
+
+// ── FULL BOOT — runs after all functions are defined ─────────────────────────
+if (!S.pp) S.pp = {};
+if (!S.activePP) S.activePP = null;
+activePP = S.activePP; // restore PP selection across reloads
+renderSidebar();
+renderPPSidebar();
+if (S.active && S.classes[S.active]) {
+  selectClass(S.active);
+} else if (activePP && S.pp[activePP]) {
+  renderPPMain();
+} else {
+  // nothing selected — show welcome screen
+  document.getElementById('period-row').style.display='none';
+  document.getElementById('topbar-r').style.display='none';
+  document.getElementById('view-tabs').style.display='none';
+  document.getElementById('dbar').style.display='none';
+}
+
+// ── MOBILE FUNCTIONS ──────────────────────────────────────────────────────────
+function openMobSidebar(){
+  document.querySelector('.sidebar').classList.add('mob-open');
+  const ov=document.getElementById('mob-overlay');
+  ov.style.display='block';
+  setTimeout(()=>ov.classList.add('open'),10);
+}
+function closeMobSidebar(){
+  document.querySelector('.sidebar').classList.remove('mob-open');
+  const ov=document.getElementById('mob-overlay');
+  ov.classList.remove('open');
+  setTimeout(()=>ov.style.display='none',240);
+}
+
+function mobSetView(v){
+  // Close sidebar if open
+  closeMobSidebar();
+  // Update bottom nav active state
+  ['students','classrev','bulk'].forEach(t=>{
+    const el=document.getElementById('mobt-'+t);
+    if(el)el.classList.toggle('active',t===v);
+  });
+  document.getElementById('mobt-gen')?.classList.remove('active');
+  document.getElementById('mobt-menu')?.classList.remove('active');
+  // Delegate to existing setView
+  if(S.active&&S.classes[S.active]){
+    S.view=v; save();
+    const content=document.getElementById('content');
+    if(v==='students'){renderStudentsView(content);}
+    else if(v==='classrev'){renderClassRevView(content);}
+    else if(v==='bulk'){renderBulkView(content);generateAll();}
+    // Update desktop tabs too
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    const dt=document.getElementById('tab-'+v);if(dt)dt.classList.add('active');
+  }
+  mobUpdateStudentNav();
+}
+
+function mobUpdateStudentNav(){
+  const nav=document.getElementById('mob-st-nav');
+  const isMobile=window.innerWidth<=768;
+  if(!isMobile||!S.active||!S.classes[S.active]||S.view!=='students'){
+    if(nav)nav.style.display='none';
+    return;
+  }
+  const cls=S.classes[S.active];
+  const idx=cls.students.findIndex(s=>s.id===S.student);
+  if(idx===-1){if(nav)nav.style.display='none';return;}
+  if(nav)nav.style.display='flex';
+  const pos=document.getElementById('mob-st-pos');
+  if(pos)pos.textContent=`Élève ${idx+1} / ${cls.students.length}`;
+  const prev=document.getElementById('mob-prev');
+  const next=document.getElementById('mob-next');
+  if(prev)prev.disabled=(idx===0);
+  if(next)next.disabled=(idx===cls.students.length-1);
+}
+
+function mobPrevStudent(){
+  if(!S.active)return;
+  const cls=S.classes[S.active];
+  const idx=cls.students.findIndex(s=>s.id===S.student);
+  if(idx>0){selectStudent(cls.students[idx-1].id);mobUpdateStudentNav();}
+}
+function mobNextStudent(){
+  if(!S.active)return;
+  const cls=S.classes[S.active];
+  const idx=cls.students.findIndex(s=>s.id===S.student);
+  if(idx<cls.students.length-1){selectStudent(cls.students[idx+1].id);mobUpdateStudentNav();}
+}
+
+// Patch selectStudent to update mobile nav
+const _origSelectStudent=selectStudent;
+// Override after definition — handled via mobUpdateStudentNav call in renderEditor
+
+// Update bottom nav when view changes on desktop too
+const _origSetView=setView;
+
+// Close sidebar when a class is selected on mobile
+const _origSelectClass=selectClass;
+
+function mobGenCurrent(){
+  // Generate appreciation for currently selected student
+  if(S.active && S.student){
+    genOne(S.student);
+  } else if(activePP && activePPStudent){
+    ppGenOne(activePPStudent);
+  } else {
+    toast('Sélectionnez un élève d\'abord');
+  }
+}
+
+// Auto-update mob nav on resize
+window.addEventListener('resize',()=>{
+  mobUpdateStudentNav();
+});
+
+// Init Google Drive after page load
+window.addEventListener('load', ()=>{
+  if(typeof gapi !== 'undefined' && typeof google !== 'undefined'){
+    gdInit();
+  } else {
+    gdSetStatus('error','Drive indisponible',true,'↺ Rafraîchir',"location.reload()");
+  }
+});
+
+// ── SERVICE WORKER — MODE HORS-LIGNE ─────────────────────────────────────────
+const SW_CODE = `
+const CACHE = 'bulletinspro-v1';
+const URLS = [
+  self.location.pathname,
+  'https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400;1,600&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@300;400&display=swap',
+  'https://apis.google.com/js/api.js',
+  'https://accounts.google.com/gsi/client'
+];
+
+self.addEventListener('install', e=>{
+  e.waitUntil(
+    caches.open(CACHE).then(c=>c.addAll(URLS.map(u=>{
+      try{return new Request(u,{mode:'no-cors'});}catch(e){return u;}
+    }))).catch(()=>{})
+  );
+  self.skipWaiting();
+});
+
+self.addEventListener('activate', e=>{
+  e.waitUntil(caches.keys().then(keys=>
+    Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))
+  ));
+  self.clients.claim();
+});
+
+self.addEventListener('fetch', e=>{
+  // Network first for API calls, cache first for assets
+  const url = e.request.url;
+  if(url.includes('googleapis.com/drive') || url.includes('anthropic.com') || url.includes('oauth2')){
+    // Always try network for API calls
+    e.respondWith(fetch(e.request).catch(()=>new Response('{"error":"offline"}',{headers:{'Content-Type':'application/json'}})));
+    return;
+  }
+  e.respondWith(
+    caches.match(e.request).then(cached=>{
+      const network = fetch(e.request).then(resp=>{
+        if(resp.ok){
+          const clone=resp.clone();
+          caches.open(CACHE).then(c=>c.put(e.request,clone));
+        }
+        return resp;
+      }).catch(()=>cached);
+      return cached || network;
+    })
+  );
+});
+`;
+
+if('serviceWorker' in navigator){
+  const blob=new Blob([SW_CODE],{type:'application/javascript'});
+  const swUrl=URL.createObjectURL(blob);
+  navigator.serviceWorker.register(swUrl,{scope:'/'}).then(reg=>{
+    console.log('SW registered');
+    window.addEventListener('online', ()=>{
+      toast('✅ Connexion rétablie — synchronisation…');
+      const b=document.getElementById('offline-badge');if(b)b.style.display='none';
+      gdScheduleSync();
+    });
+    window.addEventListener('offline', ()=>{
+      toast('📵 Mode hors-ligne activé');
+      const b=document.getElementById('offline-badge');if(b)b.style.display='';
+    });
+    // Check initial state
+    if(!navigator.onLine){const b=document.getElementById('offline-badge');if(b)b.style.display='';}
+  }).catch(e=>console.warn('SW registration failed:',e));
+}
+</script>
+</body>
+</html>
