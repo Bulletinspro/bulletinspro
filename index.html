@@ -46,7 +46,7 @@ body{font-family:'DM Sans',sans-serif;font-weight:300;background:var(--bg);color
 .sb-del:hover{color:#ff7b7b;background:rgba(255,80,80,.15);}
 .add-cls-btn{margin:4px 7px 9px;width:calc(100% - 14px);padding:8px;background:transparent;border:1px dashed rgba(255,255,255,.11);border-radius:7px;color:rgba(255,255,255,.26);font-family:'DM Mono',monospace;font-size:.6rem;text-transform:uppercase;letter-spacing:.09em;cursor:pointer;transition:all .14s;}
 .add-cls-btn:hover{border-color:rgba(167,139,250,.4);color:#a78bfa;background:rgba(167,139,250,.05);}
-.sb-foot{padding:9px 7px;border-top:1px solid rgba(255,255,255,.06);display:flex;gap:4px;}
+.sb-foot{padding:9px 7px;border-top:1px solid rgba(255,255,255,.06);display:flex;gap:4px;flex-shrink:0;}
 .sb-fbtn{flex:1;padding:6px 2px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:6px;color:rgba(255,255,255,.3);font-family:'DM Mono',monospace;font-size:.53rem;text-transform:uppercase;letter-spacing:.05em;cursor:pointer;transition:all .13s;text-align:center;}
 .sb-fbtn:hover{background:rgba(255,255,255,.09);color:rgba(255,255,255,.7);}
 
@@ -607,8 +607,8 @@ body{font-family:'DM Sans',sans-serif;font-weight:300;background:var(--bg);color
     <div class="logo-s">Générateur d'appréciations</div>
   </div>
   <div class="s-lbl">Mes classes</div>
-  <div style="flex:1;overflow-y:auto;min-height:0;display:flex;flex-direction:column;">
-    <div class="cls-list" id="cls-list" style="flex:unset;max-height:unset;overflow:visible;padding:3px 7px;"></div>
+  <div style="flex:1;overflow-y:auto;min-height:0;">
+    <div class="cls-list" id="cls-list" style="max-height:unset;overflow:visible;flex:unset;"></div>
     <button class="add-cls-btn" onclick="openNewClass()">+ Nouvelle classe</button>
     <div class="sb-divider"><div class="sb-div-line"></div><span class="sb-div-lbl">Prof. Principal</span><div class="sb-div-line"></div></div>
     <div id="pp-list"></div>
