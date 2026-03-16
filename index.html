@@ -411,7 +411,10 @@ body{font-family:'DM Sans',sans-serif;font-weight:300;background:var(--bg);color
     transition:transform .26s cubic-bezier(.4,0,.2,1);
     width:min(300px, 85vw);min-width:unset;
     box-shadow:none;
-    overflow-y:auto;
+    overflow:hidden;
+    display:flex;
+    flex-direction:column;
+    height:auto;
   }
   .sidebar.mob-open{box-shadow:8px 0 40px rgba(0,0,0,.35);}
 
@@ -468,7 +471,7 @@ body{font-family:'DM Sans',sans-serif;font-weight:300;background:var(--bg);color
   .st-info{display:none;}
   .st-dot{position:absolute;top:4px;right:4px;width:6px;height:6px;}
   .st-row{position:relative;}
-  .del-x{position:absolute;top:2px;left:2px;font-size:.55rem;padding:1px 3px;}
+  .del-x{position:absolute;top:2px;right:2px;left:auto;font-size:.55rem;padding:1px 3px;}
   .panel-head{padding:7px 10px;}
 
   /* Add student row */
