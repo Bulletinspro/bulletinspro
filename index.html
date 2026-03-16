@@ -110,8 +110,8 @@ body{font-family:'DM Sans',sans-serif;font-weight:300;background:var(--bg);color
 .ob-purple{background:rgba(124,58,237,.1);color:#7c3aed;border:1px solid rgba(124,58,237,.2);}
 .st-dot{width:8px;height:8px;border-radius:50%;background:var(--border);flex-shrink:0;}
 .st-dot.done{background:linear-gradient(135deg,#6B2FD9,#A855F7);box-shadow:0 1px 4px rgba(107,48,217,.3);}
-.del-x{background:none;border:none;color:var(--border);cursor:pointer;font-size:.72rem;padding:2px 4px;border-radius:3px;transition:all .1s;margin-left:1px;}
-.del-x:hover{color:var(--warn);background:var(--warn-l);}
+.del-x{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);color:rgba(239,68,68,.7);cursor:pointer;font-size:.72rem;padding:3px 6px;border-radius:5px;transition:all .15s;margin-left:1px;font-weight:700;}
+.del-x:hover{color:#fff;background:#ef4444;border-color:#ef4444;}
 
 /* ADD ROW */
 .add-row{padding:10px 14px;border-bottom:1px solid var(--border);background:rgba(107,48,217,.04);}
@@ -119,8 +119,11 @@ body{font-family:'DM Sans',sans-serif;font-weight:300;background:var(--bg);color
 .add-inp{flex:1;padding:6px 10px;border:1.5px solid var(--accent-b);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.82rem;background:#fff;color:var(--ink);outline:none;}
 .add-inp:focus{border-color:var(--accent);}
 .gender-tog{display:flex;border:1.5px solid var(--border);border-radius:8px;overflow:hidden;}
-.gbtn{padding:6px 10px;border:none;background:#fff;font-family:'DM Mono',monospace;font-size:.6rem;cursor:pointer;color:var(--muted);transition:all .1s;}
-.gbtn.active{background:var(--accent);color:#fff;}
+.gbtn{padding:7px 12px;border:none;background:#fff;font-family:'DM Mono',monospace;font-size:.62rem;font-weight:600;cursor:pointer;color:var(--muted);transition:all .15s;}
+.gbtn.m.active{background:#3b82f6;color:#fff;}
+.gbtn.f.active{background:#ec4899;color:#fff;}
+.gbtn.m:not(.active):hover{background:#eff6ff;color:#3b82f6;}
+.gbtn.f:not(.active):hover{background:#fdf2f8;color:#ec4899;}
 
 /* EDITOR PANEL */
 .ed-panel{flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--bg);}
@@ -1516,8 +1519,8 @@ function renderStudentsView(content){
           <input class="add-inp" id="ns-num" type="number" min="1" max="38" placeholder="N°" style="width:50px">
           <input class="add-inp" id="ns-name" placeholder="Nom (optionnel)" style="flex:1">
           <div class="gender-tog">
-            <button class="gbtn active" id="gb-m" onclick="selG('M')">M</button>
-            <button class="gbtn" id="gb-f" onclick="selG('F')">F</button>
+            <button class="gbtn m active" id="gb-m" onclick="selG('M')">M</button>
+            <button class="gbtn f" id="gb-f" onclick="selG('F')">F</button>
           </div>
           <button class="btn btn-g btn-sm" onclick="addStudent()">OK</button>
         </div>
@@ -1624,8 +1627,8 @@ function renderEditor(id){
         </div>
         <div style="display:flex;align-items:center;gap:8px;margin-top:4px">
           <div class="gender-tog">
-            <button class="gbtn ${st.gender==='M'?'active':''}" onclick="setSGender('${st.id}','M',this)">M</button>
-            <button class="gbtn ${st.gender==='F'?'active':''}" onclick="setSGender('${st.id}','F',this)">F</button>
+            <button class="gbtn m ${st.gender==='M'?'active':''}" onclick="setSGender('${st.id}','M',this)">M</button>
+            <button class="gbtn f ${st.gender==='F'?'active':''}" onclick="setSGender('${st.id}','F',this)">F</button>
           </div>
           <div class="ed-sub">${pLabel} · ${SUBJECTS[cls.subject]?.label||cls.subject} · Max ${charLimit} car.</div>
           <button onclick="resetAllBoxes('${id}')" style="padding:2px 8px;border:1px solid var(--border);border-radius:4px;font-size:.65rem;font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.05em;background:transparent;color:var(--muted);cursor:pointer;opacity:.6" title="Réinitialiser toutes les cases">↺ Tout reset</button>
@@ -2958,8 +2961,8 @@ function renderPPLayout(content){
           <div class="add-form">
             <input class="add-inp" id="pp-ns-num" type="number" min="1" max="38" placeholder="N°" style="width:55px">
             <div class="gender-tog">
-              <button class="gbtn active" id="pp-gb-m" onclick="ppSelG('M')">M</button>
-              <button class="gbtn" id="pp-gb-f" onclick="ppSelG('F')">F</button>
+              <button class="gbtn m active" id="pp-gb-m" onclick="ppSelG('M')">M</button>
+              <button class="gbtn f" id="pp-gb-f" onclick="ppSelG('F')">F</button>
             </div>
             <button class="btn btn-g btn-sm" onclick="addPPStudent()">OK</button>
           </div>
