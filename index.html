@@ -39,14 +39,14 @@ body.dark-mode .card{background:#1e1b30;border:1px solid #2d2a3e;box-shadow:0 2p
 body.dark-mode .card-hd{background:#171428;border-bottom:1px solid #2d2a3e;color:#a78bfa;}
 body.dark-mode .card-bd{background:#1e1b30;}
 /* Pills */
-body.dark-mode .pill{background:#17142a;border-color:#3d3660;color:#c4b5fd;}
-body.dark-mode .pill:hover{background:#2a1f4a;border-color:#7c3aed;color:#e9d5ff;}
-body.dark-mode .pill.sel{background:#2a1f4a;border-color:#7c3aed;color:#e9d5ff;}
-body.dark-mode .pill.neg{background:#17142a;border-color:#3d3660;color:#c4b5fd;}
-body.dark-mode .pill.neg:hover{background:#2a1010;border-color:#7a2020;color:#fca5a5;}
-body.dark-mode .pill.neg.sel{background:#2a1010;border-color:#ef4444;color:#fca5a5;}
-body.dark-mode .pill.neutral:hover{background:#1e1a0a;border-color:#7a5a10;color:#fcd34d;}
-body.dark-mode .pill.neutral.sel{background:#1e1a0a;border-color:#d97706;color:#fcd34d;}
+body.dark-mode .pill{background:#1e1b2e;border-color:#4a4570;color:#d4bbff;}
+body.dark-mode .pill:hover{background:#2a1f4a;border-color:#a78bfa;color:#e9d5ff;transform:translateY(-1px);}
+body.dark-mode .pill.sel{background:#2a1f4a;border-color:#a78bfa;color:#e9d5ff;font-weight:600;}
+body.dark-mode .pill.neg{background:#1e1b2e;border-color:#4a4570;color:#fda4af;}
+body.dark-mode .pill.neg:hover{background:#2a1015;border-color:#ef4444;color:#fca5a5;}
+body.dark-mode .pill.neg.sel{background:#2a1015;border-color:#ef4444;color:#fca5a5;font-weight:600;}
+body.dark-mode .pill.neutral{background:#1e1b2e;border-color:#4a4570;color:#d4bbff;}
+body.dark-mode .pill.neutral:hover{background:#201c08;border-color:#d97706;color:#fcd34d;}
 /* Textarea & inputs */
 body.dark-mode .appre-ta{background:#17142a;color:#e9e6f0;border-color:#3d3660;}
 body.dark-mode .appre-ta:focus{border-color:#7c3aed;background:#1e1b30;}
@@ -278,10 +278,10 @@ body{font-family:'DM Sans',sans-serif;font-weight:300;background:var(--bg);color
 .progress-bar-fill{height:100%;background:var(--gradient);transition:width .4s;}
 
 /* FONT SIZE CONTROLS */
-.font-size-ctrl{display:flex;align-items:center;gap:3px;flex-shrink:0;background:var(--bg);border:1.5px solid var(--border);border-radius:8px;padding:2px 4px;}
-.fs-btn{background:none;border:none;border-radius:5px;width:22px;height:22px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:.72rem;font-weight:700;color:var(--accent);transition:all .12s;font-family:'DM Mono',monospace;}
-.fs-btn:hover{background:var(--accent-l);}
-.fs-label{font-family:'DM Mono',monospace;font-size:.6rem;color:var(--ink);min-width:20px;text-align:center;font-weight:600;}
+.font-size-ctrl{display:flex;align-items:center;gap:3px;flex-shrink:0;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);border-radius:8px;padding:3px 5px;}
+.fs-btn{background:none;border:none;border-radius:5px;width:22px;height:22px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:.72rem;font-weight:700;color:#fff;transition:all .12s;font-family:'DM Mono',monospace;}
+.fs-btn:hover{background:rgba(255,255,255,.2);}
+.fs-label{font-family:'DM Mono',monospace;font-size:.65rem;color:#fff;min-width:20px;text-align:center;font-weight:700;}
 
 /* DARK MODE TOGGLE */
 .dark-toggle{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);cursor:pointer;font-size:1rem;padding:5px 8px;border-radius:8px;transition:all .12s;color:#fff;line-height:1;}
@@ -1807,7 +1807,7 @@ function renderEditor(id){
             <button class="gbtn f ${st.gender==='F'?'active':''}" onclick="setSGender('${st.id}','F',this)">♀ F</button>
           </div>
           <div class="ed-sub">${pLabel} · ${SUBJECTS[cls.subject]?.label||cls.subject} · Max ${charLimit} car.</div>
-          <button onclick="resetAllBoxes('${id}')" style="padding:2px 8px;border:1px solid var(--border);border-radius:4px;font-size:.65rem;font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.05em;background:transparent;color:var(--muted);cursor:pointer;opacity:.6" title="Réinitialiser toutes les cases">↺ Tout reset</button>
+          <button onclick="resetAllBoxes('${id}')" style="padding:3px 10px;border:1px solid rgba(255,255,255,.35);border-radius:6px;font-size:.65rem;font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.05em;background:rgba(255,255,255,.15);color:rgba(255,255,255,.9);cursor:pointer;transition:all .15s" onmouseover="this.style.background='rgba(255,255,255,.25)'" onmouseout="this.style.background='rgba(255,255,255,.15)'" title="Réinitialiser toutes les cases">↺ Tout reset</button>
         </div>
       </div>
     </div>`;
@@ -1846,8 +1846,8 @@ function renderEditor(id){
     </div>`;
 
   html+=`
-    <div class="card" style="border-color:var(--amber-b)">
-      <div class="card-hd" style="background:var(--amber-l);color:var(--amber)">Bilan global du trimestre <span style="font-weight:300;opacity:.7;font-size:.85em">(optionnel — laissez vide pour que l'IA choisisse)</span></div>
+    <div class="card" style="border-color:var(--accent-b)">
+      <div class="card-hd" style="background:var(--accent-l);color:var(--accent)">Bilan global du trimestre <span style="font-weight:300;opacity:.7;font-size:.85em">(optionnel — laissez vide pour que l'IA choisisse)</span></div>
       <div class="pill-grid">
         ${VERDICT_PILLS.map(v=>{
           const sel=st.verdict===v.id;
