@@ -2147,85 +2147,128 @@ function exportPDF(){
   const pLabel=cls.periodType==='semestre'?`Semestre ${S.period}`:`Trimestre ${S.period}`;
   const subj=SUBJECTS[cls.subject]?.label||cls.subject;
   const today=new Date().toLocaleDateString('fr-FR',{day:'2-digit',month:'long',year:'numeric'});
+  const year=new Date().getFullYear();
+  const schoolYear=`${year-1}-${year}`;
+  const prof=GD.user?.name||'';
 
-  // Compute class stats
+  // Stats
   const notes=cls.students.map(s=>parseFloat(s.grade)).filter(n=>!isNaN(n));
-  const avg=notes.length?( notes.reduce((a,b)=>a+b,0)/notes.length).toFixed(2):null;
+  const avg=notes.length?(notes.reduce((a,b)=>a+b,0)/notes.length).toFixed(2):null;
   const max=notes.length?Math.max(...notes).toFixed(2):null;
   const min=notes.length?Math.min(...notes).toFixed(2):null;
   const done=cls.students.filter(s=>s.comments&&s.comments[S.period]&&s.comments[S.period].length>0).length;
+  const pct=cls.students.length?Math.round(done/cls.students.length*100):0;
 
-  // Build rows
+  const tdStyle='border:1px solid #e5e7eb;padding:8px 10px;vertical-align:top';
+
   const rows=cls.students.map((st,i)=>{
-    const c=(st.comments&&st.comments[S.period])||'';
+    const comment=(st.comments&&st.comments[S.period])||'';
     const name=st.name||`Élève n°${st.num}`;
-    const noteStr=cls.evalType==='note'&&st.grade?`<td style="${tdStyle};width:50px;text-align:center;font-weight:600">${st.grade}/20</td>`
-      :cls.evalType==='niveau'&&st.level?`<td style="${tdStyle};width:70px;text-align:center;font-size:10px">${st.level}</td>`
-      :`<td style="${tdStyle};width:50px"></td>`;
-    const bg=i%2===0?'#ffffff':'#f8f9fb';
+    const genre=st.gender==='M'?'M.':'Mme';
+    let evalCell='';
+    if(cls.evalType==='note'&&st.grade){
+      const n=parseFloat(st.grade);
+      const col=n>=14?'#10b981':n>=10?'#6B2FD9':n>=8?'#f59e0b':'#ef4444';
+      evalCell=`<td style="${tdStyle};width:55px;text-align:center"><span style="font-weight:700;font-size:13px;color:${col}">${st.grade}</span><span style="font-size:9px;color:#9ca3af">/20</span></td>`;
+    } else if(cls.evalType==='niveau'&&st.level){
+      evalCell=`<td style="${tdStyle};width:55px;text-align:center;font-size:10px;font-weight:600;color:#6B2FD9">${st.level}</td>`;
+    } else {
+      evalCell=`<td style="${tdStyle};width:55px"></td>`;
+    }
+    const bg=i%2===0?'#ffffff':'#faf9fd';
     return `<tr style="background:${bg}">
-      <td style="${tdStyle};width:30px;text-align:center;color:#888;font-size:11px">${st.num}</td>
-      <td style="${tdStyle};width:140px;font-weight:500">${name}</td>
-      ${noteStr}
-      <td style="${tdStyle};line-height:1.55;font-size:11.5px">${c||'<em style="color:#bbb">Non rédigée</em>'}</td>
+      <td style="${tdStyle};width:28px;text-align:center;color:#9ca3af;font-size:11px">${st.num}</td>
+      <td style="${tdStyle};width:130px"><span style="font-weight:600;font-size:12px">${name}</span><br><span style="font-size:10px;color:#9ca3af">${genre}</span></td>
+      ${evalCell}
+      <td style="${tdStyle};line-height:1.6;font-size:11.5px;color:#374151">${comment||'<em style="color:#d1d5db;font-size:11px">Appréciation non rédigée</em>'}</td>
     </tr>`;
   }).join('');
 
-  const tdStyle='border:1px solid #e0e0e0;padding:7px 9px;vertical-align:top';
-
-  const statsLine=avg?`<span>Moyenne&nbsp;: <strong>${avg}/20</strong></span> &nbsp;·&nbsp; <span>Max&nbsp;: ${max}</span> &nbsp;·&nbsp; <span>Min&nbsp;: ${min}</span> &nbsp;·&nbsp;`:'';
+  const progressBar=`<div style="background:#e5e7eb;border-radius:99px;height:6px;width:120px;display:inline-block;vertical-align:middle;margin-left:6px"><div style="background:linear-gradient(135deg,#6B2FD9,#A855F7);width:${pct}%;height:100%;border-radius:99px"></div></div>`;
 
   const html=`<!DOCTYPE html>
 <html lang="fr"><head><meta charset="UTF-8">
 <title>${cls.name} — ${subj} — ${pLabel}</title>
 <style>
   *{margin:0;padding:0;box-sizing:border-box;}
-  body{font-family:Arial,sans-serif;font-size:12px;color:#1a1a1a;background:#fff;padding:30px 36px;}
-  .header{border-bottom:3px solid #1a3a6b;padding-bottom:14px;margin-bottom:18px;display:flex;justify-content:space-between;align-items:flex-end;}
-  .header-left h1{font-size:20px;color:#1a3a6b;font-weight:700;letter-spacing:-.3px;}
-  .header-left h2{font-size:13px;color:#555;font-weight:400;margin-top:3px;}
-  .header-right{text-align:right;font-size:11px;color:#666;line-height:1.8;}
-  .header-right strong{color:#1a3a6b;}
-  .meta-bar{display:flex;gap:20px;background:#f0f4fb;border:1px solid #d0daf0;border-radius:6px;padding:8px 14px;margin-bottom:16px;font-size:11px;color:#444;}
-  .meta-item strong{color:#1a3a6b;}
-  table{width:100%;border-collapse:collapse;font-size:12px;}
-  thead tr{background:#1a3a6b;color:#fff;}
-  thead th{padding:8px 9px;text-align:left;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.04em;}
-  .footer{margin-top:20px;display:flex;justify-content:space-between;align-items:flex-start;font-size:11px;color:#555;border-top:1px solid #e0e0e0;padding-top:12px;}
-  .footer-stats{line-height:1.8;}
-  .footer-sign{text-align:right;line-height:2;}
-  .sign-box{border:1px solid #ccc;border-radius:4px;padding:6px 20px;display:inline-block;color:#999;font-size:11px;}
-  .print-btn{position:fixed;top:16px;right:16px;padding:10px 20px;background:#1a3a6b;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;box-shadow:0 2px 8px rgba(0,0,0,.15);}
-  .print-btn:hover{background:#153061;}
-  @media print{.print-btn{display:none!important;}body{padding:15px 20px;}@page{margin:1.5cm;}}
+  body{font-family:Arial,sans-serif;font-size:12px;color:#1e1b2e;background:#fff;padding:28px 32px;}
+  .header{background:linear-gradient(135deg,#6B2FD9 0%,#A855F7 100%);border-radius:12px;padding:20px 24px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;color:#fff;}
+  .header-left{}
+  .header-title{font-size:22px;font-weight:700;letter-spacing:-.3px;margin-bottom:4px;}
+  .header-sub{font-size:12px;opacity:.8;}
+  .header-right{text-align:right;font-size:11px;opacity:.85;line-height:1.9;}
+  .header-right strong{font-weight:700;opacity:1;}
+  .info-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;}
+  .info-card{background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:8px 12px;}
+  .info-card-label{font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:#9ca3af;margin-bottom:2px;}
+  .info-card-value{font-size:12px;font-weight:700;color:#1e1b2e;}
+  .stats-bar{background:#f3eeff;border:1px solid #c4b5fd;border-radius:8px;padding:8px 14px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;font-size:11px;color:#6B2FD9;}
+  table{width:100%;border-collapse:collapse;}
+  thead tr{background:linear-gradient(135deg,#6B2FD9,#A855F7);}
+  thead th{padding:9px 10px;text-align:left;font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:#fff;}
+  tbody tr:hover{background:#f9fafb;}
+  .footer{margin-top:18px;display:flex;justify-content:space-between;align-items:flex-end;font-size:11px;color:#6b7280;border-top:2px solid #f3eeff;padding-top:12px;}
+  .sign-area{text-align:right;}
+  .sign-label{font-size:10px;color:#9ca3af;margin-bottom:6px;}
+  .sign-box{border:1px solid #d1d5db;border-radius:6px;padding:8px 40px;display:inline-block;color:#d1d5db;font-size:11px;min-width:160px;height:50px;}
+  .print-btn{position:fixed;top:16px;right:16px;padding:10px 20px;background:linear-gradient(135deg,#6B2FD9,#A855F7);color:#fff;border:none;border-radius:10px;cursor:pointer;font-size:13px;font-weight:700;box-shadow:0 4px 14px rgba(107,48,217,.3);}
+  .print-btn:hover{opacity:.9;}
+  .badge{display:inline-block;padding:2px 8px;border-radius:99px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;}
+  .badge-done{background:#d1fae5;color:#059669;}
+  .badge-pending{background:#fee2e2;color:#dc2626;}
+  @media print{
+    .print-btn{display:none!important;}
+    body{padding:12px 16px;}
+    @page{margin:1.2cm;}
+    .header{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+    thead tr{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  }
 </style></head><body>
 
-<button class="print-btn" onclick="window.print()">🖨️ Imprimer / PDF</button>
+<button class="print-btn" onclick="window.print()">🖨️ Imprimer / Enregistrer PDF</button>
 
 <div class="header">
   <div class="header-left">
-    <h1>${cls.name} — ${subj}</h1>
-    <h2>Appréciations — ${pLabel}</h2>
+    <div class="header-title">${cls.name} &mdash; ${subj}</div>
+    <div class="header-sub">Appréciations &middot; ${pLabel} &middot; Année ${schoolYear}</div>
   </div>
   <div class="header-right">
+    <div>Professeur&nbsp;: <strong>${prof||'_______________'}</strong></div>
     <div>Édité le <strong>${today}</strong></div>
-    <div>${cls.students.length} élèves · ${done} appréciations rédigées</div>
+    <div>${cls.students.length} élèves &middot; ${done}/${cls.students.length} rédigées</div>
   </div>
 </div>
 
-<div class="meta-bar">
-  <div class="meta-item">Classe&nbsp;: <strong>${cls.name}</strong></div>
-  <div class="meta-item">Matière&nbsp;: <strong>${subj}</strong></div>
-  <div class="meta-item">Période&nbsp;: <strong>${pLabel}</strong></div>
-  <div class="meta-item">Évaluation&nbsp;: <strong>${{note:'Notes /20',niveau:'Niveaux',competence:'Compétences',mix:'Mixte'}[cls.evalType]||cls.evalType}</strong></div>
+<div class="info-grid">
+  <div class="info-card">
+    <div class="info-card-label">Classe</div>
+    <div class="info-card-value">${cls.name}</div>
+  </div>
+  <div class="info-card">
+    <div class="info-card-label">Matière</div>
+    <div class="info-card-value">${subj}</div>
+  </div>
+  <div class="info-card">
+    <div class="info-card-label">Période</div>
+    <div class="info-card-value">${pLabel}</div>
+  </div>
+  <div class="info-card">
+    <div class="info-card-label">Évaluation</div>
+    <div class="info-card-value">${{note:'Notes /20',niveau:'Niveaux',competence:'Compétences',mix:'Mixte'}[cls.evalType]||cls.evalType}</div>
+  </div>
 </div>
+
+${avg?`<div class="stats-bar">
+  <span>📊 Moyenne de classe&nbsp;: <strong>${avg}/20</strong> &nbsp;&nbsp; Max&nbsp;: <strong>${max}</strong> &nbsp;&nbsp; Min&nbsp;: <strong>${min}</strong></span>
+  <span>Complétion&nbsp;: <strong>${pct}%</strong> &nbsp;${progressBar}</span>
+</div>`:''}
 
 <table>
   <thead>
     <tr>
-      <th style="width:30px">N°</th>
-      <th style="width:140px">Élève</th>
-      <th style="width:60px">${cls.evalType==='note'?'Note':'Niveau'}</th>
+      <th style="width:28px">N°</th>
+      <th style="width:130px">Élève</th>
+      <th style="width:55px">${cls.evalType==='note'?'Note':'Niveau'}</th>
       <th>Appréciation du professeur</th>
     </tr>
   </thead>
@@ -2233,19 +2276,23 @@ function exportPDF(){
 </table>
 
 <div class="footer">
-  <div class="footer-stats">
-    ${statsLine}
-    <span>${done}/${cls.students.length} appréciations rédigées</span>
+  <div>
+    <span class="badge badge-done">✓ ${done} rédigées</span>
+    &nbsp;
+    ${done<cls.students.length?`<span class="badge badge-pending">${cls.students.length-done} manquantes</span>`:''}
+    <br><br>
+    <span style="color:#9ca3af;font-size:10px">Généré par BulletinsPro &middot; bulletinspro.github.io/bulletinspro</span>
   </div>
-  <div class="footer-sign">
-    <div style="margin-bottom:4px;color:#888">Signature du professeur</div>
-    <div class="sign-box">___________________</div>
+  <div class="sign-area">
+    <div class="sign-label">Signature du professeur</div>
+    <div class="sign-box"></div>
   </div>
 </div>
 
 </body></html>`;
 
   const w=window.open('','_blank');
+  if(!w){toast('⚠️ Autorisez les popups pour exporter');return;}
   w.document.write(html);
   w.document.close();
   toast('📄 PDF prêt — cliquez Imprimer');
