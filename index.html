@@ -1555,6 +1555,9 @@ function addStudent(){
 function delStudent(id,e){
   e.stopPropagation();
   const cls=S.classes[S.active];
+  const st=cls.students.find(s=>s.id===id);
+  const nom=st?.name?`"${st.name}"`:`l'élève n°${st?.num||''}`;
+  if(!confirm(`Supprimer ${nom} ? Cette action est irréversible.`))return;
   cls.students=cls.students.filter(s=>s.id!==id);
   if(S.student===id){S.student=null;const sc=document.getElementById('ed-scroll');if(sc)sc.innerHTML='<div class="empty"><div class="empty-icon">👆</div><div class="empty-t">Sélectionnez un élève</div></div>';}
   save(); renderStudentList(); const sc=document.getElementById('sc');if(sc)sc.textContent=cls.students.length;
