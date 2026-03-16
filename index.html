@@ -95,29 +95,30 @@ body{font-family:'DM Sans',sans-serif;font-weight:300;background:var(--bg);color
 .panel-lbl{font-family:'DM Mono',monospace;font-size:.58rem;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);}
 .st-scroll{flex:1;overflow-y:auto;}
 
-/* STUDENT PILL ROW */
-.st-row{padding:9px 13px;border-bottom:1px solid var(--border);cursor:pointer;display:flex;align-items:center;gap:9px;transition:background .1s;position:relative;}
-.st-row:hover{background:var(--bg);}
-.st-row.active{background:var(--accent-l);border-left:3px solid var(--accent);padding-left:10px;}
-.st-avatar{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Lora',serif;font-size:.82rem;flex-shrink:0;}
-.av-m{background:#deeaf5;color:#1a3a5c;} .av-f{background:#f5e8f0;color:#5c1a4a;}
+/* STUDENT PILL ROW — Stitch style */
+.st-row{padding:8px 12px;border-bottom:1px solid var(--border);cursor:pointer;display:flex;align-items:center;gap:10px;transition:all .15s;position:relative;border-radius:0;}
+.st-row:hover{background:var(--accent-l);}
+.st-row.active{background:linear-gradient(135deg,rgba(107,48,217,.08),rgba(168,85,247,.08));border-left:3px solid var(--accent);padding-left:9px;}
+.st-avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Lora',serif;font-size:.88rem;flex-shrink:0;font-weight:600;}
+.av-m{background:rgba(107,48,217,.12);color:#6B2FD9;}
+.av-f{background:rgba(236,72,153,.12);color:#db2777;}
 .st-info{flex:1;min-width:0;}
-.st-name{font-size:.84rem;font-weight:400;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.st-name{font-size:.86rem;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--ink);}
 .st-meta{font-family:'DM Mono',monospace;font-size:.55rem;color:var(--muted);text-transform:uppercase;margin-top:2px;display:flex;align-items:center;gap:5px;}
-.mini-badge{display:inline-flex;padding:1px 5px;border-radius:3px;font-size:.52rem;text-transform:uppercase;letter-spacing:.04em;}
-.ob-purple{background:var(--purple-l);color:var(--purple);border:1px solid var(--purple-b);}
-.st-dot{width:7px;height:7px;border-radius:50%;background:var(--border);flex-shrink:0;}
-.st-dot.done{background:var(--accent);}
+.mini-badge{display:inline-flex;padding:2px 7px;border-radius:20px;font-size:.52rem;text-transform:uppercase;letter-spacing:.04em;}
+.ob-purple{background:rgba(124,58,237,.1);color:#7c3aed;border:1px solid rgba(124,58,237,.2);}
+.st-dot{width:8px;height:8px;border-radius:50%;background:var(--border);flex-shrink:0;}
+.st-dot.done{background:linear-gradient(135deg,#6B2FD9,#A855F7);box-shadow:0 1px 4px rgba(107,48,217,.3);}
 .del-x{background:none;border:none;color:var(--border);cursor:pointer;font-size:.72rem;padding:2px 4px;border-radius:3px;transition:all .1s;margin-left:1px;}
 .del-x:hover{color:var(--warn);background:var(--warn-l);}
 
 /* ADD ROW */
-.add-row{padding:9px 13px;border-bottom:1px solid var(--border);background:var(--accent-l);}
+.add-row{padding:10px 14px;border-bottom:1px solid var(--border);background:rgba(107,48,217,.04);}
 .add-form{display:flex;gap:5px;align-items:center;}
-.add-inp{flex:1;padding:5px 8px;border:1px solid var(--accent-b);border-radius:5px;font-family:'DM Sans',sans-serif;font-size:.8rem;background:#fff;color:var(--ink);outline:none;}
+.add-inp{flex:1;padding:6px 10px;border:1.5px solid var(--accent-b);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.82rem;background:#fff;color:var(--ink);outline:none;}
 .add-inp:focus{border-color:var(--accent);}
-.gender-tog{display:flex;border:1px solid var(--border);border-radius:5px;overflow:hidden;}
-.gbtn{padding:5px 9px;border:none;background:var(--bg);font-family:'DM Mono',monospace;font-size:.6rem;cursor:pointer;color:var(--muted);transition:all .1s;}
+.gender-tog{display:flex;border:1.5px solid var(--border);border-radius:8px;overflow:hidden;}
+.gbtn{padding:6px 10px;border:none;background:#fff;font-family:'DM Mono',monospace;font-size:.6rem;cursor:pointer;color:var(--muted);transition:all .1s;}
 .gbtn.active{background:var(--accent);color:#fff;}
 
 /* EDITOR PANEL */
@@ -125,39 +126,49 @@ body{font-family:'DM Sans',sans-serif;font-weight:300;background:var(--bg);color
 .ed-scroll{flex:1;overflow-y:auto;padding:20px 24px;display:block;}
 .ed-scroll>*{display:block;width:100%;box-sizing:border-box;}
 
-/* EDITOR HEADER */
-.ed-hdr{display:flex;align-items:center;gap:12px;margin-bottom:18px;}
-.ed-av{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Lora',serif;font-size:1.05rem;}
-.ed-name{font-family:'Lora',serif;font-size:1.22rem;letter-spacing:-.01em;}
-.ed-sub{font-family:'DM Mono',monospace;font-size:.57rem;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);margin-top:3px;}
+/* EDITOR HEADER — Stitch card style */
+.ed-hdr{display:flex;align-items:center;gap:14px;margin-bottom:20px;background:linear-gradient(135deg,#6B2FD9,#A855F7);border-radius:16px;padding:16px;color:#fff;}
+.ed-av{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Lora',serif;font-size:1.1rem;font-weight:700;background:rgba(255,255,255,.2);color:#fff;flex-shrink:0;}
+.ed-name{font-family:'Lora',serif;font-size:1.2rem;letter-spacing:-.01em;color:#fff;}
+.ed-sub{font-family:'DM Mono',monospace;font-size:.55rem;text-transform:uppercase;letter-spacing:.09em;color:rgba(255,255,255,.7);margin-top:3px;}
 
-/* CARDS */
-.card{background:#fff;border:1px solid var(--border);border-radius:16px;margin-bottom:10px;overflow:hidden;display:block;width:100%;box-shadow:0 2px 8px rgba(0,0,0,.06);}
-.card-hd{padding:10px 16px;border-bottom:1px solid var(--border);font-family:'DM Mono',monospace;font-size:.58rem;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);display:flex;justify-content:space-between;align-items:center;background:var(--bg);}
+/* CARDS — Stitch style */
+.card{background:#fff;border:none;border-radius:16px;margin-bottom:12px;overflow:hidden;display:block;width:100%;box-shadow:0 2px 12px rgba(0,0,0,.07);}
+.card-hd{padding:11px 16px;border-bottom:1px solid #f1f0f5;font-family:'DM Mono',monospace;font-size:.58rem;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);display:flex;justify-content:space-between;align-items:center;background:#faf9fd;}
 .card-bd{padding:14px 16px;}
 
-/* PILL TAGS — the new click-to-select system */
-.pill-grid{padding:10px 12px;display:flex;flex-wrap:wrap;gap:6px;}
+/* PILL TAGS — Stitch style with better colors */
+.pill-grid{padding:12px 14px;display:flex;flex-wrap:wrap;gap:8px;}
 .pill{
-  padding:6px 13px;
-  border-radius:20px;
-  border:1.5px solid var(--border);
-  background:var(--surface);
+  padding:7px 14px;
+  border-radius:999px;
+  border:1.5px solid #e5e7eb;
+  background:#fff;
   font-size:.8rem;
-  color:var(--muted);
+  color:#6b7280;
   cursor:pointer;
   transition:all .15s;
   user-select:none;
   line-height:1.3;
+  box-shadow:0 1px 3px rgba(0,0,0,.05);
 }
-.pill:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-l);}
-.pill.sel{border-color:var(--accent);background:var(--accent-l);color:var(--accent);font-weight:500;}
-.pill.neg{border-color:var(--border);color:var(--muted);}
-.pill.neg:hover{border-color:var(--warn-b);color:var(--warn);background:var(--warn-l);}
-.pill.neg.sel{border-color:var(--warn-b);background:var(--warn-l);color:var(--warn);font-weight:500;}
-.pill.neutral{border-color:var(--border);}
-.pill.neutral:hover{border-color:var(--amber-b);color:var(--amber);background:var(--amber-l);}
-.pill.neutral.sel{border-color:var(--amber-b);background:var(--amber-l);color:var(--amber);font-weight:500;}
+.pill:hover{border-color:var(--accent);color:var(--accent);background:rgba(107,48,217,.06);transform:translateY(-1px);box-shadow:0 3px 8px rgba(107,48,217,.15);}
+.pill.sel{border-color:var(--accent);background:rgba(107,48,217,.1);color:var(--accent);font-weight:600;box-shadow:0 2px 8px rgba(107,48,217,.2);}
+.pill.neg{border-color:#e5e7eb;color:#6b7280;}
+.pill.neg:hover{border-color:#fca5a5;color:#ef4444;background:rgba(239,68,68,.06);transform:translateY(-1px);}
+.pill.neg.sel{border-color:#fca5a5;background:rgba(239,68,68,.08);color:#ef4444;font-weight:600;}
+.pill.neutral{border-color:#e5e7eb;}
+.pill.neutral:hover{border-color:#fcd34d;color:#d97706;background:rgba(217,119,6,.06);transform:translateY(-1px);}
+.pill.neutral.sel{border-color:#fcd34d;background:rgba(217,119,6,.08);color:#d97706;font-weight:600;}
+
+/* WELCOME SCREEN */
+.welcome-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;padding:30px;text-align:center;}
+.welcome-hero{width:100%;max-width:420px;background:linear-gradient(135deg,#6B2FD9,#A855F7);border-radius:24px;padding:32px 24px;margin-bottom:24px;color:#fff;box-shadow:0 8px 30px rgba(107,48,217,.35);}
+.welcome-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;width:100%;max-width:420px;margin-bottom:20px;}
+.welcome-stat{background:#fff;border-radius:16px;padding:16px 12px;text-align:center;box-shadow:0 2px 12px rgba(0,0,0,.07);}
+.welcome-stat-n{font-family:'Lora',serif;font-size:1.8rem;font-weight:700;color:var(--accent);}
+.welcome-stat-l{font-family:'DM Mono',monospace;font-size:.52rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-top:2px;}
+.welcome-classes{width:100%;max-width:420px;}
 
 /* GRADE / LEVEL / COMPETENCE SELECTOR */
 .grade-row{padding:10px 14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
@@ -645,11 +656,20 @@ body{font-family:'DM Sans',sans-serif;font-weight:300;background:var(--bg);color
     </div>
   </div>
   <div class="content" id="content">
-    <div class="empty" style="flex:1">
-      <div class="empty-icon">📚</div>
-      <div class="empty-t">Bienvenue dans Bulletins Pro</div>
-      <p class="empty-s">Créez votre première classe pour commencer à générer des appréciations.</p>
-      <br><button class="btn btn-g" onclick="openNewClass()" style="margin-top:8px">Créer une classe</button>
+    <div class="welcome-screen" style="flex:1">
+      <div class="welcome-hero">
+        <div style="font-family:'Lora',serif;font-size:1.8rem;font-weight:700;margin-bottom:6px">Bulletins<em style="font-style:italic;color:#e9d5ff">Pro</em></div>
+        <div style="font-size:.9rem;opacity:.8;margin-bottom:20px">Générateur d'appréciations IA</div>
+        <button class="btn" onclick="openNewClass()" style="background:#fff;color:#6B2FD9;font-weight:600;border-radius:12px;padding:12px 24px;font-size:.9rem;width:100%;justify-content:center;box-shadow:0 4px 14px rgba(0,0,0,.15)">
+          ✨ Créer ma première classe
+        </button>
+      </div>
+      <div class="welcome-stats" id="welcome-stats-grid" style="display:none">
+        <div class="welcome-stat"><div class="welcome-stat-n" id="ws-classes">0</div><div class="welcome-stat-l">Classes</div></div>
+        <div class="welcome-stat"><div class="welcome-stat-n" id="ws-done">0</div><div class="welcome-stat-l">Rédigées</div></div>
+        <div class="welcome-stat"><div class="welcome-stat-n" id="ws-pct">0%</div><div class="welcome-stat-l">Complètes</div></div>
+      </div>
+      <div class="welcome-classes" id="welcome-classes-list"></div>
     </div>
   </div>
 </div>
@@ -1207,6 +1227,7 @@ async function gdLoadFromDrive(){
       renderSidebar();renderPPSidebar();
       if(S.active&&S.classes[S.active])selectClass(S.active);
       else if(S.activePP&&S.pp&&S.pp[S.activePP]){activePP=S.activePP;renderPPMain();}
+      else renderWelcomeScreen();
       GD.lastSync=new Date().toISOString();
       localStorage.setItem('bp3_gd',JSON.stringify({access_token:GD.accessToken,file_id:GD.fileId}));
       gdSetStatus('connected','Drive connecté',false);
@@ -1325,7 +1346,7 @@ function renderSidebar(){
   const el=document.getElementById('cls-list');
   const ids=Object.keys(S.classes);
   el.innerHTML='';
-  if(!ids.length){el.innerHTML='<div style="padding:10px 12px;font-size:.78rem;color:rgba(255,255,255,.18);text-align:center">Aucune classe</div>';return;}
+  if(!ids.length){el.innerHTML='<div style="padding:10px 12px;font-size:.78rem;color:rgba(255,255,255,.18);text-align:center">Aucune classe</div>';renderWelcomeScreen();return;}
   ids.forEach(id=>{
     const c=S.classes[id];
     const d=document.createElement('div');
@@ -1336,6 +1357,7 @@ function renderSidebar(){
     btn.addEventListener('click',e=>{e.stopPropagation();deleteClass(id);});
     el.appendChild(d);
   });
+  if(!S.active) renderWelcomeScreen();
 }
 
 // ── CLASS MANAGEMENT ──────────────────────────────────────────────────────────
@@ -2679,7 +2701,56 @@ function renderOnboardStep(){
   next.textContent=onboardStep===total-1?"C'est parti ! 🚀":'Suivant →';
 }
 
-function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2400);}
+function renderWelcomeScreen(){
+  const clsIds=Object.keys(S.classes);
+  const statsGrid=document.getElementById('welcome-stats-grid');
+  const classesList=document.getElementById('welcome-classes-list');
+  if(!statsGrid||!classesList)return;
+
+  if(clsIds.length===0){
+    statsGrid.style.display='none';
+    classesList.innerHTML='';
+    return;
+  }
+
+  // Compute stats
+  let totalDone=0,totalAll=0;
+  clsIds.forEach(id=>{
+    const cls=S.classes[id];
+    const period=S.period||1;
+    totalAll+=cls.students.length;
+    totalDone+=cls.students.filter(s=>s.comments&&s.comments[period]&&s.comments[period].length>0).length;
+  });
+  const pct=totalAll?Math.round(totalDone/totalAll*100):0;
+
+  document.getElementById('ws-classes').textContent=clsIds.length;
+  document.getElementById('ws-done').textContent=totalDone;
+  document.getElementById('ws-pct').textContent=pct+'%';
+  statsGrid.style.display='grid';
+
+  // Class cards
+  classesList.innerHTML=clsIds.map(id=>{
+    const cls=S.classes[id];
+    const period=S.period||1;
+    const done=cls.students.filter(s=>s.comments&&s.comments[period]&&s.comments[period].length>0).length;
+    const total=cls.students.length;
+    const pct2=total?Math.round(done/total*100):0;
+    const subj=SUBJECTS[cls.subject]?.label||cls.subject;
+    const color=pct2===100?'#6B2FD9':pct2>50?'#d97706':'#ef4444';
+    return `<div onclick="selectClass('${id}')" style="background:#fff;border-radius:16px;padding:16px;margin-bottom:10px;box-shadow:0 2px 12px rgba(0,0,0,.07);cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:14px" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 6px 20px rgba(107,48,217,.15)'" onmouseout="this.style.transform='';this.style.boxShadow='0 2px 12px rgba(0,0,0,.07)'">
+      <div style="width:46px;height:46px;border-radius:12px;background:linear-gradient(135deg,#6B2FD9,#A855F7);display:flex;align-items:center;justify-content:center;color:#fff;font-family:'Lora',serif;font-size:1.1rem;font-weight:700;flex-shrink:0">${cls.name.charAt(0)}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:600;font-size:.92rem;color:var(--ink)">${cls.name}</div>
+        <div style="font-family:'DM Mono',monospace;font-size:.54rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-top:2px">${subj} · ${cls.students.length} élèves</div>
+        <div style="margin-top:8px;height:4px;background:#f1f0f5;border-radius:4px;overflow:hidden">
+          <div style="height:100%;width:${pct2}%;background:linear-gradient(135deg,#6B2FD9,#A855F7);border-radius:4px;transition:width .4s"></div>
+        </div>
+        <div style="font-family:'DM Mono',monospace;font-size:.52rem;color:${color};margin-top:4px">${done}/${total} rédigées · T${period}</div>
+      </div>
+      <div style="color:var(--muted);font-size:1.1rem">›</div>
+    </div>`;
+  }).join('');
+}
 
 document.querySelectorAll('.mo').forEach(el=>el.addEventListener('click',e=>{if(e.target===el)el.classList.remove('open');}));
 
