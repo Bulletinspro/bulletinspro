@@ -1625,10 +1625,10 @@ function renderEditor(id){
           <div class="ed-name">${st.name||'Élève n°'+st.num}</div>
           <input value="${st.name||''}" placeholder="Ajouter un nom…" onchange="setSName('${st.id}',this.value)" style="padding:2px 7px;border:1px solid var(--border);border-radius:4px;font-size:.75rem;background:var(--bg);outline:none;color:var(--muted);width:150px">
         </div>
-        <div style="display:flex;align-items:center;gap:8px;margin-top:4px">
+        <div style="display:flex;align-items:center;gap:8px;margin-top:4px;flex-wrap:wrap">
           <div class="gender-tog">
-            <button class="gbtn m ${st.gender==='M'?'active':''}" onclick="setSGender('${st.id}','M',this)">M</button>
-            <button class="gbtn f ${st.gender==='F'?'active':''}" onclick="setSGender('${st.id}','F',this)">F</button>
+            <button class="gbtn m ${st.gender==='M'?'active':''}" onclick="setSGender('${st.id}','M',this)">♂ M</button>
+            <button class="gbtn f ${st.gender==='F'?'active':''}" onclick="setSGender('${st.id}','F',this)">♀ F</button>
           </div>
           <div class="ed-sub">${pLabel} · ${SUBJECTS[cls.subject]?.label||cls.subject} · Max ${charLimit} car.</div>
           <button onclick="resetAllBoxes('${id}')" style="padding:2px 8px;border:1px solid var(--border);border-radius:4px;font-size:.65rem;font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.05em;background:transparent;color:var(--muted);cursor:pointer;opacity:.6" title="Réinitialiser toutes les cases">↺ Tout reset</button>
