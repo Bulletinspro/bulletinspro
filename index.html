@@ -20,7 +20,28 @@
   --sidebar:#171220; --r:12px;
   --teal:#0d9488; --teal-l:#f0fdfa; --teal-b:#99f6e4;
   --gradient:linear-gradient(135deg, #6B2FD9 0%, #A855F7 100%);
+  --ed-font-size: 13px;
 }
+/* DARK MODE */
+body.dark-mode {
+  --bg:#0f0d1a; --surface:#1a1730; --ink:#e9e6f0; --muted:#9ca3af; --border:#2d2a3e;
+  --accent-l:#2a1f4a; --accent-b:#5b3fa0;
+  --warn-l:#2a1010; --warn-b:#7a2020;
+  --amber-l:#2a2010; --amber-b:#7a5a10;
+  --blue-l:#0f1e2a; --blue-b:#1e3a5a;
+  --purple-l:#1e1530; --purple-b:#4a2a7a;
+  --teal-l:#0a1e1c; --teal-b:#0a4a44;
+}
+body.dark-mode .topbar{background:linear-gradient(135deg,#3d1a8a 0%,#6b2fd9 100%);}
+body.dark-mode .card{background:#1a1730;box-shadow:0 2px 12px rgba(0,0,0,.3);}
+body.dark-mode .card-hd{background:#141228;}
+body.dark-mode .pill{background:#1a1730;border-color:#2d2a3e;color:#9ca3af;}
+body.dark-mode .google-btn{background:#1a1730;color:#e9e6f0;}
+body.dark-mode .login-box{background:rgba(0,0,0,.3);}
+body.dark-mode .add-inp{background:#1a1730;color:#e9e6f0;}
+body.dark-mode .appre-ta{background:#1a1730;color:#e9e6f0;}
+body.dark-mode .gbtn{background:#1a1730;color:#9ca3af;}
+body.dark-mode .orient-card{background:#1a1730;border-color:#2d2a3e;}
 *{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:'DM Sans',sans-serif;font-weight:300;background:var(--bg);color:var(--ink);min-height:100vh;}
 .app{display:flex;height:100vh;overflow:hidden;}
@@ -174,7 +195,31 @@ body{font-family:'DM Sans',sans-serif;font-weight:300;background:var(--bg);color
 .welcome-stat-l{font-family:'DM Mono',monospace;font-size:.52rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-top:2px;}
 .welcome-classes{width:100%;max-width:420px;}
 
-/* GRADE / LEVEL / COMPETENCE SELECTOR */
+/* SEARCH & SORT BAR */
+.search-sort-bar{padding:8px 10px;display:flex;gap:6px;align-items:center;border-bottom:1px solid var(--border);background:var(--surface);flex-shrink:0;}
+.st-search{flex:1;padding:6px 10px 6px 28px;border:1.5px solid var(--border);border-radius:8px;font-size:.82rem;background:var(--bg);color:var(--ink);outline:none;transition:border .15s;}
+.st-search:focus{border-color:var(--accent);}
+.st-search-wrap{position:relative;flex:1;}
+.st-search-icon{position:absolute;left:8px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:.8rem;pointer-events:none;}
+.sort-btn{background:var(--bg);border:1.5px solid var(--border);border-radius:8px;padding:5px 8px;font-size:.65rem;color:var(--muted);cursor:pointer;white-space:nowrap;font-family:'DM Mono',monospace;transition:all .15s;}
+.sort-btn:hover,.sort-btn.active{border-color:var(--accent);color:var(--accent);background:var(--accent-l);}
+
+/* PROGRESS BAR top of student panel */
+.progress-bar-wrap{height:4px;background:var(--border);flex-shrink:0;}
+.progress-bar-fill{height:100%;background:var(--gradient);transition:width .4s;}
+
+/* FONT SIZE CONTROLS */
+.font-size-ctrl{display:flex;align-items:center;gap:4px;flex-shrink:0;}
+.fs-btn{background:var(--bg);border:1.5px solid var(--border);border-radius:6px;width:24px;height:24px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:.75rem;color:var(--muted);transition:all .12s;}
+.fs-btn:hover{border-color:var(--accent);color:var(--accent);}
+.fs-label{font-family:'DM Mono',monospace;font-size:.55rem;color:var(--muted);min-width:24px;text-align:center;}
+
+/* DARK MODE TOGGLE */
+.dark-toggle{background:none;border:none;cursor:pointer;font-size:1.1rem;padding:4px 6px;border-radius:6px;transition:all .12s;color:rgba(255,255,255,.7);}
+.dark-toggle:hover{background:rgba(255,255,255,.15);color:#fff;}
+
+/* APPRE TEXTAREA font size */
+.appre-ta{font-size:var(--ed-font-size) !important;}
 .grade-row{padding:10px 14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
 .grade-inp{width:60px;padding:5px 8px;border:1px solid var(--border);border-radius:5px;font-family:'DM Mono',monospace;font-size:.82rem;background:var(--bg);outline:none;text-align:center;}
 .grade-inp:focus{border-color:var(--accent);background:#fff;}
@@ -647,6 +692,12 @@ body{font-family:'DM Sans',sans-serif;font-weight:300;background:var(--bg);color
     </div>
     <div class="topbar-r" id="topbar-r" style="display:none">
       <span id="offline-badge" style="display:none;font-family:'DM Mono',monospace;font-size:.55rem;background:#fef4e0;border:1px solid #e8cc80;color:#8a5e00;padding:3px 8px;border-radius:5px;text-transform:uppercase;letter-spacing:.05em">📵 Hors-ligne</span>
+      <div class="font-size-ctrl" title="Taille du texte">
+        <button class="fs-btn" onclick="changeFontSize(-1)">A-</button>
+        <span class="fs-label" id="fs-label">13</span>
+        <button class="fs-btn" onclick="changeFontSize(1)">A+</button>
+      </div>
+      <button class="dark-toggle" onclick="toggleDarkMode()" id="dark-toggle-btn" title="Mode sombre / clair">🌙</button>
       <button class="btn btn-b btn-sm" onclick="goGenAll()">⚡ Générer tout</button>
     </div>
   </div>
@@ -1514,6 +1565,16 @@ function renderStudentsView(content){
           <button class="btn btn-o btn-sm" onclick="togAddRow()">+ Ajouter</button>
         </div>
       </div>
+      <div class="progress-bar-wrap"><div class="progress-bar-fill" id="st-progress" style="width:0%"></div></div>
+      <div class="search-sort-bar">
+        <div class="st-search-wrap">
+          <span class="st-search-icon">🔍</span>
+          <input class="st-search" id="st-search" placeholder="Rechercher un élève…" oninput="filterStudents(this.value)" autocomplete="off">
+        </div>
+        <button class="sort-btn active" id="sort-num" onclick="setSortMode('num')">N°</button>
+        <button class="sort-btn" id="sort-alpha" onclick="setSortMode('alpha')">A-Z</button>
+        <button class="sort-btn" id="sort-status" onclick="setSortMode('status')">✓</button>
+      </div>
       <div class="add-row" id="add-row" style="display:none">
         <div class="add-form">
           <input class="add-inp" id="ns-num" type="number" min="1" max="38" placeholder="N°" style="width:50px">
@@ -1570,7 +1631,11 @@ function renderStudentList(){
   const cls=S.classes[S.active]; if(!cls)return;
   const scroll=document.getElementById('st-scroll'); if(!scroll)return;
   scroll.innerHTML='';
-  cls.students.forEach(s=>{
+  const students=getFilteredSortedStudents(cls);
+  if(students.length===0&&_searchQuery){
+    scroll.innerHTML='<div style="padding:20px;text-align:center;color:var(--muted);font-size:.82rem">Aucun élève trouvé</div>';
+  }
+  students.forEach(s=>{
     const done=!!(s.comments&&s.comments[S.period]);
     const hasO=s.orient&&s.orient.on;
     const d=document.createElement('div');
@@ -1587,6 +1652,7 @@ function renderStudentList(){
       <button class="del-x" onclick="delStudent('${s.id}',event)">✕</button>`;
     scroll.appendChild(d);
   });
+  updateProgressBar();
 }
 
 function selectStudent(id){S.student=id;save();renderStudentList();renderEditor(id);mobUpdateStudentNav();}
@@ -1728,13 +1794,14 @@ function renderEditor(id){
         <span class="cmt-lbl">Appréciation — ${pLabel}</span>
         <div class="cmt-acts">
           <span class="cchar ${comment.length>charLimit?'over':comment.length>0?'ok':''}" id="cc-${id}">${comment.length}/${charLimit}</span>
-          <button class="act-btn" onclick="genOne('${id}')">↻ Générer</button>
+          <button class="act-btn gen-btn" onclick="genOne('${id}')">↻ Générer</button>
+          <span style="font-family:'DM Mono',monospace;font-size:.5rem;color:rgba(255,255,255,.5);margin-left:2px">Ctrl+↵</span>
           <button class="act-btn" id="voice-btn-${id}" onclick="toggleVoice('${id}')" title="Saisie vocale">🎙️</button>
-          <button class="copy-btn" id="cpb-${id}" onclick="copyC('${id}')">Copier</button>
+          <button class="copy-btn" id="cpb-${id}" onclick="copyC('${id}')">📋 Copier</button>
         </div>
       </div>
       <div class="card-bd">
-        <textarea class="cmt-ta" id="cta-${id}" placeholder="Cliquez sur « Générer » ou rédigez manuellement…" oninput="onCI('${id}',this.value)">${comment}</textarea>
+        <textarea class="cmt-ta appre-ta" id="cta-${id}" placeholder="Cliquez sur « Générer » ou rédigez manuellement…" oninput="onCI('${id}',this.value)">${comment}</textarea>
       </div>
     </div>`;
 
@@ -1826,7 +1893,7 @@ function setOL(id,level,btn){
 function setOP(id,path,btn){const st=getSt(id);st.orient.path=path;btn.closest('.opath-row').querySelectorAll('.opbtn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');save();}
 function setON(id,v){getSt(id).orient.note=v;save();}
 
-function onCI(id,val){saveCmt(id,val);updCC(id,val);}
+function onCI(id,val){saveCmt(id,val);updCC(id,val);updateProgressBar();}
 function saveCmt(id,val){const st=getSt(id);if(!st.comments)st.comments={};st.comments[S.period]=val;save();renderStudentList();}
 function updCC(id,val){
   const el=document.getElementById('cc-'+id);if(!el)return;
@@ -1995,6 +2062,7 @@ async function genOne(sid){
     const txt=fitToLimit(await callClaude(buildPrompt(st,cls,S.period,seed,sampMem(S.active))), cls.charLimit||750);
     ta.classList.remove('gen'); ta.value=txt;
     addMem(S.active,txt); saveCmt(sid,txt); updCC(sid,txt);
+    renderStudentList();
   }catch(e){ta.classList.remove('gen');ta.value='';toast('Erreur de génération');}
 }
 
@@ -2760,6 +2828,99 @@ function renderOnboardStep(){
   prev.style.display=onboardStep===0?'none':'';
   next.textContent=onboardStep===total-1?"C'est parti ! 🚀":'Suivant →';
 }
+
+// ── DARK MODE ─────────────────────────────────────────────────────────────────
+let _darkMode=localStorage.getItem('bp3_dark')==='1';
+function applyDarkMode(){
+  document.body.classList.toggle('dark-mode',_darkMode);
+  const btn=document.getElementById('dark-toggle-btn');
+  if(btn)btn.textContent=_darkMode?'☀️':'🌙';
+}
+function toggleDarkMode(){_darkMode=!_darkMode;localStorage.setItem('bp3_dark',_darkMode?'1':'0');applyDarkMode();}
+setTimeout(applyDarkMode,100);
+
+// ── FONT SIZE ─────────────────────────────────────────────────────────────────
+let _fontSize=parseInt(localStorage.getItem('bp3_font')||'13');
+function applyFontSize(){
+  document.documentElement.style.setProperty('--ed-font-size',_fontSize+'px');
+  const lbl=document.getElementById('fs-label');
+  if(lbl)lbl.textContent=_fontSize;
+}
+function changeFontSize(delta){
+  _fontSize=Math.min(18,Math.max(10,_fontSize+delta));
+  localStorage.setItem('bp3_font',_fontSize);
+  applyFontSize();
+}
+setTimeout(applyFontSize,100);
+
+// ── SEARCH & SORT ─────────────────────────────────────────────────────────────
+let _sortMode='num';
+let _searchQuery='';
+function setSortMode(mode){
+  _sortMode=mode;
+  document.querySelectorAll('.sort-btn').forEach(b=>b.classList.remove('active'));
+  const btn=document.getElementById('sort-'+mode);
+  if(btn)btn.classList.add('active');
+  renderStudentList();
+}
+function filterStudents(q){_searchQuery=q.toLowerCase();renderStudentList();}
+
+// ── PROGRESS BAR ──────────────────────────────────────────────────────────────
+function updateProgressBar(){
+  const cls=S.classes[S.active]; if(!cls)return;
+  const done=cls.students.filter(s=>s.comments&&s.comments[S.period]&&s.comments[S.period].length>0).length;
+  const pct=cls.students.length?Math.round(done/cls.students.length*100):0;
+  const bar=document.getElementById('st-progress');
+  if(bar)bar.style.width=pct+'%';
+  const sc=document.getElementById('sc');
+  if(sc)sc.textContent=`${cls.students.length} · ${pct}%`;
+}
+
+// ── FILTERED + SORTED STUDENTS ────────────────────────────────────────────────
+function getFilteredSortedStudents(cls){
+  let students=[...cls.students];
+  if(_searchQuery){
+    students=students.filter(s=>{
+      const name=(s.name||'élève n°'+s.num).toLowerCase();
+      return name.includes(_searchQuery)||String(s.num).includes(_searchQuery);
+    });
+  }
+  if(_sortMode==='alpha') students.sort((a,b)=>(a.name||'').localeCompare(b.name||''));
+  else if(_sortMode==='status'){
+    students.sort((a,b)=>{
+      const da=!!(a.comments&&a.comments[S.period]);
+      const db=!!(b.comments&&b.comments[S.period]);
+      return da===db?(a.num-b.num):da?1:-1;
+    });
+  } else students.sort((a,b)=>a.num-b.num);
+  return students;
+}
+
+// ── KEYBOARD NAVIGATION ───────────────────────────────────────────────────────
+document.addEventListener('keydown',e=>{
+  if((e.ctrlKey||e.metaKey)&&e.key==='Enter'){
+    e.preventDefault();
+    const genBtn=document.querySelector('.gen-btn');
+    if(genBtn&&!genBtn.disabled)genBtn.click();
+    return;
+  }
+  if(!e.ctrlKey&&!e.metaKey&&(e.key==='ArrowUp'||e.key==='ArrowDown')){
+    const active=document.activeElement;
+    if(active&&(active.tagName==='TEXTAREA'||active.tagName==='INPUT'))return;
+    e.preventDefault();
+    const cls=S.classes[S.active]; if(!cls)return;
+    const students=getFilteredSortedStudents(cls);
+    if(!students.length)return;
+    const idx=students.findIndex(s=>s.id===S.student);
+    const next=Math.max(0,Math.min(students.length-1,idx+(e.key==='ArrowDown'?1:-1)));
+    selectStudent(students[next].id);
+    return;
+  }
+  if((e.ctrlKey||e.metaKey)&&e.key==='f'){
+    const s=document.getElementById('st-search');
+    if(s){e.preventDefault();s.focus();}
+  }
+});
 
 function renderWelcomeScreen(){
   const clsIds=Object.keys(S.classes);
