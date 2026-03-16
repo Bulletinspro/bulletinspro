@@ -1372,9 +1372,55 @@ async function gdLoadFromDrive(){
     }
   }catch(e){
     console.error('GD load error',e);
+    // If token expired (401), try silent refresh instead of forcing re-login
+    if(e.message&&e.message.includes('401')){
+      gdSetStatus('syncing','Renouvellement du token…');
+      try{
+        await gdSilentRefresh();
+        await gdLoadFromDrive();
+        return;
+      }catch(e2){
+        // Silent refresh failed — show login
+        gdSetStatus('error','Session expirée',true,'↺ Se reconnecter','gdAuth()');
+        localStorage.removeItem('bp3_gd');
+        // Keep user data visible — just show reconnect button
+        gdShowLoginScreen(false);
+        return;
+      }
+    }
     gdSetStatus('error','Erreur Drive',true,'↺ Reconnecter','gdAuth()');
-    localStorage.removeItem('bp3_gd');
   }
+}
+
+async function gdSilentRefresh(){
+  return new Promise((resolve,reject)=>{
+    if(!GD.tokenClient){
+      GD.tokenClient=google.accounts.oauth2.initTokenClient({
+        client_id:GD.CLIENT_ID,
+        scope:GD.SCOPES,
+        prompt:'',
+        callback:(resp)=>{
+          if(resp.error){reject(new Error(resp.error));return;}
+          GD.accessToken=resp.access_token;
+          localStorage.setItem('bp3_gd',JSON.stringify({access_token:GD.accessToken,file_id:GD.fileId}));
+          resolve();
+        }
+      });
+    } else {
+      const oldCb=GD.tokenClient.callback;
+      GD.tokenClient.callback=(resp)=>{
+        GD.tokenClient.callback=oldCb;
+        if(resp.error){reject(new Error(resp.error));return;}
+        GD.accessToken=resp.access_token;
+        localStorage.setItem('bp3_gd',JSON.stringify({access_token:GD.accessToken,file_id:GD.fileId}));
+        resolve();
+      };
+    }
+    // prompt:'' = silent, no popup if session active
+    GD.tokenClient.requestAccessToken({prompt:''});
+    // Timeout after 5s
+    setTimeout(()=>reject(new Error('timeout')),5000);
+  });
 }
 
 async function gdSaveToDrive(){
