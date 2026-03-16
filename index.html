@@ -32,7 +32,7 @@ body{font-family:'DM Sans',sans-serif;font-weight:300;background:var(--bg);color
 .logo-t em{font-style:italic;color:#a78bfa;}
 .logo-s{font-family:'DM Mono',monospace;font-size:.56rem;text-transform:uppercase;letter-spacing:.14em;color:rgba(255,255,255,.22);margin-top:3px;}
 .s-lbl{font-family:'DM Mono',monospace;font-size:.55rem;text-transform:uppercase;letter-spacing:.13em;color:rgba(255,255,255,.2);padding:12px 16px 5px;}
-.cls-list{flex:1;overflow-y:auto;padding:3px 7px;}
+.cls-list{flex:1;overflow-y:auto;padding:3px 7px;min-height:0;max-height:35vh;}
 .cls-item{padding:9px 10px;border-radius:7px;cursor:pointer;display:flex;align-items:center;gap:8px;margin-bottom:2px;transition:background .13s;color:rgba(255,255,255,.55);}
 .cls-item:hover{background:rgba(255,255,255,.06);color:rgba(255,255,255,.82);}
 .cls-item.active{background:rgba(167,139,250,.12);color:#a78bfa;}
@@ -367,13 +367,13 @@ body{font-family:'DM Sans',sans-serif;font-weight:300;background:var(--bg);color
 /* ── MOBILE RESPONSIVE ───────────────────────────────────────────────────────── */
 
 /* Mobile bottom nav */
-.mob-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--sidebar);border-top:1px solid rgba(255,255,255,.1);z-index:500;height:62px;flex-shrink:0;padding-bottom:env(safe-area-inset-bottom);}
-.mob-nav-inner{display:flex;height:62px;}
-.mob-tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:none;border:none;color:rgba(255,255,255,.3);cursor:pointer;transition:all .14s;font-family:'DM Mono',monospace;font-size:.45rem;text-transform:uppercase;letter-spacing:.05em;padding:8px 2px;position:relative;}
+.mob-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:#1a0533;border-top:1px solid rgba(255,255,255,.15);z-index:500;height:64px;flex-shrink:0;padding-bottom:env(safe-area-inset-bottom);}
+.mob-nav-inner{display:flex;height:64px;}
+.mob-tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:none;border:none;color:rgba(255,255,255,.55);cursor:pointer;transition:all .14s;font-family:'DM Mono',monospace;font-size:.46rem;text-transform:uppercase;letter-spacing:.05em;padding:8px 2px;position:relative;}
 .mob-tab:active{transform:scale(.94);}
 .mob-tab.active{color:#a78bfa;}
-.mob-tab.active::after{content:'';position:absolute;bottom:0;left:25%;right:25%;height:2px;background:#a78bfa;border-radius:2px 2px 0 0;}
-.mob-tab .mob-icon{font-size:1.3rem;line-height:1;}
+.mob-tab.active::after{content:'';position:absolute;bottom:0;left:20%;right:20%;height:2.5px;background:linear-gradient(135deg,#6B2FD9,#A855F7);border-radius:2px 2px 0 0;}
+.mob-tab .mob-icon{font-size:1.4rem;line-height:1;}
 .mob-tab-pp.active{color:#64d2c3;}
 .mob-tab-pp.active::after{background:#64d2c3;}
 
@@ -410,6 +410,7 @@ body{font-family:'DM Sans',sans-serif;font-weight:300;background:var(--bg);color
     transition:transform .26s cubic-bezier(.4,0,.2,1);
     width:min(300px, 85vw);min-width:unset;
     box-shadow:none;
+    padding-bottom:calc(64px + env(safe-area-inset-bottom));
   }
   .sidebar.mob-open{box-shadow:8px 0 40px rgba(0,0,0,.35);}
 
@@ -606,11 +607,13 @@ body{font-family:'DM Sans',sans-serif;font-weight:300;background:var(--bg);color
     <div class="logo-s">Générateur d'appréciations</div>
   </div>
   <div class="s-lbl">Mes classes</div>
-  <div class="cls-list" id="cls-list"></div>
-  <button class="add-cls-btn" onclick="openNewClass()">+ Nouvelle classe</button>
-  <div class="sb-divider"><div class="sb-div-line"></div><span class="sb-div-lbl">Prof. Principal</span><div class="sb-div-line"></div></div>
-  <div id="pp-list"></div>
-  <button class="add-pp-btn" onclick="openNewPP()">+ Nouvelle classe PP</button>
+  <div style="flex:1;overflow-y:auto;min-height:0;display:flex;flex-direction:column;">
+    <div class="cls-list" id="cls-list" style="flex:unset;max-height:unset;overflow:visible;padding:3px 7px;"></div>
+    <button class="add-cls-btn" onclick="openNewClass()">+ Nouvelle classe</button>
+    <div class="sb-divider"><div class="sb-div-line"></div><span class="sb-div-lbl">Prof. Principal</span><div class="sb-div-line"></div></div>
+    <div id="pp-list"></div>
+    <button class="add-pp-btn" onclick="openNewPP()">+ Nouvelle classe PP</button>
+  </div>
   <div class="sb-foot">
     <button class="sb-fbtn" onclick="exportAll()">⬇ Export</button>
     <button class="sb-fbtn" onclick="importAll()">⬆ Import</button>
