@@ -278,14 +278,14 @@ body{font-family:'DM Sans',sans-serif;font-weight:300;background:var(--bg);color
 .progress-bar-fill{height:100%;background:var(--gradient);transition:width .4s;}
 
 /* FONT SIZE CONTROLS */
-.font-size-ctrl{display:flex;align-items:center;gap:4px;flex-shrink:0;}
-.fs-btn{background:var(--bg);border:1.5px solid var(--border);border-radius:6px;width:24px;height:24px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:.75rem;color:var(--muted);transition:all .12s;}
-.fs-btn:hover{border-color:var(--accent);color:var(--accent);}
-.fs-label{font-family:'DM Mono',monospace;font-size:.55rem;color:var(--muted);min-width:24px;text-align:center;}
+.font-size-ctrl{display:flex;align-items:center;gap:3px;flex-shrink:0;background:var(--bg);border:1.5px solid var(--border);border-radius:8px;padding:2px 4px;}
+.fs-btn{background:none;border:none;border-radius:5px;width:22px;height:22px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:.72rem;font-weight:700;color:var(--accent);transition:all .12s;font-family:'DM Mono',monospace;}
+.fs-btn:hover{background:var(--accent-l);}
+.fs-label{font-family:'DM Mono',monospace;font-size:.6rem;color:var(--ink);min-width:20px;text-align:center;font-weight:600;}
 
 /* DARK MODE TOGGLE */
-.dark-toggle{background:none;border:none;cursor:pointer;font-size:1.1rem;padding:4px 6px;border-radius:6px;transition:all .12s;color:rgba(255,255,255,.7);}
-.dark-toggle:hover{background:rgba(255,255,255,.15);color:#fff;}
+.dark-toggle{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);cursor:pointer;font-size:1rem;padding:5px 8px;border-radius:8px;transition:all .12s;color:#fff;line-height:1;}
+.dark-toggle:hover{background:rgba(255,255,255,.25);}
 
 /* APPRE TEXTAREA font size */
 .appre-ta{font-size:var(--ed-font-size) !important;}
@@ -761,11 +761,6 @@ body{font-family:'DM Sans',sans-serif;font-weight:300;background:var(--bg);color
     </div>
     <div class="topbar-r" id="topbar-r" style="display:none">
       <span id="offline-badge" style="display:none;font-family:'DM Mono',monospace;font-size:.55rem;background:#fef4e0;border:1px solid #e8cc80;color:#8a5e00;padding:3px 8px;border-radius:5px;text-transform:uppercase;letter-spacing:.05em">📵 Hors-ligne</span>
-      <div class="font-size-ctrl" title="Taille du texte">
-        <button class="fs-btn" onclick="changeFontSize(-1)">A-</button>
-        <span class="fs-label" id="fs-label">13</span>
-        <button class="fs-btn" onclick="changeFontSize(1)">A+</button>
-      </div>
       <button class="dark-toggle" onclick="toggleDarkMode()" id="dark-toggle-btn" title="Mode sombre / clair">🌙</button>
       <button class="btn btn-b btn-sm" onclick="goGenAll()">⚡ Générer tout</button>
     </div>
@@ -1909,8 +1904,13 @@ function renderEditor(id){
         <span class="cmt-lbl">Appréciation — ${pLabel}</span>
         <div class="cmt-acts">
           <span class="cchar ${comment.length>charLimit?'over':comment.length>0?'ok':''}" id="cc-${id}">${comment.length}/${charLimit}</span>
+          <div class="font-size-ctrl" title="Taille du texte dans l'éditeur">
+            <button class="fs-btn" onclick="changeFontSize(-1)">A-</button>
+            <span class="fs-label" id="fs-label"><span id="fs-val">${_fontSize}</span></span>
+            <button class="fs-btn" onclick="changeFontSize(1)">A+</button>
+          </div>
           <button class="act-btn gen-btn" onclick="genOne('${id}')">↻ Générer</button>
-          <span style="font-family:'DM Mono',monospace;font-size:.5rem;color:rgba(255,255,255,.5);margin-left:2px">Ctrl+↵</span>
+          <span style="font-family:'DM Mono',monospace;font-size:.5rem;color:var(--muted);margin-left:2px">Ctrl+↵</span>
           <button class="act-btn" id="voice-btn-${id}" onclick="toggleVoice('${id}')" title="Saisie vocale">🎙️</button>
           <button class="copy-btn" id="cpb-${id}" onclick="copyC('${id}')">📋 Copier</button>
         </div>
@@ -2958,8 +2958,7 @@ setTimeout(applyDarkMode,100);
 let _fontSize=parseInt(localStorage.getItem('bp3_font')||'13');
 function applyFontSize(){
   document.documentElement.style.setProperty('--ed-font-size',_fontSize+'px');
-  const lbl=document.getElementById('fs-label');
-  if(lbl)lbl.textContent=_fontSize;
+  document.querySelectorAll('#fs-val').forEach(el=>el.textContent=_fontSize);
 }
 function changeFontSize(delta){
   _fontSize=Math.min(18,Math.max(10,_fontSize+delta));
