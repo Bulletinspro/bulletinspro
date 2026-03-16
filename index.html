@@ -1085,7 +1085,7 @@ function gdShowLoginScreen(show){
   const mobnav=document.getElementById('mob-nav');
   if(ls)ls.style.display=show?'flex':'none';
   if(app)app.style.display=show?'none':'flex';
-  if(mobnav)mobnav.style.display=show?'none':'flex';
+  if(mobnav)mobnav.style.display=show?'none':(window.innerWidth<=1024?'flex':'none');
 }
 
 function gdSetUserProfile(user){
