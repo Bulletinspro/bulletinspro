@@ -2261,24 +2261,37 @@ function fitToLimit(txt, limit){
 const _k='Z3NrX2t2eGx0UTVuWm50d0FKdGREUTgzV0dkeWIzRlllR1g1aUNyejNkak1TekRBUU9wd0ZHWWI=';
 let _apiKey=atob(_k);
 
-async function callClaude(prompt){
-  try{
-    const r=await fetch('https://api.groq.com/openai/v1/chat/completions',{
-      method:'POST',
-      headers:{
-        'Content-Type':'application/json',
-        'Authorization':`Bearer ${_apiKey}`
-      },
-      body:JSON.stringify({
-        model:'llama-3.3-70b-versatile',
-        max_tokens:1000,
-        messages:[{role:'user',content:prompt}]
-      })
-    });
-    if(!r.ok){toast('Erreur API '+r.status);return '';}
-    const d=await r.json();
-    return d.choices?.[0]?.message?.content?.trim()||'';
-  }catch(e){toast('Erreur de connexion');return '';}
+async function callClaude(prompt, retries=3){
+  for(let attempt=0; attempt<retries; attempt++){
+    try{
+      const r=await fetch('https://api.groq.com/openai/v1/chat/completions',{
+        method:'POST',
+        headers:{
+          'Content-Type':'application/json',
+          'Authorization':`Bearer ${_apiKey}`
+        },
+        body:JSON.stringify({
+          model:'llama-3.3-70b-versatile',
+          max_tokens:1000,
+          messages:[{role:'user',content:prompt}]
+        })
+      });
+      // Rate limit — wait and retry
+      if(r.status===429){
+        const wait=attempt===0?3000:attempt===1?6000:12000;
+        toast(`⏳ Limite API — reprise dans ${wait/1000}s…`);
+        await new Promise(res=>setTimeout(res,wait));
+        continue;
+      }
+      if(!r.ok) throw new Error('API '+r.status);
+      const d=await r.json();
+      return d.choices?.[0]?.message?.content?.trim()||'';
+    }catch(e){
+      if(attempt===retries-1) throw e;
+      await new Promise(res=>setTimeout(res,2000));
+    }
+  }
+  return '';
 }
 
 async function genOne(sid){
@@ -2310,8 +2323,8 @@ async function generateAll(){
       errors++;
       console.warn('genBulk error for',sid,e);
     }
-    // Small pause between calls to avoid rate limiting
-    if(i<cls.students.length-1) await new Promise(r=>setTimeout(r,300));
+    // Pause between calls — avoids rate limiting (Groq limit ~30 req/min)
+    if(i<cls.students.length-1) await new Promise(r=>setTimeout(r,800));
   }
   if(btn){btn.disabled=false;btn.textContent='⚡ Générer tout';}
   if(errors>0) toast(`✓ ${done} générées — ${errors} erreur(s)`);
