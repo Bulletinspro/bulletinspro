@@ -95,10 +95,10 @@ body.dark-mode .progress-bar-wrap{background:#2d2a3e;}
 body.dark-mode .google-btn{background:#1e1b30;color:#e9e6f0;box-shadow:0 4px 20px rgba(0,0,0,.4);}
 body.dark-mode .login-box{background:rgba(0,0,0,.35);border-color:rgba(167,139,250,.3);}
 /* Modals */
-body.dark-mode .mo{background:#1e1b30;}
-body.dark-mode .mo-hd{background:#17142a;border-color:#2d2a3e;}
+body.dark-mode .mo{background:rgba(0,0,0,.7);}
+body.dark-mode .modal{background:#1e1b30;border:1px solid #2d2a3e;}body.dark-mode .mo-t{color:#e9e6f0;}body.dark-mode .mo-lbl{color:#a78bfa;}body.dark-mode .mo-hd{background:#17142a;border-color:#2d2a3e;}
 body.dark-mode .mo-inp{background:#17142a;color:#e9e6f0;border-color:#3d3660;}
-body.dark-mode .mo-inp:focus{border-color:#7c3aed;}
+body.dark-mode .mo-inp:focus{border-color:#7c3aed;}body.dark-mode .mo-sel{background:#17142a;color:#e9e6f0;border-color:#3d3660;}body.dark-mode .mo-sel:focus{border-color:#7c3aed;}body.dark-mode .mo-radio label{color:#c4b5fd;}
 /* Ed panel */
 body.dark-mode .ed-panel{background:#0f0d1a;}
 body.dark-mode .act-btn{background:rgba(107,47,217,.3);color:#e9d5ff;}
@@ -874,13 +874,20 @@ body{font-family:'DM Sans',sans-serif;font-weight:300;background:var(--bg);color
       <span style="font-size:.8rem;color:var(--muted)">caractères max (défaut : 750)</span>
     </div>
     <div class="mo-lbl">Personnalisation des appréciations</div>
-    <div style="background:var(--accent-l);border:1.5px solid var(--accent-b);border-radius:10px;padding:12px 14px;margin-bottom:14px;display:flex;align-items:center;gap:10px;cursor:pointer" onclick="document.getElementById('nc-usename').click()">
-      <input type="checkbox" id="nc-usename" style="width:18px;height:18px;accent-color:var(--accent);cursor:pointer">
+    <label for="nc-usename" style="background:var(--accent-l);border:1.5px solid var(--accent-b);border-radius:10px;padding:12px 14px;margin-bottom:10px;display:flex;align-items:center;gap:10px;cursor:pointer">
+      <input type="checkbox" id="nc-usename" style="width:18px;height:18px;accent-color:var(--accent);cursor:pointer;flex-shrink:0">
       <div>
         <div style="font-size:.84rem;font-weight:600;color:var(--ink)">Inclure le prénom dans les appréciations</div>
         <div style="font-size:.75rem;color:var(--muted);margin-top:2px">Si le prénom est renseigné, l'IA l'utilisera. Sinon, elle écrira <em>(nom de l'élève)</em>.</div>
       </div>
-    </div>
+    </label>
+    <label for="nc-noje" style="background:var(--accent-l);border:1.5px solid var(--accent-b);border-radius:10px;padding:12px 14px;margin-bottom:14px;display:flex;align-items:center;gap:10px;cursor:pointer">
+      <input type="checkbox" id="nc-noje" style="width:18px;height:18px;accent-color:var(--accent);cursor:pointer;flex-shrink:0">
+      <div>
+        <div style="font-size:.84rem;font-weight:600;color:var(--ink)">Ne jamais utiliser "je" dans les appréciations</div>
+        <div style="font-size:.75rem;color:var(--muted);margin-top:2px">L'appréciation parle de l'élève à la 3e personne. Ex : "Cet élève fait preuve de…" plutôt que "Je note que…"</div>
+      </div>
+    </label>
     <div class="mo-acts">
       <button class="btn btn-o" onclick="closeMo('mo-cls')">Annuler</button>
       <button class="btn btn-g" onclick="createClass()">Créer</button>
@@ -957,13 +964,20 @@ body{font-family:'DM Sans',sans-serif;font-weight:300;background:var(--bg);color
       <input class="mo-inp" id="ec-charlimit" type="number" min="100" max="2000" placeholder="750" style="margin:0;width:90px">
       <span style="font-size:.8rem;color:var(--muted)">caractères max</span>
     </div>
-    <div style="background:var(--accent-l);border:1.5px solid var(--accent-b);border-radius:10px;padding:12px 14px;margin-bottom:14px;display:flex;align-items:center;gap:10px;cursor:pointer" onclick="document.getElementById('ec-usename').click()">
-      <input type="checkbox" id="ec-usename" style="width:18px;height:18px;accent-color:var(--accent);cursor:pointer">
+    <label for="ec-usename" style="background:var(--accent-l);border:1.5px solid var(--accent-b);border-radius:10px;padding:12px 14px;margin-bottom:10px;display:flex;align-items:center;gap:10px;cursor:pointer">
+      <input type="checkbox" id="ec-usename" style="width:18px;height:18px;accent-color:var(--accent);cursor:pointer;flex-shrink:0">
       <div>
         <div style="font-size:.84rem;font-weight:600;color:var(--ink)">Inclure le prénom dans les appréciations</div>
         <div style="font-size:.75rem;color:var(--muted);margin-top:2px">Si renseigné, l'IA utilisera le prénom. Sinon, elle écrira <em>(nom de l'élève)</em>.</div>
       </div>
-    </div>
+    </label>
+    <label for="ec-noje" style="background:var(--accent-l);border:1.5px solid var(--accent-b);border-radius:10px;padding:12px 14px;margin-bottom:14px;display:flex;align-items:center;gap:10px;cursor:pointer">
+      <input type="checkbox" id="ec-noje" style="width:18px;height:18px;accent-color:var(--accent);cursor:pointer;flex-shrink:0">
+      <div>
+        <div style="font-size:.84rem;font-weight:600;color:var(--ink)">Ne jamais utiliser "je" dans les appréciations</div>
+        <div style="font-size:.75rem;color:var(--muted);margin-top:2px">L'appréciation parle de l'élève à la 3e personne. Ex : "Cet élève fait preuve de…" plutôt que "Je note que…"</div>
+      </div>
+    </label>
     <div style="background:var(--warn-l);border:1px solid var(--warn-b);border-radius:8px;padding:8px 12px;margin-bottom:14px;font-size:.75rem;color:var(--warn)">
       ⚠️ Les élèves, leurs notes et appréciations sont conservés.
     </div>
@@ -1692,6 +1706,7 @@ function openEditClass(id){
   document.getElementById('ec-name').value=cls.name;
   document.getElementById('ec-charlimit').value=cls.charLimit||750;
   document.getElementById('ec-usename').checked=!!cls.useName;
+  document.getElementById('ec-noje').checked=!!cls.noJe;
   const sel=document.getElementById('ec-subj');
   sel.innerHTML='';
   Object.entries(SUBJECTS).forEach(([k,v])=>{
@@ -1715,6 +1730,7 @@ function saveEditClass(){
   cls.evalType=document.getElementById('ec-eval').value;
   cls.charLimit=parseInt(document.getElementById('ec-charlimit').value)||750;
   cls.useName=document.getElementById('ec-usename').checked;
+  cls.noJe=document.getElementById('ec-noje').checked;
   S._editingClass=null;
   closeMo('mo-edit-cls');
   save(); renderSidebar();
@@ -1725,6 +1741,7 @@ function saveEditClass(){
 function openNewClass(){
   document.getElementById('nc-name').value='';
   document.getElementById('nc-usename').checked=false;
+  document.getElementById('nc-noje').checked=false;
   document.getElementById('mo-cls').classList.add('open');
   setTimeout(()=>document.getElementById('nc-name').focus(),80);
 }
@@ -1736,6 +1753,7 @@ function createClass(){
   const evalType=document.getElementById('nc-eval').value;
   const charLimit=parseInt(document.getElementById('nc-charlimit').value)||750;
   const useName=document.getElementById('nc-usename').checked;
+  const noJe=document.getElementById('nc-noje').checked;
   const studentCount=parseInt(document.getElementById('nc-count').value)||0;
   const id='c'+Date.now();
   const students=[];
@@ -1744,7 +1762,7 @@ function createClass(){
       students.push({id:'s'+Date.now()+i,num:i,name:'',gender:'M',boxes:{},grade:'',level:'',comps:{},tone:null,orient:{on:false,level:1,path:'',note:''},comments:{}});
     }
   }
-  S.classes[id]={name,subject,periodType,evalType,charLimit,useName,students,tone:'equilibre',classBoxes:{},classComments:{}};
+  S.classes[id]={name,subject,periodType,evalType,charLimit,useName,noJe,students,tone:'equilibre',classBoxes:{},classComments:{}};
   closeMo('mo-cls'); save(); renderSidebar(); selectClass(id); toast(`"${name}" créée — ${students.length} élève(s)`);
 }
 
@@ -2046,6 +2064,42 @@ function renderEditor(id){
       </div>
     </div>`;
 
+  // AESH CARD
+  const aesh=st.aesh||{on:false,obs:{}};
+  const AESH_ITEMS=[
+    {id:'ae1',l:'Réel bénéfice de l\'accompagnement AESH',v:'pos'},
+    {id:'ae2',l:'Accompagnement indispensable à sa réussite',v:'pos'},
+    {id:'ae3',l:'Fait preuve d\'autonomie malgré ses difficultés',v:'pos'},
+    {id:'ae4',l:'Progrès notables grâce à l\'accompagnement',v:'pos'},
+    {id:'ae5',l:'Accompagnement efficace à l\'écrit',v:'pos'},
+    {id:'ae6',l:'Accompagnement efficace à l\'oral',v:'pos'},
+    {id:'ae7',l:'L\'aide de l\'AESH est bénéfique mais insuffisante seule',v:'neutral'},
+    {id:'ae8',l:'Difficultés persistantes malgré l\'accompagnement',v:'neutral'},
+    {id:'ae9',l:'N\'ose pas demander de l\'aide en l\'absence de l\'AESH',v:'neutral'},
+    {id:'ae10',l:'Dépendant(e) de l\'accompagnement — autonomie à développer',v:'neutral'},
+    {id:'ae11',l:'Les progrès restent limités même avec accompagnement',v:'neg'},
+    {id:'ae12',l:'Difficultés importantes sans l\'AESH',v:'neg'},
+  ];
+  html+=`
+    <div class="orient-card" style="border-color:var(--teal-b)">
+      <div class="orient-hd" style="background:var(--teal-l);border-color:var(--teal-b)">
+        <span class="orient-title" style="color:var(--teal)">♿ Accompagnement AESH (optionnel)</span>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:.7rem;color:var(--teal);opacity:.7" id="aesh-lbl-${id}">${aesh.on?'Activé':'Désactivé'}</span>
+          <button class="tog-sw ${aesh.on?'on':''}" style="--sw-c:var(--teal)" onclick="togAesh('${id}',this)"></button>
+        </div>
+      </div>
+      <div id="aesh-${id}" style="display:${aesh.on?'block':'none'}">
+        <div class="pill-grid">
+          ${AESH_ITEMS.map(item=>{
+            const sel=!!(aesh.obs&&aesh.obs[item.id]);
+            const cls2=item.v==='neg'?'neg':item.v==='neutral'?'neutral':'';
+            return `<span class="pill ${cls2} ${sel?'sel':''}" onclick="togAeshBox('${id}','${item.id}',this)">${item.l}</span>`;
+          }).join('')}
+        </div>
+      </div>
+    </div>`;
+
   html+=`
     <div class="card" style="border-color:var(--accent-b)">
       <div class="card-hd" style="background:var(--accent-l);color:var(--accent)">Bilan global du trimestre <span style="font-weight:500;font-size:.8em;opacity:1;color:var(--muted)">&nbsp;— optionnel, laissez vide pour que l'IA choisisse</span></div>
@@ -2190,6 +2244,25 @@ function togBox(sid,itemId,el){
   save();
 }
 
+function togAesh(id,btn){
+  const st=getSt(id);
+  if(!st.aesh)st.aesh={on:false,obs:{}};
+  st.aesh.on=!st.aesh.on;
+  btn.classList.toggle('on',st.aesh.on);
+  const lbl=document.getElementById('aesh-lbl-'+id);
+  if(lbl)lbl.textContent=st.aesh.on?'Activé':'Désactivé';
+  document.getElementById('aesh-'+id).style.display=st.aesh.on?'block':'none';
+  save();
+}
+function togAeshBox(sid,itemId,el){
+  const st=getSt(sid);
+  if(!st.aesh)st.aesh={on:true,obs:{}};
+  if(!st.aesh.obs)st.aesh.obs={};
+  st.aesh.obs[itemId]=!st.aesh.obs[itemId];
+  el.classList.toggle('sel',st.aesh.obs[itemId]);
+  save();
+}
+
 function togOrient(id,btn){
   const st=getSt(id); if(!st.orient)st.orient={on:false,level:1,path:'',note:''};
   st.orient.on=!st.orient.on; btn.classList.toggle('on',st.orient.on);
@@ -2263,6 +2336,14 @@ function buildPrompt(st,cls,period,seed,memSamp){
     evalCtx+=`Compétences : ${compLabels[st.comps.global]||st.comps.global}. `;
   }
 
+  let aeshCtx='';
+  if(st.aesh?.on){
+    const AESH_LABELS={ae1:'Réel bénéfice de l'accompagnement AESH',ae2:'Accompagnement indispensable',ae3:'Autonomie malgré les difficultés',ae4:'Progrès notables grâce à l'accompagnement',ae5:'Accompagnement efficace à l'écrit',ae6:'Accompagnement efficace à l'oral',ae7:'Aide bénéfique mais insuffisante seule',ae8:'Difficultés persistantes malgré l'accompagnement',ae9:'N'ose pas demander d'aide sans l'AESH',ae10:'Dépendant(e) de l'accompagnement',ae11:'Progrès limités même avec accompagnement',ae12:'Difficultés importantes sans l'AESH'};
+    const ca=Object.entries(st.aesh.obs||{}).filter(([,v])=>v).map(([k])=>AESH_LABELS[k]).filter(Boolean);
+    aeshCtx=ca.length ? '
+ACCOMPAGNEMENT AESH : Cet élève bénéficie d'un accompagnement AESH. Observations : '+ca.join(', ')+'. Intègre cet élément avec tact et bienveillance si pertinent.' : '
+ACCOMPAGNEMENT AESH : Cet élève bénéficie d'un accompagnement AESH. Mentionne-le discrètement si cela éclaire le profil.';
+  }
   let orientCtx='';
   if(st.orient?.on){
     orientCtx=`\nORIENTATION (${['','Discret','Filière mentionnée','Explicite'][st.orient.level]}) : ${ORIENT_DESCS[st.orient.level]}`;
@@ -2275,8 +2356,8 @@ function buildPrompt(st,cls,period,seed,memSamp){
   // Verdict context
   const verdictObj = st.verdict ? VERDICT_PILLS.find(v=>v.id===st.verdict) : null;
   const verdictCtx = verdictObj
-    ? `BILAN GLOBAL CHOISI PAR L'ENSEIGNANT : "${verdictObj.l}" — ce mot ou cette expression DOIT apparaître au tout début de l'appréciation, en ouverture.`
-    : `BILAN GLOBAL : l'enseignant n'a pas choisi d'expression d'ouverture — choisis toi-même la plus adaptée au profil parmi : "Excellent trimestre", "Très bon trimestre", "Bon trimestre", "Trimestre satisfaisant", "Trimestre encourageant", "Trimestre décevant", "Trimestre insuffisant", "Trimestre inquiétant", "Trimestre très insuffisant". Place-la en tout début d'appréciation.`;
+    ? `BILAN GLOBAL CHOISI PAR L'ENSEIGNANT : "${verdictObj.l}." — OBLIGATOIRE : cette expression ouvre l'appréciation, suivie d'un point. La phrase suivante commence par une majuscule. Ne jamais accoler deux phrases sans point entre elles.`
+    : `BILAN GLOBAL : l'enseignant n'a pas choisi d'expression d'ouverture — choisis toi-même la plus adaptée au profil parmi : "Bon trimestre.", "Trimestre satisfaisant.", "Trimestre encourageant.", "Trimestre décevant.", "Trimestre insuffisant.", "Très bon trimestre.", "Trimestre inquiétant.". Place-la en tout début d'appréciation, suivie d'un point.`;
 
   const studentName = st.name ? st.name : null;
   const studentRef = cls.useName
@@ -2291,14 +2372,43 @@ CONTEXTE TEMPOREL : ${pLabel} — ${periodCtx}
 
 CONTEXTE : Cette appréciation est une parmi environ 12 que l'élève recevra ce trimestre. Elle doit être concise, lisible, utile. Les parents et l'élève doivent en retenir l'essentiel en quelques secondes.
 
-ÉLÈVE : ${gender}, tous les accords au ${accord} SANS EXCEPTION. Période : ${pLabel}${subLabel ? ' — ' + subLabel : ''}.
+ÉLÈVE : ${gender}, tous les accords au ${accord} SANS EXCEPTION — adjectifs, participes passés, pronoms, TOUT. Si l'élève est une fille : "sérieuse", "appliquée", "investie". Si c'est un garçon : "sérieux", "appliqué", "investi". Ne jamais mélanger les genres dans une même phrase. Période : ${pLabel}${subLabel ? ' — ' + subLabel : ''}.
 ${studentRef}
 ${evalCtx}
 ${verdictCtx}
 
 OBSERVATIONS DE L'ENSEIGNANT :
 ${checked.length ? checked.map(i => '• ' + i).join('\n') : '• Profil standard'}
-${orientCtx}${memCtx}
+${aeshCtx}${orientCtx}${memCtx}
+
+EXEMPLES DE STYLE À IMITER — appréciations réelles d'enseignants français :
+
+Exemple 1 (anglais, élève positive) : "Excellent trimestre. Zoé est une élève sérieuse, motivée et déterminée à réussir, elle se distingue par sa persévérance et son engagement, même dans une ambiance de classe qui n'est pas toujours propice aux apprentissages. Sa participation, réfléchie et pertinente, témoigne de sa maturité et de ses réelles capacités. Elle peut être un exemple pour ses camarades par son sérieux et son investissement. Félicitations."
+
+Exemple 2 (EPS, tutoiement) : "Zoé réalise un très bon premier trimestre. Tu es sérieuse, investie, concentrée et soucieuse de bien faire. Tu as gagné en confiance et en assurance, il faut poursuivre ainsi."
+
+Exemple 3 (anglais, élève intermédiaire) : "Bon trimestre. Mathéo se montre sérieux, régulier et investi, et il participe avec dynamisme en classe. Il manque toutefois parfois de méthode et d'organisation, ce qui peut le ralentir et lui faire manquer de temps, notamment lors des activités évaluées. Il rencontre également certaines difficultés, en particulier en compréhension, difficultés renforcées par un manque de confiance. Cependant, son travail sérieux et constant constitue un véritable atout : en poursuivant ses efforts et en développant davantage sa méthodologie, il pourra progresser significativement et gagner en assurance."
+
+Exemple 4 (anglais, accompagnement AESH) : "Trimestre fragile. Léonie tire un réel profit de son accompagnement, elle est capable de réaliser de très bonnes choses lorsqu'elle est en présence de l'AESH qui l'accompagne. Cependant, lorsqu'elle n'est pas accompagnée, elle n'ose pas demander de l'aide et poser des questions. De plus, elle ne participe pas assez à l'oral qui pourrait pourtant l'aider à progresser plus efficacement."
+
+Exemple 5 (français, élève fragile, 9/20) : "L'ensemble demeure très fragile ; il faut lire des romans en langue française pour améliorer la rédaction et la graphie qui n'est pas toujours très claire. Le travail à la maison doit être approfondi pour progresser."
+
+Exemple 6 (français, élève très difficile, nombreuses absences) : "Trimestre très fragile. Vos absences très fréquentes, rarement rattrapées, ainsi que les oublis ou pertes régulières de vos affaires, vous placent en grande difficulté. Les bavardages, vos interventions orales insistantes sans lien avec le cours et certains comportements inadaptés perturbent fortement le déroulement des séances. Le travail à la maison est inexistant et la lecture n'est pas faite, ce qui vous empêche d'avancer. Vous vous mettez vous-même dans une situation compliquée, malgré parfois une réelle bonne volonté. Il est indispensable de modifier votre attitude, avant tout pour votre propre avenir."
+
+Exemple 7 (musique, 14.5/20, fluctuant) : "Il est dommage que le résultat écrit fasse baisser la moyenne. Le travail personnel n'est pas fait assez sérieusement et le résultat écrit s'en ressent. La concentration de Quincy en classe a été très fluctuante ce trimestre mais Quincy semble plus sérieux sur cette fin de trimestre. Je l'encourage vivement à garder cette attitude au deuxième trimestre s'il veut améliorer ses résultats."
+
+Exemple 8 (technologie, 6.9/20, perturbatrice) : "Un manque d'implication et de sérieux dans la scolarité. Kelly ne voit pas encore l'intérêt de développer ses compétences. Néanmoins elle peut faire du bon travail de créativité lorsqu'elle montre de la volonté et du sérieux dans son travail."
+
+Exemple 9 (histoire-géo, 1.8/20, tutoiement) : "La moyenne est à la mesure du travail fourni et est inquiétante. De plus, les nombreuses absences t'empêchent de progresser. Il est temps de réagir car tu es capable de faire mieux."
+
+Ce que ces exemples illustrent :
+- Ouverture directe : 2 à 5 mots suivis d'un point, ou entrée directe dans le vif du sujet
+- Le prénom est utilisé naturellement dès qu'il est connu
+- Certains professeurs tututoient leurs élèves ("tu", "tes") — respecter ce registre si le ton "encourageant" est choisi
+- Ton humain, précis, concret — les détails sont vrais (bavardages, lecture non faite, AESH, graphie)
+- Les appréciations courtes (2-3 phrases) sont aussi valides que les longues
+- Les défauts graves sont nommés clairement et directement, surtout pour les élèves en grande difficulté
+- On peut terminer par un mot d'encouragement seul : "Félicitations." ou "Il est temps de réagir."
 
 PRINCIPE FONDAMENTAL — SYNTHÈSE, PAS INVENTAIRE :
 Les observations ci-dessus sont un portrait de l'élève, pas une liste de choses à mentionner. Ton rôle est de SYNTHÉTISER : dégager l'impression d'ensemble et l'exprimer en quelques phrases naturelles. Un élève très positif avec un seul bémol (ex: bavardages) = une appréciation courte et positive avec une nuance légère. Un élève en difficulté = donner l'idée générale du problème, pas énumérer chaque manquement.
@@ -2322,12 +2432,13 @@ RÈGLES TECHNIQUES ABSOLUES :
 4. Ne mentionne pas chaque observation séparément. Si 3 éléments vont dans le même sens, une seule formulation synthétique suffit.
 5. Accord au ${accord} PARTOUT (adjectifs, participes, pronons).
 6. Ton : ${toneDesc}.
-7. VOCABULAIRE FRANÇAIS SCOLAIRE UNIQUEMENT — contexte : établissement scolaire français, élèves de collège ou lycée. Interdit : "stagiaire", "étudiant(e)", "élève du secondaire" (canadianisme), tout terme québécois ou canadien. Utiliser : "élève", "ce trimestre/semestre", "en classe", etc.
+7. VOCABULAIRE FRANÇAIS SCOLAIRE UNIQUEMENT — contexte : établissement scolaire français, élèves de collège ou lycée. Interdit : "stagiaire", "étudiant(e)", "élève du secondaire" (canadianisme), "évaluation" pour désigner le bulletin ou le trimestre. Utiliser : "élève", "ce trimestre/semestre", "en classe", "ce bulletin". L'appréciation parle d'un trimestre scolaire, pas d'une "évaluation".
 8. LANGUE : UNIQUEMENT en français. Aucun mot anglais même pour un cours d'anglais.
 9. MOTS INVENTÉS INTERDITS : pas de "bavardise", pas de néologismes. Vocabulaire attesté uniquement.
 10. SI LE PRÉNOM EST FOURNI : utilise-le naturellement (ex: "Marie fait preuve de…"). Ne jamais écrire "(nom)" ou "(prénom)" ou tout placeholder entre parenthèses.
 11. FORMULATIONS NATURELLES — comme un vrai enseignant français parlerait. Chaque appréciation doit sonner humain, pas algorithmique.
-12. Répondre UNIQUEMENT avec l'appréciation rédigée, sans guillemets, sans titre, sans commentaire.`;
+${cls.noJe?'12. INTERDIT D\'UTILISER "JE" — rédige entièrement à la 3e personne. Parle de l\'élève : "Cet élève", "Il/Elle", son prénom. Jamais "Je note que", "J\'observe", "Je suis satisfait(e)". L\'appréciation décrit l\'élève, elle ne parle pas du professeur.':'12. Le "je" est autorisé mais doit rester rare et naturel.'}
+13. Répondre UNIQUEMENT avec l'appréciation rédigée, sans guillemets, sans titre, sans commentaire.`;
 }
 
 function buildClassPrompt(cls,period){
