@@ -2309,26 +2309,40 @@ async function genOne(sid){
 
 async function generateAll(){
   const cls=S.classes[S.active]; if(!cls||!cls.students.length)return;
-  // Don't re-render — the bulk view is already displayed via setView
   const btn=document.querySelector('.gen-all-btn');
   if(btn){btn.disabled=true;btn.textContent='⏳ Génération…';}
+  const BATCH=10; // Max 10 par minute sur Groq gratuit
+  const total=cls.students.length;
   let done=0, errors=0;
-  for(let i=0;i<cls.students.length;i++){
+
+  for(let i=0;i<total;i++){
+    // Pause de 62s toutes les 10 générations
+    if(i>0 && i%BATCH===0){
+      let countdown=62;
+      toast(`⏳ Pause API — reprise dans ${countdown}s… (${done}/${total} faites)`);
+      const interval=setInterval(()=>{
+        countdown--;
+        if(countdown>0) toast(`⏳ Pause API — reprise dans ${countdown}s… (${done}/${total} faites)`);
+      },1000);
+      await new Promise(r=>setTimeout(r,62000));
+      clearInterval(interval);
+    }
+
     const sid=cls.students[i].id;
     try{
       await genBulk(sid);
       done++;
-      toast(`${done}/${cls.students.length} rédigées…`);
+      toast(`✅ ${done}/${total} rédigées…`);
     }catch(e){
       errors++;
-      console.warn('genBulk error for',sid,e);
+      console.warn('genBulk error',sid,e);
     }
-    // Pause between calls — avoids rate limiting (Groq limit ~30 req/min)
-    if(i<cls.students.length-1) await new Promise(r=>setTimeout(r,200));
+    // 2s entre chaque appel
+    if(i<total-1) await new Promise(r=>setTimeout(r,2000));
   }
+
   if(btn){btn.disabled=false;btn.textContent='⚡ Générer tout';}
-  if(errors>0) toast(`✓ ${done} générées — ${errors} erreur(s)`);
-  else toast(`✓ ${done} appréciations générées !`);
+  toast(errors>0 ? `✓ ${done}/${total} générées — ${errors} erreur(s)` : `🎉 ${done} appréciations générées !`);
 }
 
 async function genBulk(sid){
