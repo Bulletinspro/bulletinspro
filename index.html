@@ -2307,42 +2307,60 @@ async function genOne(sid){
   }catch(e){ta.classList.remove('gen');ta.value='';toast('Erreur de génération');}
 }
 
+let _generating=false; // Global lock
+
 async function generateAll(){
+  if(_generating){toast('⚠️ Génération déjà en cours…');return;}
   const cls=S.classes[S.active]; if(!cls||!cls.students.length)return;
-  const btn=document.querySelector('.gen-all-btn');
-  if(btn){btn.disabled=true;btn.textContent='⏳ Génération…';}
-  const BATCH=10; // Max 10 par minute sur Groq gratuit
+  _generating=true;
+
+  // Lock all generate buttons
+  document.querySelectorAll('[onclick*="goGenAll"], [onclick*="generateAll"]').forEach(b=>{b.disabled=true;b.style.opacity='.5';});
+
+  const banner=document.getElementById('gen-progress-banner');
+  const setBanner=(msg)=>{if(banner){banner.style.display='block';banner.innerHTML=msg;}};
+
+  const BATCH=10;
   const total=cls.students.length;
   let done=0, errors=0;
 
-  for(let i=0;i<total;i++){
-    // Pause de 62s toutes les 10 générations
-    if(i>0 && i%BATCH===0){
-      let countdown=62;
-      toast(`⏳ Pause API — reprise dans ${countdown}s… (${done}/${total} faites)`);
-      const interval=setInterval(()=>{
-        countdown--;
-        if(countdown>0) toast(`⏳ Pause API — reprise dans ${countdown}s… (${done}/${total} faites)`);
-      },1000);
-      await new Promise(r=>setTimeout(r,62000));
-      clearInterval(interval);
+  try{
+    for(let i=0;i<total;i++){
+      // Pause 62s between batches
+      if(i>0 && i%BATCH===0){
+        let countdown=62;
+        setBanner(`⏳ Pause API — reprise dans <strong>${countdown}s</strong> &nbsp;·&nbsp; ${done}/${total} rédigées`);
+        await new Promise(resolve=>{
+          const iv=setInterval(()=>{
+            countdown--;
+            setBanner(`⏳ Pause API — reprise dans <strong>${countdown}s</strong> &nbsp;·&nbsp; ${done}/${total} rédigées`);
+            if(countdown<=0){clearInterval(iv);resolve();}
+          },1000);
+        });
+      }
+
+      setBanner(`✏️ Génération en cours… <strong>${done+1}/${total}</strong>`);
+      const sid=cls.students[i].id;
+      try{
+        await genBulk(sid);
+        done++;
+        setBanner(`✅ <strong>${done}/${total}</strong> appréciations rédigées…`);
+      }catch(e){
+        errors++;
+        console.warn('genBulk error',sid,e);
+      }
+
+      // 2s between calls within batch
+      if(i<total-1) await new Promise(r=>setTimeout(r,2000));
     }
 
-    const sid=cls.students[i].id;
-    try{
-      await genBulk(sid);
-      done++;
-      toast(`✅ ${done}/${total} rédigées…`);
-    }catch(e){
-      errors++;
-      console.warn('genBulk error',sid,e);
-    }
-    // 2s entre chaque appel
-    if(i<total-1) await new Promise(r=>setTimeout(r,2000));
+    setBanner(`🎉 Terminé — <strong>${done}/${total}</strong> appréciations générées !`);
+    setTimeout(()=>{if(banner)banner.style.display='none';},4000);
+
+  }finally{
+    _generating=false;
+    document.querySelectorAll('[onclick*="goGenAll"], [onclick*="generateAll"]').forEach(b=>{b.disabled=false;b.style.opacity='';});
   }
-
-  if(btn){btn.disabled=false;btn.textContent='⚡ Générer tout';}
-  toast(errors>0 ? `✓ ${done}/${total} générées — ${errors} erreur(s)` : `🎉 ${done} appréciations générées !`);
 }
 
 async function genBulk(sid){
@@ -2420,7 +2438,8 @@ function renderBulkView(content){
         <button class="btn btn-o btn-sm" onclick="exportPDF()">📄 PDF</button>
         <button class="btn btn-o btn-sm" onclick="exportWord()">📝 Word</button>
       </div>
-    </div>`;
+    </div>
+    <div id="gen-progress-banner" style="display:none;background:linear-gradient(135deg,#6B2FD9,#A855F7);color:#fff;border-radius:12px;padding:14px 18px;margin-bottom:16px;font-family:'DM Mono',monospace;font-size:.78rem;text-align:center;letter-spacing:.04em"></div>`;
   cls.students.forEach(st=>{
     const comment=(st.comments&&st.comments[S.period])||'';
     const hasO=st.orient?.on;
