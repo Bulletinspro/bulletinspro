@@ -5,8 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Bulletins Pro</title>
 <!-- Google API -->
-<script src="https://apis.google.com/js/api.js"></script>
-<script src="https://accounts.google.com/gsi/client"></script>
+<!-- Google API — chargés en synchrone pour garantir disponibilité -->
+<script src="https://apis.google.com/js/api.js" defer></script>
+<script src="https://accounts.google.com/gsi/client" defer></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400;1,600&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@300;400&display=swap');
 :root {
@@ -1452,6 +1453,11 @@ async function gdInit(){
 }
 
 function gdAuth(){
+  if(typeof google === 'undefined'){
+    toast('⚠️ Chargement en cours, réessayez dans 2 secondes…');
+    setTimeout(gdAuth, 2000);
+    return;
+  }
   if(!GD.tokenClient){
     // Detect mobile — use redirect mode on mobile, popup on desktop
     const isMobile=/Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
@@ -1554,6 +1560,7 @@ async function gdLoadFromDrive(){
 }
 
 async function gdSilentRefresh(){
+  if(typeof google === 'undefined') throw new Error('google not loaded');
   return new Promise((resolve,reject)=>{
     if(!GD.tokenClient){
       GD.tokenClient=google.accounts.oauth2.initTokenClient({
@@ -4254,14 +4261,16 @@ window.addEventListener('resize',()=>{
   mobUpdateStudentNav();
 });
 
-// Init Google Drive after page load
-window.addEventListener('load', ()=>{
+// Init handled by initGoogle() in head script
+function waitForGoogle(attempts=0){
   if(typeof gapi !== 'undefined' && typeof google !== 'undefined'){
     gdInit();
+  } else if(attempts < 20){
+    setTimeout(()=>waitForGoogle(attempts+1), 250);
   } else {
     gdSetStatus('error','Drive indisponible',true,'↺ Rafraîchir',"location.reload()");
   }
-});
+}
 
 // ── ONLINE/OFFLINE DETECTION ─────────────────────────────────────────────────
 window.addEventListener('online', ()=>{
