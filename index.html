@@ -41,10 +41,11 @@ body.dark-mode .card-bd{background:#1e1b30;}
 /* Pills */
 body.dark-mode .pill{background:#1e1b2e;border-color:#4a4570;color:#d4bbff;}
 body.dark-mode .pill:hover{background:#2a1f4a;border-color:#a78bfa;color:#e9d5ff;transform:translateY(-1px);}
-body.dark-mode .pill.sel{background:#2a1f4a;border-color:#a78bfa;color:#e9d5ff;font-weight:600;}
+body.dark-mode .pill.sel{background:#14532d;border-color:#16a34a;color:#86efac;font-weight:600;}
 body.dark-mode .pill.neg{background:#1e1b2e;border-color:#4a4570;color:#fda4af;}
 body.dark-mode .pill.neg:hover{background:#2a1015;border-color:#ef4444;color:#fca5a5;}
-body.dark-mode .pill.neg.sel{background:#2a1015;border-color:#ef4444;color:#fca5a5;font-weight:600;}
+body.dark-mode .pill.neg.sel{background:#2a1015;border-color:#dc2626;color:#fca5a5;font-weight:600;}
+body.dark-mode .pill.neutral.sel{background:#431407;border-color:#ea580c;color:#fdba74;font-weight:600;}
 body.dark-mode .pill.neutral{background:#1e1b2e;border-color:#4a4570;color:#d4bbff;}
 body.dark-mode .pill.neutral:hover{background:#201c08;border-color:#d97706;color:#fcd34d;}
 /* Textarea & inputs */
@@ -247,13 +248,13 @@ body{font-family:'DM Sans',sans-serif;font-weight:300;background:var(--bg);color
   box-shadow:0 1px 3px rgba(0,0,0,.05);
 }
 .pill:hover{border-color:var(--accent);color:var(--accent);background:rgba(107,48,217,.06);transform:translateY(-1px);box-shadow:0 3px 8px rgba(107,48,217,.15);}
-.pill.sel{border-color:var(--accent);background:rgba(107,48,217,.1);color:var(--accent);font-weight:600;box-shadow:0 2px 8px rgba(107,48,217,.2);}
+.pill.sel{border-color:#16a34a;background:#dcfce7;color:#15803d;font-weight:600;box-shadow:0 2px 8px rgba(22,163,74,.2);}
 .pill.neg{border-color:#e5e7eb;color:#6b7280;}
 .pill.neg:hover{border-color:#fca5a5;color:#ef4444;background:rgba(239,68,68,.06);transform:translateY(-1px);}
-.pill.neg.sel{border-color:#fca5a5;background:rgba(239,68,68,.08);color:#ef4444;font-weight:600;}
+.pill.neg.sel{border-color:#dc2626;background:#fee2e2;color:#b91c1c;font-weight:600;box-shadow:0 2px 8px rgba(220,38,38,.2);}
 .pill.neutral{border-color:#e5e7eb;}
-.pill.neutral:hover{border-color:#fcd34d;color:#d97706;background:rgba(217,119,6,.06);transform:translateY(-1px);}
-.pill.neutral.sel{border-color:#fcd34d;background:rgba(217,119,6,.08);color:#d97706;font-weight:600;}
+.pill.neutral:hover{border-color:#fb923c;color:#ea580c;background:rgba(234,88,12,.06);transform:translateY(-1px);}
+.pill.neutral.sel{border-color:#ea580c;background:#ffedd5;color:#c2410c;font-weight:600;box-shadow:0 2px 8px rgba(234,88,12,.2);}
 
 /* WELCOME SCREEN */
 .welcome-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;padding:30px;text-align:center;}
@@ -1018,13 +1019,13 @@ const CORE_BOXES = {
       {id:'pr1',l:'Excellents résultats',v:'pos'},
       {id:'pr2',l:'Bons résultats',v:'pos'},
       {id:'pr3',l:'Résultats satisfaisants',v:'pos'},
-      {id:'pr4',l:'Résultats fragiles',v:'neutral'},
-      {id:'pr5',l:'Résultats insuffisants',v:'neg'},
-      {id:'pr6',l:'Résultats très insuffisants',v:'neg'},
       {id:'pr7',l:'Progression notable',v:'pos'},
       {id:'pr8',l:'Progression régulière',v:'pos'},
+      {id:'pr4',l:'Résultats fragiles',v:'neutral'},
       {id:'pr9',l:'Progression stable',v:'neutral'},
       {id:'pr10',l:'Progression irrégulière',v:'neutral'},
+      {id:'pr5',l:'Résultats insuffisants',v:'neg'},
+      {id:'pr6',l:'Résultats très insuffisants',v:'neg'},
       {id:'pr11',l:'Légère régression',v:'neg'},
       {id:'pr12',l:'Régression notable',v:'neg'},
       {id:'pr13',l:'En difficulté',v:'neg'},
@@ -1057,6 +1058,8 @@ const CORE_BOXES = {
       {id:'tr3',l:'Efforts soutenus',v:'pos'},
       {id:'tr14b',l:'Capacité d\'approfondissement',v:'pos'},
       {id:'tr15',l:'Va au-delà des exigences',v:'pos'},
+      {id:'tr11',l:'Devoirs toujours rendus',v:'pos'},
+      {id:'tr13',l:'Soin apporté au travail',v:'pos'},
       {id:'tr4',l:'Travail satisfaisant sans être pleinement investi',v:'neutral'},
       {id:'tr5',l:'Travail irrégulier',v:'neutral'},
       {id:'tr19',l:'Se contente du minimum requis',v:'neutral'},
@@ -1069,9 +1072,7 @@ const CORE_BOXES = {
       {id:'tr18',l:'En difficulté et sans effort apparent',v:'neg'},
       {id:'tr9',l:'Travail à la maison inexistant',v:'neg'},
       {id:'tr10',l:'Travail à la maison insuffisant',v:'neg'},
-      {id:'tr11',l:'Devoirs toujours rendus',v:'pos'},
       {id:'tr12',l:'Devoirs souvent non rendus',v:'neg'},
-      {id:'tr13',l:'Soin apporté au travail',v:'pos'},
       {id:'tr14',l:'Travail souvent bâclé',v:'neg'},
     ]
   },
@@ -1084,10 +1085,10 @@ const CORE_BOXES = {
       {id:'pa4',l:'Participation correcte',v:'neutral'},
       {id:'pa5',l:'Participation timide',v:'neutral'},
       {id:'pa9',l:'Ne s\'implique pas au-delà du strict nécessaire',v:'neutral'},
-      {id:'pa10',l:'Manque de curiosité et d\'initiative',v:'neg'},
       {id:'pa6',l:'Participe peu',v:'neg'},
       {id:'pa7',l:'Distrait(e) en classe',v:'neg'},
       {id:'pa8',l:'Evite de prendre la parole',v:'neg'},
+      {id:'pa10',l:'Manque de curiosité et d\'initiative',v:'neg'},
     ]
   },
   qualites: {
@@ -1100,10 +1101,10 @@ const CORE_BOXES = {
       {id:'qa5',l:'Persévérance',v:'pos'},
       {id:'qa6',l:'Entraide avec les camarades',v:'pos'},
       {id:'qa7',l:'Méthode de travail efficace',v:'pos'},
+      {id:'qa11',l:'Potentiel sous-exploité par manque d\'ambition',v:'neutral'},
       {id:'qa8',l:'Manque de méthode',v:'neg'},
       {id:'qa9',l:'Manque d\'autonomie',v:'neg'},
       {id:'qa10',l:'Attitude passive — manque d\'enthousiasme général',v:'neg'},
-      {id:'qa11',l:'Potentiel sous-exploité par manque d\'ambition',v:'neutral'},
     ]
   },
   comportement: {
@@ -1112,14 +1113,15 @@ const CORE_BOXES = {
       {id:'co1',l:'Comportement exemplaire',v:'pos'},
       {id:'co2',l:'Attitude très positive',v:'pos'},
       {id:'co3',l:'Respectueux(se) et sérieux(se)',v:'pos'},
+      {id:'co10',l:'Fait preuve de maturité',v:'pos'},
+      {id:'co11',l:'Attitude constructive',v:'pos'},
       {id:'co4',l:'Comportement correct',v:'neutral'},
+      {id:'co12',l:'Discret(e) et réservé(e)',v:'neutral'},
       {id:'co5',l:'Manque de concentration',v:'neg'},
       {id:'co6',l:'Bavarde parfois',v:'neg'},
       {id:'co7',l:'Bavardages incessants',v:'neg'},
       {id:'co8',l:'Parfois perturbateur/trice',v:'neg'},
       {id:'co9',l:'Très perturbateur/trice',v:'neg'},
-      {id:'co10',l:'Fait preuve de maturité',v:'pos'},
-      {id:'co11',l:'Attitude constructive',v:'pos'},
     ]
   },
   conseils: {
@@ -1128,13 +1130,13 @@ const CORE_BOXES = {
       {id:'ob1',l:'Félicitations',v:'pos'},
       {id:'ob2',l:'Encouragements',v:'pos'},
       {id:'ob3',l:'Continuer sur cette lancée',v:'pos'},
-      {id:'ob13',l:'Approfondir davantage le travail',v:'pos'},
-      {id:'ob14',l:'Aller plus loin dans la réflexion',v:'pos'},
       {id:'ob4',l:'Être plus régulier(ière) à l\'écrit',v:'neutral'},
       {id:'ob5',l:'Être plus régulier(ière) à l\'oral',v:'neutral'},
       {id:'ob6',l:'Revoir les bases',v:'neutral'},
       {id:'ob7',l:'Améliorer la méthode',v:'neutral'},
       {id:'ob8',l:'Gagner en confiance',v:'neutral'},
+      {id:'ob13',l:'Approfondir davantage le travail',v:'neutral'},
+      {id:'ob14',l:'Aller plus loin dans la réflexion',v:'neutral'},
       {id:'ob15',l:'Consolider les acquis avant d\'aller plus loin',v:'neutral'},
       {id:'ob16',l:'Persévérer malgré les difficultés',v:'neutral'},
       {id:'ob9',l:'Implication accrue nécessaire',v:'neg'},
