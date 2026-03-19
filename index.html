@@ -142,6 +142,8 @@ body{font-family:'DM Sans',sans-serif;font-weight:300;background:var(--bg);color
 .cls-n{font-family:'DM Mono',monospace;font-size:.58rem;opacity:.28;flex-shrink:0;}
 .sb-del{background:none;border:none;color:rgba(255,255,255,.15);cursor:pointer;font-size:.65rem;padding:2px 4px;border-radius:3px;transition:all .12s;margin-left:2px;flex-shrink:0;line-height:1;}
 .sb-del:hover{color:#ff7b7b;background:rgba(255,80,80,.15);}
+.sb-edit{background:none;border:none;color:rgba(255,255,255,.2);cursor:pointer;font-size:.75rem;padding:2px 4px;border-radius:3px;transition:all .12s;margin-left:2px;flex-shrink:0;line-height:1;}
+.sb-edit:hover{color:#a78bfa;background:rgba(167,139,250,.15);}
 .add-cls-btn{margin:4px 7px 9px;width:calc(100% - 14px);padding:9px;background:rgba(167,139,250,.08);border:1px dashed rgba(167,139,250,.4);border-radius:8px;color:rgba(167,139,250,.9);font-family:'DM Mono',monospace;font-size:.6rem;text-transform:uppercase;letter-spacing:.09em;cursor:pointer;transition:all .15s;}
 .add-cls-btn:hover{border-color:#a78bfa;color:#fff;background:rgba(167,139,250,.18);}
 .sb-foot{padding:9px 7px;border-top:1px solid rgba(255,255,255,.1);display:flex;gap:4px;flex-shrink:0;}
@@ -871,6 +873,14 @@ body{font-family:'DM Sans',sans-serif;font-weight:300;background:var(--bg);color
       <input class="mo-inp" id="nc-charlimit" type="number" min="100" max="2000" placeholder="750" style="margin:0;width:90px">
       <span style="font-size:.8rem;color:var(--muted)">caractères max (défaut : 750)</span>
     </div>
+    <div class="mo-lbl">Personnalisation des appréciations</div>
+    <div style="background:var(--accent-l);border:1.5px solid var(--accent-b);border-radius:10px;padding:12px 14px;margin-bottom:14px;display:flex;align-items:center;gap:10px;cursor:pointer" onclick="document.getElementById('nc-usename').click()">
+      <input type="checkbox" id="nc-usename" style="width:18px;height:18px;accent-color:var(--accent);cursor:pointer">
+      <div>
+        <div style="font-size:.84rem;font-weight:600;color:var(--ink)">Inclure le prénom dans les appréciations</div>
+        <div style="font-size:.75rem;color:var(--muted);margin-top:2px">Si le prénom est renseigné, l'IA l'utilisera. Sinon, elle écrira <em>(nom de l'élève)</em>.</div>
+      </div>
+    </div>
     <div class="mo-acts">
       <button class="btn btn-o" onclick="closeMo('mo-cls')">Annuler</button>
       <button class="btn btn-g" onclick="createClass()">Créer</button>
@@ -918,6 +928,48 @@ body{font-family:'DM Sans',sans-serif;font-weight:300;background:var(--bg);color
         Envoyer mon avis ✨
       </button>
       <p style="font-size:.7rem;color:var(--muted);text-align:center;margin-top:10px;font-family:'DM Mono',monospace">Votre avis aide à améliorer BulletinsPro pour tous les enseignants</p>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT CLASS MODAL -->
+<div class="mo" id="mo-edit-cls">
+  <div class="modal">
+    <div class="mo-t">Modifier la classe</div>
+    <div class="mo-lbl">Nom de la classe</div>
+    <input class="mo-inp" id="ec-name" placeholder="ex: 3ème A, Terminale B...">
+    <div class="mo-lbl">Matière</div>
+    <select class="mo-sel" id="ec-subj"></select>
+    <div class="mo-lbl">Périodes</div>
+    <div class="mo-radio">
+      <label><input type="radio" name="ec-period" value="trimestre"> Trimestres (3)</label>
+      <label><input type="radio" name="ec-period" value="semestre"> Semestres (2)</label>
+    </div>
+    <div class="mo-lbl">Système d'évaluation</div>
+    <select class="mo-sel" id="ec-eval">
+      <option value="note">Note sur 20</option>
+      <option value="niveau">Niveau (Excellent → Très insuffisant)</option>
+      <option value="competence">Compétences (4 niveaux)</option>
+      <option value="mix">Mixte (niveau + compétences)</option>
+    </select>
+    <div class="mo-lbl">Limite de caractères par appréciation</div>
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px">
+      <input class="mo-inp" id="ec-charlimit" type="number" min="100" max="2000" placeholder="750" style="margin:0;width:90px">
+      <span style="font-size:.8rem;color:var(--muted)">caractères max</span>
+    </div>
+    <div style="background:var(--accent-l);border:1.5px solid var(--accent-b);border-radius:10px;padding:12px 14px;margin-bottom:14px;display:flex;align-items:center;gap:10px;cursor:pointer" onclick="document.getElementById('ec-usename').click()">
+      <input type="checkbox" id="ec-usename" style="width:18px;height:18px;accent-color:var(--accent);cursor:pointer">
+      <div>
+        <div style="font-size:.84rem;font-weight:600;color:var(--ink)">Inclure le prénom dans les appréciations</div>
+        <div style="font-size:.75rem;color:var(--muted);margin-top:2px">Si renseigné, l'IA utilisera le prénom. Sinon, elle écrira <em>(nom de l'élève)</em>.</div>
+      </div>
+    </div>
+    <div style="background:var(--warn-l);border:1px solid var(--warn-b);border-radius:8px;padding:8px 12px;margin-bottom:14px;font-size:.75rem;color:var(--warn)">
+      ⚠️ Les élèves, leurs notes et appréciations sont conservés.
+    </div>
+    <div class="mo-acts">
+      <button class="btn btn-o" onclick="closeMo('mo-edit-cls')">Annuler</button>
+      <button class="btn btn-g" onclick="saveEditClass()">Enregistrer</button>
     </div>
   </div>
 </div>
@@ -1623,16 +1675,59 @@ function renderSidebar(){
     const d=document.createElement('div');
     d.className='cls-item'+(id===S.active?' active':'');
     d.onclick=()=>selectClass(id);
-    d.innerHTML=`<div class="cls-dot"></div><div class="cls-info"><div class="cls-name">${c.name}</div><div class="cls-meta">${SUBJECTS[c.subject]?.label||c.subject} · ${c.periodType==='semestre'?'Sem.':'Trim.'}</div></div><span class="cls-n">${c.students.length}</span><button class="sb-del" title="Supprimer">✕</button>`;
+    d.innerHTML=`<div class="cls-dot"></div><div class="cls-info"><div class="cls-name">${c.name}</div><div class="cls-meta">${SUBJECTS[c.subject]?.label||c.subject} · ${c.periodType==='semestre'?'Sem.':'Trim.'}</div></div><span class="cls-n">${c.students.length}</span><button class="sb-edit" title="Modifier la classe">✎</button><button class="sb-del" title="Supprimer">✕</button>`;
     const btn=d.querySelector('.sb-del');
     btn.addEventListener('click',e=>{e.stopPropagation();deleteClass(id);});
+    const editBtn=d.querySelector('.sb-edit');
+    editBtn.addEventListener('click',e=>{e.stopPropagation();openEditClass(id);});
     el.appendChild(d);
   });
   if(!S.active) renderWelcomeScreen();
 }
 
 // ── CLASS MANAGEMENT ──────────────────────────────────────────────────────────
-function openNewClass(){document.getElementById('nc-name').value='';document.getElementById('mo-cls').classList.add('open');setTimeout(()=>document.getElementById('nc-name').focus(),80);}
+function openEditClass(id){
+  const cls=S.classes[id]; if(!cls)return;
+  S._editingClass=id;
+  document.getElementById('ec-name').value=cls.name;
+  document.getElementById('ec-charlimit').value=cls.charLimit||750;
+  document.getElementById('ec-usename').checked=!!cls.useName;
+  const sel=document.getElementById('ec-subj');
+  sel.innerHTML='';
+  Object.entries(SUBJECTS).forEach(([k,v])=>{
+    const o=document.createElement('option');
+    o.value=k; o.textContent=v.label;
+    if(k===cls.subject)o.selected=true;
+    sel.appendChild(o);
+  });
+  document.querySelectorAll('input[name="ec-period"]').forEach(r=>{r.checked=r.value===cls.periodType;});
+  document.getElementById('ec-eval').value=cls.evalType||'note';
+  document.getElementById('mo-edit-cls').classList.add('open');
+}
+
+function saveEditClass(){
+  const id=S._editingClass; if(!id)return;
+  const cls=S.classes[id]; if(!cls)return;
+  const name=document.getElementById('ec-name').value.trim(); if(!name)return;
+  cls.name=name;
+  cls.subject=document.getElementById('ec-subj').value;
+  cls.periodType=document.querySelector('input[name="ec-period"]:checked').value;
+  cls.evalType=document.getElementById('ec-eval').value;
+  cls.charLimit=parseInt(document.getElementById('ec-charlimit').value)||750;
+  cls.useName=document.getElementById('ec-usename').checked;
+  S._editingClass=null;
+  closeMo('mo-edit-cls');
+  save(); renderSidebar();
+  if(S.active===id)renderMain();
+  toast(`✓ "${name}" mise à jour`);
+}
+
+function openNewClass(){
+  document.getElementById('nc-name').value='';
+  document.getElementById('nc-usename').checked=false;
+  document.getElementById('mo-cls').classList.add('open');
+  setTimeout(()=>document.getElementById('nc-name').focus(),80);
+}
 function closeMo(id){document.getElementById(id).classList.remove('open');}
 function createClass(){
   const name=document.getElementById('nc-name').value.trim(); if(!name)return;
@@ -1640,6 +1735,7 @@ function createClass(){
   const periodType=document.querySelector('input[name="nc-period"]:checked').value;
   const evalType=document.getElementById('nc-eval').value;
   const charLimit=parseInt(document.getElementById('nc-charlimit').value)||750;
+  const useName=document.getElementById('nc-usename').checked;
   const studentCount=parseInt(document.getElementById('nc-count').value)||0;
   const id='c'+Date.now();
   const students=[];
@@ -1648,7 +1744,7 @@ function createClass(){
       students.push({id:'s'+Date.now()+i,num:i,name:'',gender:'M',boxes:{},grade:'',level:'',comps:{},tone:null,orient:{on:false,level:1,path:'',note:''},comments:{}});
     }
   }
-  S.classes[id]={name,subject,periodType,evalType,charLimit,students,tone:'equilibre',classBoxes:{},classComments:{}};
+  S.classes[id]={name,subject,periodType,evalType,charLimit,useName,students,tone:'equilibre',classBoxes:{},classComments:{}};
   closeMo('mo-cls'); save(); renderSidebar(); selectClass(id); toast(`"${name}" créée — ${students.length} élève(s)`);
 }
 
@@ -2182,13 +2278,21 @@ function buildPrompt(st,cls,period,seed,memSamp){
     ? `BILAN GLOBAL CHOISI PAR L'ENSEIGNANT : "${verdictObj.l}" — ce mot ou cette expression DOIT apparaître au tout début de l'appréciation, en ouverture.`
     : `BILAN GLOBAL : l'enseignant n'a pas choisi d'expression d'ouverture — choisis toi-même la plus adaptée au profil parmi : "Excellent trimestre", "Très bon trimestre", "Bon trimestre", "Trimestre satisfaisant", "Trimestre encourageant", "Trimestre décevant", "Trimestre insuffisant", "Trimestre inquiétant", "Trimestre très insuffisant". Place-la en tout début d'appréciation.`;
 
-  return `Tu es un professeur français expérimenté rédigeant une appréciation de bulletin scolaire.
+  const studentName = st.name ? st.name : null;
+  const studentRef = cls.useName
+    ? (studentName
+        ? `Prénom de l'élève : ${studentName}. Utilise son prénom naturellement dans l'appréciation (ex: "${studentName} fait preuve de…").`
+        : `L'élève n'a pas de prénom renseigné. Écris "(nom de l'élève)" là où tu aurais mis le prénom.`)
+    : `Ne mentionne pas le prénom. N'écris jamais "(nom)" ou "(prénom)" ou tout placeholder. Rédige sans prénom.`;
+
+  return `Tu es un professeur français expérimenté rédigeant une appréciation de bulletin scolaire pour un établissement scolaire français (collège ou lycée, classes de 6e à Terminale).
 
 CONTEXTE TEMPOREL : ${pLabel} — ${periodCtx}
 
 CONTEXTE : Cette appréciation est une parmi environ 12 que l'élève recevra ce trimestre. Elle doit être concise, lisible, utile. Les parents et l'élève doivent en retenir l'essentiel en quelques secondes.
 
 ÉLÈVE : ${gender}, tous les accords au ${accord} SANS EXCEPTION. Période : ${pLabel}${subLabel ? ' — ' + subLabel : ''}.
+${studentRef}
 ${evalCtx}
 ${verdictCtx}
 
@@ -2213,15 +2317,17 @@ CAS PARTICULIERS :
 
 RÈGLES TECHNIQUES ABSOLUES :
 1. Longueur STRICTE : entre ${targetMin} et ${targetMax} caractères espaces inclus. Objectif idéal : ${Math.round((targetMin+targetMax)/2)} caractères. JAMAIS au-dessus de ${targetMax}.${charLimit<=400?' Format court imposé : 2-3 phrases maximum, aller droit au but, pas de développement.':' Si le profil est simple, 3 phrases suffisent.'}
-2. Texte FLUIDE et CONTINU — aucune liste, aucun tiret. Connecteurs variés : "Cependant,", "Néanmoins,", "Par ailleurs,", "Tout en saluant… on notera que", "C'est pourquoi", "Ainsi,", etc.
-3. Ne mentionne pas chaque observation séparément. Si 3 éléments vont dans le même sens, une seule formulation synthétique suffit.
-4. Accord au ${accord} PARTOUT (adjectifs, participes, pronoms).
-5. Ton : ${toneDesc}.
-6. Registre professionnel et soutenu — vocabulaire standard de bulletin scolaire français.
-7. LANGUE : UNIQUEMENT en français. Aucun mot anglais, même pour une classe d'anglais. L'appréciation elle-même est toujours rédigée en français.
-8. MOTS INTERDITS — n'utilise JAMAIS de mots inventés ou incorrects. Vocabulaire uniquement attesté en français courant. Interdit : "bavardise", "investissement" pour décrire un élève bavard, tout néologisme ou anglicisme.
-9. FORMULATIONS NATURELLES — écris comme un vrai enseignant parlerait, pas comme un algorithme. Évite les tournures artificielles ou trop systématiques. Chaque appréciation doit sonner humain.
-10. Répondre UNIQUEMENT avec l'appréciation rédigée, sans guillemets, sans titre, sans commentaire.`;
+2. TEXTE BLOC CONTINU — UN SEUL PARAGRAPHE. Absolument aucun saut de ligne, aucun \\n, aucune séparation entre phrases. Tout doit tenir en un bloc de texte unique comme dans Pronote.
+3. Texte FLUIDE — aucune liste, aucun tiret. Connecteurs variés : "Cependant,", "Néanmoins,", "Par ailleurs,", "Tout en saluant… on notera que", "C'est pourquoi", "Ainsi,", etc.
+4. Ne mentionne pas chaque observation séparément. Si 3 éléments vont dans le même sens, une seule formulation synthétique suffit.
+5. Accord au ${accord} PARTOUT (adjectifs, participes, pronons).
+6. Ton : ${toneDesc}.
+7. VOCABULAIRE FRANÇAIS SCOLAIRE UNIQUEMENT — contexte : établissement scolaire français, élèves de collège ou lycée. Interdit : "stagiaire", "étudiant(e)", "élève du secondaire" (canadianisme), tout terme québécois ou canadien. Utiliser : "élève", "ce trimestre/semestre", "en classe", etc.
+8. LANGUE : UNIQUEMENT en français. Aucun mot anglais même pour un cours d'anglais.
+9. MOTS INVENTÉS INTERDITS : pas de "bavardise", pas de néologismes. Vocabulaire attesté uniquement.
+10. SI LE PRÉNOM EST FOURNI : utilise-le naturellement (ex: "Marie fait preuve de…"). Ne jamais écrire "(nom)" ou "(prénom)" ou tout placeholder entre parenthèses.
+11. FORMULATIONS NATURELLES — comme un vrai enseignant français parlerait. Chaque appréciation doit sonner humain, pas algorithmique.
+12. Répondre UNIQUEMENT avec l'appréciation rédigée, sans guillemets, sans titre, sans commentaire.`;
 }
 
 function buildClassPrompt(cls,period){
@@ -2300,7 +2406,7 @@ async function genOne(sid){
   ta.classList.add('gen'); ta.value='Rédaction en cours…';
   try{
     const seed=STYLE_SEEDS[Math.floor(Math.random()*STYLE_SEEDS.length)];
-    const txt=fitToLimit(await callClaude(buildPrompt(st,cls,S.period,seed,sampMem(S.active))), cls.charLimit||750);
+    const txt=fitToLimit((await callClaude(buildPrompt(st,cls,S.period,seed,sampMem(S.active)))).replace(/\n+/g,' ').trim(), cls.charLimit||750);
     ta.classList.remove('gen'); ta.value=txt;
     addMem(S.active,txt); saveCmt(sid,txt); updCC(sid,txt);
     renderStudentList();
@@ -2320,7 +2426,7 @@ async function generateAll(){
   const banner=document.getElementById('gen-progress-banner');
   const setBanner=(msg)=>{if(banner){banner.style.display='block';banner.innerHTML=msg;}};
 
-  const BATCH=10;
+  const BATCH=8; // Conservative — 8 calls with 3s gap = 24s < 60s window
   const total=cls.students.length;
   let done=0, errors=0;
 
@@ -2350,7 +2456,7 @@ async function generateAll(){
         console.warn('genBulk error',sid,e);
       }
 
-      // 2s between calls within batch
+      if(i<total-1) await new Promise(r=>setTimeout(r,3000));
       if(i<total-1) await new Promise(r=>setTimeout(r,2000));
     }
 
@@ -2370,7 +2476,7 @@ async function genBulk(sid){
   ta.classList.add('gen');
   try{
     const seed=STYLE_SEEDS[Math.floor(Math.random()*STYLE_SEEDS.length)];
-    const txt=fitToLimit(await callClaude(buildPrompt(st,cls,S.period,seed,sampMem(S.active)), 3, true), cls.charLimit||750);
+    const txt=fitToLimit((await callClaude(buildPrompt(st,cls,S.period,seed,sampMem(S.active)), 3, true)).replace(/\n+/g,' ').trim(), cls.charLimit||750);
     ta.classList.remove('gen'); ta.value=txt;
     addMem(S.active,txt); bulkSave(sid,txt);
   }catch(e){
