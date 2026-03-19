@@ -2338,11 +2338,24 @@ function buildPrompt(st,cls,period,seed,memSamp){
 
   let aeshCtx='';
   if(st.aesh?.on){
-    const AESH_LABELS={ae1:'Réel bénéfice de l'accompagnement AESH',ae2:'Accompagnement indispensable',ae3:'Autonomie malgré les difficultés',ae4:'Progrès notables grâce à l'accompagnement',ae5:'Accompagnement efficace à l'écrit',ae6:'Accompagnement efficace à l'oral',ae7:'Aide bénéfique mais insuffisante seule',ae8:'Difficultés persistantes malgré l'accompagnement',ae9:'N'ose pas demander d'aide sans l'AESH',ae10:'Dépendant(e) de l'accompagnement',ae11:'Progrès limités même avec accompagnement',ae12:'Difficultés importantes sans l'AESH'};
+    const AESH_LABELS={
+      ae1:"Réel bénéfice de l'accompagnement AESH",
+      ae2:"Accompagnement indispensable à sa réussite",
+      ae3:"Autonomie malgré les difficultés",
+      ae4:"Progrès notables grâce à l'accompagnement",
+      ae5:"Accompagnement efficace à l'écrit",
+      ae6:"Accompagnement efficace à l'oral",
+      ae7:"Aide bénéfique mais insuffisante seule",
+      ae8:"Difficultés persistantes malgré l'accompagnement",
+      ae9:"N'ose pas demander d'aide sans l'AESH",
+      ae10:"Dépendant(e) de l'accompagnement",
+      ae11:"Progrès limités même avec accompagnement",
+      ae12:"Difficultés importantes sans l'AESH"
+    };
     const ca=Object.entries(st.aesh.obs||{}).filter(([,v])=>v).map(([k])=>AESH_LABELS[k]).filter(Boolean);
-    aeshCtx=ca.length ? '
-ACCOMPAGNEMENT AESH : Cet élève bénéficie d'un accompagnement AESH. Observations : '+ca.join(', ')+'. Intègre cet élément avec tact et bienveillance si pertinent.' : '
-ACCOMPAGNEMENT AESH : Cet élève bénéficie d'un accompagnement AESH. Mentionne-le discrètement si cela éclaire le profil.';
+    aeshCtx=ca.length
+      ? `\nACCOMPAGNEMENT AESH : Cet élève bénéficie d'un accompagnement AESH. Observations : ${ca.join(', ')}. Intègre cet élément avec tact et bienveillance si pertinent.`
+      : `\nACCOMPAGNEMENT AESH : Cet élève bénéficie d'un accompagnement AESH. Mentionne-le discrètement si cela éclaire le profil.`;
   }
   let orientCtx='';
   if(st.orient?.on){
