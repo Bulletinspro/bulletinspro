@@ -739,6 +739,7 @@ body{font-family:'DM Sans',sans-serif;font-weight:300;background:var(--bg);color
     <button class="sb-fbtn" onclick="exportAll()">⬇ Export</button>
     <button class="sb-fbtn" onclick="importAll()">⬆ Import</button>
     <button class="sb-fbtn" onclick="showStats()">📊 Stats</button>
+    <button class="sb-fbtn" onclick="showFeedback()">💬 Avis</button>
     <button class="sb-fbtn" onclick="showOnboarding(true)" title="Aide">❓ Aide</button>
     <input type="file" id="imp-inp" accept=".json" style="display:none" onchange="doImport(event)">
   </div>
@@ -870,6 +871,50 @@ body{font-family:'DM Sans',sans-serif;font-weight:300;background:var(--bg);color
   </div>
 </div>
 
+<!-- FEEDBACK MODAL -->
+<div class="mo" id="mo-feedback" style="display:none">
+  <div class="mo-box" style="max-width:520px">
+    <div class="mo-hd">
+      <span style="font-size:1.1rem">💬 Donnez votre avis</span>
+      <button class="mo-close" onclick="closeMo('mo-feedback')">✕</button>
+    </div>
+    <div class="mo-body" style="padding:24px">
+      <!-- Stars -->
+      <div style="text-align:center;margin-bottom:20px">
+        <div style="font-size:.82rem;color:var(--muted);margin-bottom:10px;font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.08em">Note générale</div>
+        <div id="stars-row" style="display:flex;justify-content:center;gap:8px">
+          ${[1,2,3,4,5].map(n=>`<button onclick="setRating(${n})" id="star-${n}" style="background:none;border:none;cursor:pointer;font-size:2rem;transition:transform .1s;line-height:1" onmouseover="hoverRating(${n})" onmouseout="resetStarHover()">☆</button>`).join('')}
+        </div>
+      </div>
+      <!-- Role -->
+      <div style="margin-bottom:16px">
+        <label style="font-size:.78rem;font-weight:600;color:var(--ink);display:block;margin-bottom:6px">Vous êtes :</label>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          ${['Professeur','CPE','Directeur / Chef d\'établissement','Autre'].map(r=>`<button class="role-btn" onclick="selectRole(this,'${r}')" style="padding:6px 14px;border:1.5px solid var(--border);border-radius:20px;background:var(--bg);font-size:.8rem;cursor:pointer;color:var(--muted);transition:all .15s">${r}</button>`).join('')}
+        </div>
+      </div>
+      <!-- Subject -->
+      <div style="margin-bottom:16px">
+        <label style="font-size:.78rem;font-weight:600;color:var(--ink);display:block;margin-bottom:6px">Ce que vous aimez :</label>
+        <textarea id="fb-good" placeholder="Ex: La génération est rapide, l'interface est claire…" style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.82rem;background:var(--bg);color:var(--ink);outline:none;resize:vertical;min-height:70px;transition:border .15s" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"></textarea>
+      </div>
+      <div style="margin-bottom:16px">
+        <label style="font-size:.78rem;font-weight:600;color:var(--ink);display:block;margin-bottom:6px">Ce qu'on pourrait améliorer :</label>
+        <textarea id="fb-improve" placeholder="Ex: J'aimerais pouvoir importer mes élèves depuis Pronote…" style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.82rem;background:var(--bg);color:var(--ink);outline:none;resize:vertical;min-height:70px;transition:border .15s" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"></textarea>
+      </div>
+      <!-- Contact -->
+      <div style="margin-bottom:20px">
+        <label style="font-size:.78rem;font-weight:600;color:var(--ink);display:block;margin-bottom:6px">Email (optionnel — pour vous recontacter) :</label>
+        <input id="fb-email" type="email" placeholder="votre@email.fr" style="width:100%;padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.82rem;background:var(--bg);color:var(--ink);outline:none;transition:border .15s" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+      </div>
+      <button onclick="submitFeedback()" style="width:100%;padding:13px;background:linear-gradient(135deg,#6B2FD9,#A855F7);color:#fff;border:none;border-radius:10px;font-size:.92rem;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;box-shadow:0 4px 14px rgba(107,48,217,.3);transition:all .15s" onmouseover="this.style.opacity='.9'" onmouseout="this.style.opacity='1'">
+        Envoyer mon avis ✨
+      </button>
+      <p style="font-size:.7rem;color:var(--muted);text-align:center;margin-top:10px;font-family:'DM Mono',monospace">Votre avis aide à améliorer BulletinsPro pour tous les enseignants</p>
+    </div>
+  </div>
+</div>
+
 <!-- PP MODAL -->
 <div class="mo" id="mo-pp">
   <div class="modal">
@@ -983,23 +1028,49 @@ const CORE_BOXES = {
       {id:'pr11',l:'Légère régression',v:'neg'},
       {id:'pr12',l:'Régression notable',v:'neg'},
       {id:'pr13',l:'En difficulté',v:'neg'},
+      {id:'pr14',l:'Résultats ne reflétant pas le niveau réel — absences fréquentes',v:'neg'},
+      {id:'pr15',l:'Évaluations majeures non passées — bilan incomplet',v:'neg'},
+      {id:'pr16',l:'Présent(e) uniquement lors des évaluations mineures',v:'neg'},
+      {id:'pr17',l:'Aucune note ce trimestre — assiduité insuffisante',v:'neg'},
+      {id:'pr18',l:'Dossier incomplet — impossible d\'évaluer le niveau',v:'neg'},
+    ]
+  },
+  assiduite: {
+    label:'Assiduité & Présence',
+    items:[
+      {id:'as1',l:'Assiduité exemplaire',v:'pos'},
+      {id:'as2',l:'Ponctualité irréprochable',v:'pos'},
+      {id:'as3',l:'Quelques absences justifiées sans impact',v:'neutral'},
+      {id:'as4',l:'Absences répétées perturbant la continuité',v:'neg'},
+      {id:'as5',l:'Absences ciblées lors des évaluations importantes',v:'neg'},
+      {id:'as6',l:'Présence irrégulière nuisant aux résultats',v:'neg'},
+      {id:'as7',l:'Retards fréquents',v:'neg'},
+      {id:'as8',l:'Absences injustifiées nombreuses',v:'neg'},
+      {id:'as9',l:'Quasi-absent(e) ce trimestre',v:'neg'},
     ]
   },
   travail: {
     label:'Travail & Effort',
     items:[
-      {id:'tr1',l:'Travail sérieux et rigoureux',v:'pos'},
+      {id:'tr1',l:'Travail sérieux et approfondi',v:'pos'},
       {id:'tr2',l:'Travail régulier',v:'pos'},
       {id:'tr3',l:'Efforts soutenus',v:'pos'},
-      {id:'tr4',l:'Travail correct mais sans plus',v:'neutral'},
+      {id:'tr14b',l:'Capacité d\'approfondissement',v:'pos'},
+      {id:'tr15',l:'Va au-delà des exigences',v:'pos'},
+      {id:'tr4',l:'Travail satisfaisant sans être pleinement investi',v:'neutral'},
       {id:'tr5',l:'Travail irrégulier',v:'neutral'},
-      {id:'tr6',l:'Peut largement mieux faire',v:'neg'},
-      {id:'tr7',l:'Peu d\'efforts en classe',v:'neg'},
-      {id:'tr8',l:'Aucun effort en classe',v:'neg'},
+      {id:'tr19',l:'Se contente du minimum requis',v:'neutral'},
+      {id:'tr20',l:'Travail accompli sans réel investissement',v:'neutral'},
+      {id:'tr16',l:'En difficulté mais mobilisé(e)',v:'neutral'},
+      {id:'tr17',l:'Difficultés persistantes malgré les efforts',v:'neutral'},
+      {id:'tr6',l:'Investissement en deçà des capacités',v:'neg'},
+      {id:'tr7',l:'Participation insuffisante en classe',v:'neg'},
+      {id:'tr8',l:'Absence d\'effort en classe',v:'neg'},
+      {id:'tr18',l:'En difficulté et sans effort apparent',v:'neg'},
       {id:'tr9',l:'Travail à la maison inexistant',v:'neg'},
       {id:'tr10',l:'Travail à la maison insuffisant',v:'neg'},
       {id:'tr11',l:'Devoirs toujours rendus',v:'pos'},
-      {id:'tr12',l:'Devoirs souvent oubliés',v:'neg'},
+      {id:'tr12',l:'Devoirs souvent non rendus',v:'neg'},
       {id:'tr13',l:'Soin apporté au travail',v:'pos'},
       {id:'tr14',l:'Travail souvent bâclé',v:'neg'},
     ]
@@ -1012,6 +1083,8 @@ const CORE_BOXES = {
       {id:'pa3',l:'Engagement exemplaire',v:'pos'},
       {id:'pa4',l:'Participation correcte',v:'neutral'},
       {id:'pa5',l:'Participation timide',v:'neutral'},
+      {id:'pa9',l:'Ne s\'implique pas au-delà du strict nécessaire',v:'neutral'},
+      {id:'pa10',l:'Manque de curiosité et d\'initiative',v:'neg'},
       {id:'pa6',l:'Participe peu',v:'neg'},
       {id:'pa7',l:'Distrait(e) en classe',v:'neg'},
       {id:'pa8',l:'Evite de prendre la parole',v:'neg'},
@@ -1029,6 +1102,8 @@ const CORE_BOXES = {
       {id:'qa7',l:'Méthode de travail efficace',v:'pos'},
       {id:'qa8',l:'Manque de méthode',v:'neg'},
       {id:'qa9',l:'Manque d\'autonomie',v:'neg'},
+      {id:'qa10',l:'Attitude passive — manque d\'enthousiasme général',v:'neg'},
+      {id:'qa11',l:'Potentiel sous-exploité par manque d\'ambition',v:'neutral'},
     ]
   },
   comportement: {
@@ -1053,15 +1128,19 @@ const CORE_BOXES = {
       {id:'ob1',l:'Félicitations',v:'pos'},
       {id:'ob2',l:'Encouragements',v:'pos'},
       {id:'ob3',l:'Continuer sur cette lancée',v:'pos'},
+      {id:'ob13',l:'Approfondir davantage le travail',v:'pos'},
+      {id:'ob14',l:'Aller plus loin dans la réflexion',v:'pos'},
       {id:'ob4',l:'Être plus régulier(ière) à l\'écrit',v:'neutral'},
       {id:'ob5',l:'Être plus régulier(ière) à l\'oral',v:'neutral'},
       {id:'ob6',l:'Revoir les bases',v:'neutral'},
       {id:'ob7',l:'Améliorer la méthode',v:'neutral'},
       {id:'ob8',l:'Gagner en confiance',v:'neutral'},
+      {id:'ob15',l:'Consolider les acquis avant d\'aller plus loin',v:'neutral'},
+      {id:'ob16',l:'Persévérer malgré les difficultés',v:'neutral'},
       {id:'ob9',l:'Implication accrue nécessaire',v:'neg'},
       {id:'ob10',l:'Attitude constructive requise',v:'neg'},
       {id:'ob11',l:'Respect à adopter en urgence',v:'neg'},
-      {id:'ob12',l:'Travail urgent et nécessaire',v:'neg'},
+      {id:'ob12',l:'Investissement indispensable pour progresser',v:'neg'},
     ]
   },
 };
@@ -1078,7 +1157,7 @@ const SUBJECT_BOXES = {
         {id:'lo4',l:'Aisance à l\'oral',v:'pos'},
         {id:'lo5',l:'Hésitant(e) à l\'oral',v:'neg'},
         {id:'lo6',l:'Prononciation à travailler',v:'neg'},
-        {id:'lo7',l:'Evite de parler en cours',v:'neg'},
+        {id:'lo7',l:'Discret(e), s\'exprime peu en cours',v:'neutral'},
         {id:'lo8',l:'Accent et intonation à améliorer',v:'neg'},
       ]
     },
@@ -1094,6 +1173,19 @@ const SUBJECT_BOXES = {
         {id:'ec7',l:'Erreurs grammaticales fréquentes',v:'neg'},
         {id:'ec8',l:'Vocabulaire limité',v:'neg'},
         {id:'ec9',l:'Expression écrite à développer',v:'neg'},
+      ]
+    },
+    bilingue: {
+      label:'Profil bilingue',
+      items:[
+        {id:'bi1',l:'Élève bilingue — niveau linguistique excellent',v:'pos'},
+        {id:'bi2',l:'Maîtrise native de la langue — atout indéniable',v:'pos'},
+        {id:'bi3',l:'Bilingue — aide naturellement ses camarades',v:'pos'},
+        {id:'bi4',l:'Bilingue — apport précieux pour la classe',v:'pos'},
+        {id:'bi5',l:'Bilingue — doit approfondir sa réflexion au-delà de la langue',v:'neutral'},
+        {id:'bi6',l:'Bilingue — l\'aisance linguistique ne doit pas dispenser d\'effort',v:'neutral'},
+        {id:'bi7',l:'Bilingue — investissement insuffisant au regard du potentiel',v:'neg'},
+        {id:'bi8',l:'Niveau linguistique élevé non exploité pleinement',v:'neg'},
       ]
     }
   },
@@ -1765,7 +1857,7 @@ function renderStudentList(){
   updateProgressBar();
 }
 
-function selectStudent(id){S.student=id;save();renderStudentList();renderEditor(id);mobUpdateStudentNav();}
+function selectStudent(id){S.student=id;save();renderStudentList();renderEditor(id);mobUpdateStudentNav();const es=document.getElementById('ed-scroll');if(es)es.scrollTop=0;}
 
 // ── EDITOR ────────────────────────────────────────────────────────────────────
 function getSubjectBoxes(subject){
@@ -2101,14 +2193,22 @@ STRUCTURE (guide souple, pas un plan rigide) :
 
 RÈGLE DU POSITIF EN PREMIER : même pour un élève en difficulté, trouve d'abord ce qui va (volonté, progrès minimes, qualité personnelle) avant les manquements. Les points négatifs se formulent en termes de ce qui doit changer, jamais comme un jugement définitif.
 
+CAS PARTICULIERS :
+- Si les observations indiquent une absence de notes ou un dossier incomplet : ne pas commenter les résultats académiques. Centrer l'appréciation sur l'assiduité et ses conséquences, sans inventer de résultats.
+- Si les observations indiquent des absences ciblées sur les évaluations importantes : le signaler clairement et professionnellement, sans agressivité mais sans édulcorer.
+- Si l'élève est quasi-absent : l'appréciation doit être courte, factuelle, et mentionner l'impossibilité d'évaluer le niveau réel.
+
 RÈGLES TECHNIQUES ABSOLUES :
 1. Longueur STRICTE : entre ${targetMin} et ${targetMax} caractères espaces inclus. Objectif idéal : ${Math.round((targetMin+targetMax)/2)} caractères. JAMAIS au-dessus de ${targetMax}.${charLimit<=400?' Format court imposé : 2-3 phrases maximum, aller droit au but, pas de développement.':' Si le profil est simple, 3 phrases suffisent.'}
 2. Texte FLUIDE et CONTINU — aucune liste, aucun tiret. Connecteurs variés : "Cependant,", "Néanmoins,", "Par ailleurs,", "Tout en saluant… on notera que", "C'est pourquoi", "Ainsi,", etc.
 3. Ne mentionne pas chaque observation séparément. Si 3 éléments vont dans le même sens, une seule formulation synthétique suffit.
 4. Accord au ${accord} PARTOUT (adjectifs, participes, pronoms).
 5. Ton : ${toneDesc}.
-6. Registre professionnel et soutenu.
-7. Répondre UNIQUEMENT avec l'appréciation rédigée, sans guillemets, sans titre, sans commentaire.`;
+6. Registre professionnel et soutenu — vocabulaire standard de bulletin scolaire français.
+7. LANGUE : UNIQUEMENT en français. Aucun mot anglais, même pour une classe d'anglais. L'appréciation elle-même est toujours rédigée en français.
+8. MOTS INTERDITS — n'utilise JAMAIS de mots inventés ou incorrects. Vocabulaire uniquement attesté en français courant. Interdit : "bavardise", "investissement" pour décrire un élève bavard, tout néologisme ou anglicisme.
+9. FORMULATIONS NATURELLES — écris comme un vrai enseignant parlerait, pas comme un algorithme. Évite les tournures artificielles ou trop systématiques. Chaque appréciation doit sonner humain.
+10. Répondre UNIQUEMENT avec l'appréciation rédigée, sans guillemets, sans titre, sans commentaire.`;
 }
 
 function buildClassPrompt(cls,period){
@@ -3036,6 +3136,101 @@ document.addEventListener('keydown',e=>{
   }
 });
 
+// ── FEEDBACK ──────────────────────────────────────────────────────────────────
+let _fbRating=0, _fbRole='';
+
+function showFeedback(){
+  _fbRating=0; _fbRole='';
+  document.getElementById('fb-good').value='';
+  document.getElementById('fb-improve').value='';
+  document.getElementById('fb-email').value=GD.user?.email||'';
+  resetStarHover();
+  [1,2,3,4,5].forEach(n=>{document.getElementById('star-'+n).textContent='☆';document.getElementById('star-'+n).style.color='';});
+  document.querySelectorAll('.role-btn').forEach(b=>{b.style.background='var(--bg)';b.style.borderColor='var(--border)';b.style.color='var(--muted)';});
+  document.getElementById('mo-feedback').style.display='flex';
+}
+
+function setRating(n){
+  _fbRating=n;
+  [1,2,3,4,5].forEach(i=>{
+    const s=document.getElementById('star-'+i);
+    s.textContent=i<=n?'★':'☆';
+    s.style.color=i<=n?'#f59e0b':'var(--muted)';
+    s.style.transform=i<=n?'scale(1.15)':'scale(1)';
+  });
+}
+
+function hoverRating(n){
+  [1,2,3,4,5].forEach(i=>{
+    const s=document.getElementById('star-'+i);
+    s.textContent=i<=n?'★':'☆';
+    s.style.color=i<=n?'#f59e0b':'var(--muted)';
+  });
+}
+
+function resetStarHover(){
+  [1,2,3,4,5].forEach(i=>{
+    const s=document.getElementById('star-'+i);
+    s.textContent=i<=_fbRating?'★':'☆';
+    s.style.color=i<=_fbRating?'#f59e0b':'var(--muted)';
+  });
+}
+
+function selectRole(btn,role){
+  _fbRole=role;
+  document.querySelectorAll('.role-btn').forEach(b=>{
+    b.style.background='var(--bg)';
+    b.style.borderColor='var(--border)';
+    b.style.color='var(--muted)';
+    b.style.fontWeight='400';
+  });
+  btn.style.background='var(--accent-l)';
+  btn.style.borderColor='var(--accent)';
+  btn.style.color='var(--accent)';
+  btn.style.fontWeight='600';
+}
+
+async function submitFeedback(){
+  const good=document.getElementById('fb-good').value.trim();
+  const improve=document.getElementById('fb-improve').value.trim();
+  const email=document.getElementById('fb-email').value.trim();
+  if(!_fbRating){toast('⭐ Donnez une note avant d\'envoyer');return;}
+  if(!good&&!improve){toast('✍️ Écrivez au moins un commentaire');return;}
+
+  // Send via FormSpree (free service, no backend needed)
+  const payload={
+    rating: _fbRating+'/5',
+    role: _fbRole||'Non précisé',
+    liked: good||'—',
+    improve: improve||'—',
+    email: email||'Anonyme',
+    user: GD.user?.name||'Inconnu',
+    classes: Object.keys(S.classes).length,
+    date: new Date().toLocaleDateString('fr-FR')
+  };
+
+  try{
+    const res=await fetch('https://formspree.io/f/xjkwpqbn',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Accept':'application/json'},
+      body:JSON.stringify(payload)
+    });
+    if(res.ok){
+      closeMo('mo-feedback');
+      toast('🎉 Merci pour votre avis !');
+    } else {
+      throw new Error('send failed');
+    }
+  }catch(e){
+    // Fallback — save locally
+    const fb=JSON.parse(localStorage.getItem('bp3_feedbacks')||'[]');
+    fb.push(payload);
+    localStorage.setItem('bp3_feedbacks',JSON.stringify(fb));
+    closeMo('mo-feedback');
+    toast('🎉 Merci ! Avis sauvegardé localement');
+  }
+}
+
 function renderWelcomeScreen(){
   const clsIds=Object.keys(S.classes);
   const statsGrid=document.getElementById('welcome-stats-grid');
@@ -3763,72 +3958,23 @@ window.addEventListener('load', ()=>{
   }
 });
 
-// ── SERVICE WORKER — MODE HORS-LIGNE ─────────────────────────────────────────
-const SW_CODE = `
-const CACHE = 'bulletinspro-v3';
-const URLS = [
-  self.location.pathname,
-  'https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400;1,600&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@300;400&display=swap',
-  'https://apis.google.com/js/api.js',
-  'https://accounts.google.com/gsi/client'
-];
-
-self.addEventListener('install', e=>{
-  e.waitUntil(
-    caches.open(CACHE).then(c=>c.addAll(URLS.map(u=>{
-      try{return new Request(u,{mode:'no-cors'});}catch(e){return u;}
-    }))).catch(()=>{})
-  );
-  self.skipWaiting();
+// ── ONLINE/OFFLINE DETECTION ─────────────────────────────────────────────────
+window.addEventListener('online', ()=>{
+  toast('✅ Connexion rétablie — synchronisation…');
+  const b=document.getElementById('offline-badge');if(b)b.style.display='none';
+  gdScheduleSync();
 });
-
-self.addEventListener('activate', e=>{
-  e.waitUntil(caches.keys().then(keys=>
-    Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))
-  ));
-  self.clients.claim();
+window.addEventListener('offline', ()=>{
+  toast('📵 Mode hors-ligne activé');
+  const b=document.getElementById('offline-badge');if(b)b.style.display='';
 });
+if(!navigator.onLine){const b=document.getElementById('offline-badge');if(b)b.style.display='';}
 
-self.addEventListener('fetch', e=>{
-  // Network first for API calls, cache first for assets
-  const url = e.request.url;
-  if(url.includes('googleapis.com/drive') || url.includes('anthropic.com') || url.includes('oauth2') || url.includes('groq.com')){
-    // Always try network for API calls
-    e.respondWith(fetch(e.request).catch(()=>new Response('{"error":"offline"}',{headers:{'Content-Type':'application/json'}})));
-    return;
-  }
-  e.respondWith(
-    caches.match(e.request).then(cached=>{
-      const network = fetch(e.request).then(resp=>{
-        if(resp.ok){
-          const clone=resp.clone();
-          caches.open(CACHE).then(c=>c.put(e.request,clone));
-        }
-        return resp;
-      }).catch(()=>cached);
-      return cached || network;
-    })
-  );
-});
-`;
-
+// Unregister any old service workers
 if('serviceWorker' in navigator){
-  const blob=new Blob([SW_CODE],{type:'application/javascript'});
-  const swUrl=URL.createObjectURL(blob);
-  navigator.serviceWorker.register(swUrl,{scope:'/'}).then(reg=>{
-    console.log('SW registered');
-    window.addEventListener('online', ()=>{
-      toast('✅ Connexion rétablie — synchronisation…');
-      const b=document.getElementById('offline-badge');if(b)b.style.display='none';
-      gdScheduleSync();
-    });
-    window.addEventListener('offline', ()=>{
-      toast('📵 Mode hors-ligne activé');
-      const b=document.getElementById('offline-badge');if(b)b.style.display='';
-    });
-    // Check initial state
-    if(!navigator.onLine){const b=document.getElementById('offline-badge');if(b)b.style.display='';}
-  }).catch(e=>console.warn('SW registration failed:',e));
+  navigator.serviceWorker.getRegistrations().then(regs=>{
+    regs.forEach(r=>r.unregister());
+  });
 }
 </script>
 </body>
