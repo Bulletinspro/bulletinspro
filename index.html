@@ -111,7 +111,13 @@ body.dark-mode .copy-btn:hover{background:#2a1f4a;border-color:#a78bfa;color:#e9
 /* Stats modal */
 body.dark-mode .mo-body{background:#1e1b30;color:#e9e6f0;}
 /* Welcome screen */
-body.dark-mode .welcome-stat{background:#1e1b30;}
+body.dark-mode .bulk-card{background:#1e1b30;border-color:#2d2a3e;}
+body.dark-mode .bulk-hd{background:#17142a;border-color:#2d2a3e;}
+body.dark-mode .bulk-name{color:#e9e6f0;}
+body.dark-mode .bulk-ta{background:#17142a;color:#e9e6f0;border-color:#3d3660;}
+body.dark-mode .bulk-ta:focus{border-color:#7c3aed;background:#1e1b30;}
+body.dark-mode .cr-panel{background:#0f0d1a;}
+body.dark-mode .bulk-panel{background:#0f0d1a;}
 *{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:'DM Sans',sans-serif;font-weight:300;background:var(--bg);color:var(--ink);min-height:100vh;}
 .app{display:flex;height:100vh;overflow:hidden;}
@@ -1752,10 +1758,15 @@ function setView(v){
   const content=document.getElementById('content');
   if(v==='students') renderStudentsView(content);
   else if(v==='classrev') renderClassRevView(content);
-  else if(v==='bulk'){renderBulkView(content);generateAll();}
+  else if(v==='bulk'){renderBulkView(content);}
 }
 
-function goGenAll(){S.view='bulk';setView('bulk');}
+function goGenAll(){
+  S.view='bulk';
+  setView('bulk');
+  // Small delay to ensure DOM is rendered before generating
+  setTimeout(()=>generateAll(), 150);
+}
 
 // ── STUDENTS VIEW ─────────────────────────────────────────────────────────────
 function renderStudentsView(content){
@@ -2285,24 +2296,42 @@ async function genOne(sid){
 
 async function generateAll(){
   const cls=S.classes[S.active]; if(!cls||!cls.students.length)return;
-  renderBulkView(document.getElementById('content'));
+  // Don't re-render — the bulk view is already displayed via setView
+  const btn=document.querySelector('.gen-all-btn');
+  if(btn){btn.disabled=true;btn.textContent='⏳ Génération…';}
+  let done=0, errors=0;
   for(let i=0;i<cls.students.length;i++){
-    await genBulk(cls.students[i].id);
-    toast(`${i+1}/${cls.students.length} rédigées…`);
+    const sid=cls.students[i].id;
+    try{
+      await genBulk(sid);
+      done++;
+      toast(`${done}/${cls.students.length} rédigées…`);
+    }catch(e){
+      errors++;
+      console.warn('genBulk error for',sid,e);
+    }
+    // Small pause between calls to avoid rate limiting
+    if(i<cls.students.length-1) await new Promise(r=>setTimeout(r,300));
   }
-  toast(`✓ ${cls.students.length} appréciations générées !`);
+  if(btn){btn.disabled=false;btn.textContent='⚡ Générer tout';}
+  if(errors>0) toast(`✓ ${done} générées — ${errors} erreur(s)`);
+  else toast(`✓ ${done} appréciations générées !`);
 }
 
 async function genBulk(sid){
   const cls=S.classes[S.active]; const st=getSt(sid); if(!st)return;
-  const ta=document.getElementById('bta-'+sid); if(!ta)return;
+  const ta=document.getElementById('bta-'+sid);
+  if(!ta) throw new Error('textarea not found for '+sid);
   ta.classList.add('gen');
   try{
     const seed=STYLE_SEEDS[Math.floor(Math.random()*STYLE_SEEDS.length)];
     const txt=fitToLimit(await callClaude(buildPrompt(st,cls,S.period,seed,sampMem(S.active))), cls.charLimit||750);
     ta.classList.remove('gen'); ta.value=txt;
     addMem(S.active,txt); bulkSave(sid,txt);
-  }catch(e){ta.classList.remove('gen');toast('Erreur génération');}
+  }catch(e){
+    ta.classList.remove('gen');
+    throw e; // Re-throw so generateAll can count errors
+  }
 }
 
 // ── CLASS REVIEW ──────────────────────────────────────────────────────────────
@@ -3885,7 +3914,7 @@ function mobSetView(v){
     const content=document.getElementById('content');
     if(v==='students'){renderStudentsView(content);}
     else if(v==='classrev'){renderClassRevView(content);}
-    else if(v==='bulk'){renderBulkView(content);generateAll();}
+    else if(v==='bulk'){renderBulkView(content);}
     // Update desktop tabs too
     document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
     const dt=document.getElementById('tab-'+v);if(dt)dt.classList.add('active');
