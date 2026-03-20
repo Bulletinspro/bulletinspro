@@ -1441,18 +1441,47 @@ function gdSetStatus(state, msg, showBtn=false, btnLabel='', btnAction=''){
 }
 
 async function gdInit(){
-  // Check redirect token FIRST — before gapi loads
-  if(gdHandleRedirectCallback()) return;
+  // Load gapi in parallel with redirect check
+  const gapiReady = new Promise((res)=>{
+    try{
+      const t=setTimeout(res,5000); // timeout fallback
+      gapi.load('client',()=>{clearTimeout(t);gapi.client.init({}).then(res).catch(res);});
+    }catch(e){res();}
+  });
 
-  try{
-    await new Promise((res,rej)=>{
-      const t=setTimeout(()=>rej(new Error('gapi timeout')),5000);
-      gapi.load('client',()=>{clearTimeout(t);res();});
-    });
-    await gapi.client.init({});
-  }catch(e){
-    console.warn('gapi init warning:',e);
+  // Check redirect token immediately (don't wait for gapi)
+  const redirectToken=localStorage.getItem('bp3_redirect_token');
+  if(redirectToken){
+    localStorage.removeItem('bp3_redirect_token');
+    GD.accessToken=redirectToken;
+    gdShowLoginScreen(false);
+    gdSetStatus('syncing','Connexion…');
+    await gapiReady; // wait for gapi before Drive calls
+    try{ gapi.client.setToken({access_token:GD.accessToken}); }catch(e){}
+    await gdFetchUserInfo();
+    await gdLoadFromDrive();
+    return;
   }
+
+  // Also check hash directly
+  const hash=window.location.hash;
+  if(hash && hash.includes('access_token')){
+    const params=new URLSearchParams(hash.replace('#',''));
+    const token=params.get('access_token');
+    if(token){
+      history.replaceState(null,'',window.location.pathname);
+      GD.accessToken=token;
+      gdShowLoginScreen(false);
+      gdSetStatus('syncing','Connexion…');
+      await gapiReady;
+      try{ gapi.client.setToken({access_token:GD.accessToken}); }catch(e){}
+      await gdFetchUserInfo();
+      await gdLoadFromDrive();
+      return;
+    }
+  }
+
+  await gapiReady;
 
   // Restore token from localStorage
   const saved=localStorage.getItem('bp3_gd');
