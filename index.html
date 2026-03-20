@@ -8,28 +8,6 @@
 <!-- Google API -->
 <script src="https://apis.google.com/js/api.js"></script>
 <script src="https://accounts.google.com/gsi/client"></script>
-<script>
-// Handle OAuth redirect IMMEDIATELY — before page renders
-// Google sends token in URL hash after redirect on mobile
-(function(){
-  const hash=window.location.hash;
-  if(hash && hash.includes('access_token')){
-    const params=new URLSearchParams(hash.replace('#',''));
-    const token=params.get('access_token');
-    if(token){
-      // Store token immediately so gdInit can pick it up
-      try{
-        const existing=JSON.parse(localStorage.getItem('bp3_gd')||'{}');
-        existing.access_token=token;
-        localStorage.setItem('bp3_gd',JSON.stringify(existing));
-        localStorage.setItem('bp3_redirect_token',token);
-      }catch(e){}
-      // Clean URL
-      history.replaceState(null,'',window.location.pathname);
-    }
-  }
-})();
-</script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400;1,600&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@300;400&display=swap');
 :root {
@@ -1441,47 +1419,15 @@ function gdSetStatus(state, msg, showBtn=false, btnLabel='', btnAction=''){
 }
 
 async function gdInit(){
-  // Load gapi in parallel with redirect check
-  const gapiReady = new Promise((res)=>{
-    try{
-      const t=setTimeout(res,5000); // timeout fallback
-      gapi.load('client',()=>{clearTimeout(t);gapi.client.init({}).then(res).catch(res);});
-    }catch(e){res();}
-  });
-
-  // Check redirect token immediately (don't wait for gapi)
-  const redirectToken=localStorage.getItem('bp3_redirect_token');
-  if(redirectToken){
-    localStorage.removeItem('bp3_redirect_token');
-    GD.accessToken=redirectToken;
-    gdShowLoginScreen(false);
-    gdSetStatus('syncing','Connexion…');
-    await gapiReady; // wait for gapi before Drive calls
-    try{ gapi.client.setToken({access_token:GD.accessToken}); }catch(e){}
-    await gdFetchUserInfo();
-    await gdLoadFromDrive();
-    return;
+  try{
+    await new Promise((res,rej)=>{
+      const t=setTimeout(()=>rej(new Error('gapi timeout')),5000);
+      gapi.load('client',()=>{clearTimeout(t);res();});
+    });
+    await gapi.client.init({});
+  }catch(e){
+    console.warn('gapi init warning:',e);
   }
-
-  // Also check hash directly
-  const hash=window.location.hash;
-  if(hash && hash.includes('access_token')){
-    const params=new URLSearchParams(hash.replace('#',''));
-    const token=params.get('access_token');
-    if(token){
-      history.replaceState(null,'',window.location.pathname);
-      GD.accessToken=token;
-      gdShowLoginScreen(false);
-      gdSetStatus('syncing','Connexion…');
-      await gapiReady;
-      try{ gapi.client.setToken({access_token:GD.accessToken}); }catch(e){}
-      await gdFetchUserInfo();
-      await gdLoadFromDrive();
-      return;
-    }
-  }
-
-  await gapiReady;
 
   // Restore token from localStorage
   const saved=localStorage.getItem('bp3_gd');
@@ -1509,13 +1455,10 @@ function gdAuth(){
     setTimeout(gdAuth, 1500);
     return;
   }
-  const isMobile=/Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
   if(!GD.tokenClient){
     GD.tokenClient=google.accounts.oauth2.initTokenClient({
       client_id: GD.CLIENT_ID,
       scope: GD.SCOPES,
-      ux_mode: isMobile ? 'redirect' : 'popup',
-      redirect_uri: window.location.origin + window.location.pathname,
       callback: async(resp)=>{
         if(resp.error){gdSetStatus('error','Connexion refusée',true,'↺ Réessayer','gdAuth()');return;}
         GD.accessToken=resp.access_token;
@@ -1528,36 +1471,6 @@ function gdAuth(){
     });
   }
   GD.tokenClient.requestAccessToken();
-}
-
-// Handle OAuth redirect callback on page load (mobile)
-function gdHandleRedirectCallback(){
-  // Check token saved by the inline script at top of page
-  const redirectToken=localStorage.getItem('bp3_redirect_token');
-  if(redirectToken){
-    localStorage.removeItem('bp3_redirect_token');
-    GD.accessToken=redirectToken;
-    gdShowLoginScreen(false);
-    gdSetStatus('syncing','Connexion…');
-    Promise.resolve()
-      .then(()=>gdFetchUserInfo())
-      .then(()=>gdLoadFromDrive());
-    return true;
-  }
-  // Also check hash directly (fallback)
-  const hash=window.location.hash;
-  if(!hash)return false;
-  const params=new URLSearchParams(hash.replace('#',''));
-  const token=params.get('access_token');
-  if(!token)return false;
-  history.replaceState(null,'',window.location.pathname);
-  GD.accessToken=token;
-  gdShowLoginScreen(false);
-  gdSetStatus('syncing','Connexion…');
-  Promise.resolve()
-    .then(()=>gdFetchUserInfo())
-    .then(()=>gdLoadFromDrive());
-  return true;
 }
 
 async function gdLoadFromDrive(){
