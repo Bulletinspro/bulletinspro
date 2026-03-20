@@ -9,17 +9,26 @@
 <script src="https://apis.google.com/js/api.js"></script>
 <script src="https://accounts.google.com/gsi/client"></script>
 <script>
-// Catch google-related errors and handle gracefully
-window.addEventListener('error', function(e){
-  if(e.message && e.message.includes('google')){
-    console.warn('Google script error caught:', e.message, 'at', e.filename, e.lineno);
-    e.preventDefault();
-    // Retry gdInit after short delay
-    setTimeout(function(){
-      if(typeof waitForGoogle === 'function') waitForGoogle();
-    }, 1000);
+// Handle OAuth redirect IMMEDIATELY — before page renders
+// Google sends token in URL hash after redirect on mobile
+(function(){
+  const hash=window.location.hash;
+  if(hash && hash.includes('access_token')){
+    const params=new URLSearchParams(hash.replace('#',''));
+    const token=params.get('access_token');
+    if(token){
+      // Store token immediately so gdInit can pick it up
+      try{
+        const existing=JSON.parse(localStorage.getItem('bp3_gd')||'{}');
+        existing.access_token=token;
+        localStorage.setItem('bp3_gd',JSON.stringify(existing));
+        localStorage.setItem('bp3_redirect_token',token);
+      }catch(e){}
+      // Clean URL
+      history.replaceState(null,'',window.location.pathname);
+    }
   }
-});
+})();
 </script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400;1,600&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@300;400&display=swap');
@@ -1471,10 +1480,13 @@ function gdAuth(){
     setTimeout(gdAuth, 1500);
     return;
   }
+  const isMobile=/Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
   if(!GD.tokenClient){
     GD.tokenClient=google.accounts.oauth2.initTokenClient({
       client_id: GD.CLIENT_ID,
       scope: GD.SCOPES,
+      ux_mode: isMobile ? 'redirect' : 'popup',
+      redirect_uri: window.location.origin + window.location.pathname,
       callback: async(resp)=>{
         if(resp.error){gdSetStatus('error','Connexion refusée',true,'↺ Réessayer','gdAuth()');return;}
         GD.accessToken=resp.access_token;
@@ -1491,12 +1503,24 @@ function gdAuth(){
 
 // Handle OAuth redirect callback on page load (mobile)
 function gdHandleRedirectCallback(){
+  // Check token saved by the inline script at top of page
+  const redirectToken=localStorage.getItem('bp3_redirect_token');
+  if(redirectToken){
+    localStorage.removeItem('bp3_redirect_token');
+    GD.accessToken=redirectToken;
+    gdShowLoginScreen(false);
+    gdSetStatus('syncing','Connexion…');
+    Promise.resolve()
+      .then(()=>gdFetchUserInfo())
+      .then(()=>gdLoadFromDrive());
+    return true;
+  }
+  // Also check hash directly (fallback)
   const hash=window.location.hash;
   if(!hash)return false;
   const params=new URLSearchParams(hash.replace('#',''));
   const token=params.get('access_token');
   if(!token)return false;
-  // Clean URL
   history.replaceState(null,'',window.location.pathname);
   GD.accessToken=token;
   gdShowLoginScreen(false);
