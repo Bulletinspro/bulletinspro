@@ -4246,6 +4246,7 @@ function waitForGoogle(attempts=0){
     gdSetStatus('error','Drive indisponible',true,'↺ Rafraîchir',"location.reload()");
   }
 }
+window.addEventListener('load', ()=>waitForGoogle());
 
 // ── ONLINE/OFFLINE DETECTION ─────────────────────────────────────────────────
 window.addEventListener('online', ()=>{
