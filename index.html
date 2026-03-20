@@ -5,9 +5,22 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Bulletins Pro</title>
 <!-- Google API -->
-<!-- Google API — chargés en synchrone pour garantir disponibilité -->
-<script src="https://apis.google.com/js/api.js" defer></script>
-<script src="https://accounts.google.com/gsi/client" defer></script>
+<!-- Google API -->
+<script src="https://apis.google.com/js/api.js"></script>
+<script src="https://accounts.google.com/gsi/client"></script>
+<script>
+// Catch google-related errors and handle gracefully
+window.addEventListener('error', function(e){
+  if(e.message && e.message.includes('google')){
+    console.warn('Google script error caught:', e.message, 'at', e.filename, e.lineno);
+    e.preventDefault();
+    // Retry gdInit after short delay
+    setTimeout(function(){
+      if(typeof waitForGoogle === 'function') waitForGoogle();
+    }, 1000);
+  }
+});
+</script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400;1,600&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@300;400&display=swap');
 :root {
