@@ -2553,17 +2553,26 @@ async function generateAll(){
 
       setBanner(`✏️ Génération en cours… <strong>${done+1}/${total}</strong>`);
       const sid=cls.students[i].id;
-      try{
-        await genBulk(sid);
-        done++;
-        setBanner(`✅ <strong>${done}/${total}</strong> appréciations rédigées…`);
-      }catch(e){
-        errors++;
-        console.warn('genBulk error',sid,e);
+      let retried=false;
+      for(let attempt=0;attempt<2;attempt++){
+        try{
+          await genBulk(sid);
+          done++;
+          setBanner(`✅ <strong>${done}/${total}</strong> appréciations rédigées…`);
+          break;
+        }catch(e){
+          if(attempt===0){
+            // Wait 10s and retry once
+            setBanner(`⚠️ Erreur élève ${done+1} — nouvelle tentative dans 10s…`);
+            await new Promise(r=>setTimeout(r,10000));
+          } else {
+            errors++;
+            console.warn('genBulk error after retry',sid,e);
+          }
+        }
       }
 
       if(i<total-1) await new Promise(r=>setTimeout(r,3000));
-      if(i<total-1) await new Promise(r=>setTimeout(r,2000));
     }
 
     setBanner(`🎉 Terminé — <strong>${done}/${total}</strong> appréciations générées !`);
