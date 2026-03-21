@@ -1082,15 +1082,18 @@ const SUBJECTS = {
 // ── CHECKBOX DEFINITIONS PER SUBJECT TYPE ────────────────────────────────────
 // valence: 'pos' | 'neg' | 'neutral'
 const VERDICT_PILLS = [
-  {id:'vd1', l:'Excellent trimestre',    weight: 5},
-  {id:'vd2', l:'Très bon trimestre',     weight: 4},
-  {id:'vd3', l:'Bon trimestre',          weight: 3},
-  {id:'vd4', l:'Trimestre satisfaisant', weight: 2},
-  {id:'vd5', l:'Trimestre encourageant', weight: 2},
-  {id:'vd6', l:'Trimestre décevant',     weight:-1},
-  {id:'vd7', l:'Trimestre insuffisant',  weight:-2},
-  {id:'vd8', l:'Trimestre inquiétant',   weight:-3},
-  {id:'vd9', l:'Trimestre très insuffisant', weight:-4},
+  {id:'vd1', l:'Excellent trimestre',              weight: 5},
+  {id:'vd2', l:'Très bon trimestre',               weight: 4},
+  {id:'vd3', l:'Bon trimestre',                    weight: 3},
+  {id:'vd4', l:'Trimestre satisfaisant',           weight: 2},
+  {id:'vd5', l:'Trimestre encourageant',           weight: 2},
+  {id:'vd10',l:'Trimestre en deçà des capacités', weight: 0},
+  {id:'vd11',l:'Trimestre décevant mais pas sans espoir', weight: 0},
+  {id:'vd6', l:'Trimestre décevant',               weight:-1},
+  {id:'vd12',l:'Trimestre fragile',                weight:-1},
+  {id:'vd7', l:'Trimestre insuffisant',            weight:-2},
+  {id:'vd8', l:'Trimestre inquiétant',             weight:-3},
+  {id:'vd9', l:'Trimestre très insuffisant',       weight:-4},
 ];
 
 // ── CORE BOXES — shared across all subjects, in display order ────────────────
@@ -2423,6 +2426,7 @@ function buildPrompt(st,cls,period,seed,memSamp){
 - Profil quasi-entièrement positif, bon niveau → "Excellent trimestre." ou "Très bon trimestre."
 - Profil globalement positif avec quelques bémols → "Bon trimestre."
 - Profil mitigé, des efforts mais des lacunes → "Trimestre satisfaisant." ou "Trimestre encourageant."
+- Profil avec potentiel mais résultats en dessous → "Trimestre en deçà des capacités." ou "Trimestre décevant mais pas sans espoir."
 - Profil fragile, difficultés réelles, régression légère → "Trimestre fragile." ou "Trimestre décevant."
 - Profil en grande difficulté, régression importante → "Trimestre insuffisant." ou "Trimestre inquiétant."
 ATTENTION : si le niveau est "fragile" ou "insuffisant", ou si une régression est notée, NE PAS choisir "Bon trimestre" ou mieux. Le bilan doit refléter honnêtement la réalité.`;
@@ -2521,7 +2525,13 @@ PRINCIPE FONDAMENTAL — SYNTHÈSE, PAS INVENTAIRE :
 Les observations ci-dessus sont un portrait de l'élève, pas une liste de choses à mentionner. Ton rôle est de SYNTHÉTISER : dégager l'impression d'ensemble et l'exprimer en quelques phrases naturelles. Un élève très positif avec un seul bémol (ex: bavardages) = une appréciation courte et positive avec une nuance légère. Un élève en difficulté = donner l'idée générale du problème, pas énumérer chaque manquement.
 
 RÈGLE ABSOLUE — TOUTES LES OBSERVATIONS COCHÉES DOIVENT APPARAÎTRE :
-Chaque observation cochée DOIT être couverte dans l'appréciation. Mais "couverte" ne veut pas dire "citée séparément" — plusieurs observations liées se fondent en une seule phrase naturelle.
+Chaque observation cochée DOIT être couverte. Pas d'exception, même sur un profil excellent.
+EXEMPLE CONCRET : si "bavarde parfois" est coché sur un profil positif, la phrase de conclusion DOIT contenir une mention des bavardages. Sans cela, l'appréciation est incomplète.
+Formulations pour intégrer "bavarde parfois" en fin d'appréciation positive :
+→ "…même si quelques bavardages viennent parfois perturber sa concentration."
+→ "…on notera cependant une tendance aux bavardages à surveiller."
+→ "Il lui faudra veiller à limiter les bavardages pour rester pleinement concentrée."
+Ces observations mineures se placent EN CONCLUSION, jamais au milieu d'un profil positif.
 Exemples de fusion :
 - "discret(e)" + "manque de confiance" + "participation faible" → une seule phrase : "Un peu plus d'assurance à l'oral lui permettrait de s'exprimer davantage."
 - "travail régulier" + "résultats satisfaisants" + "persévérance" → une seule phrase : "Son travail régulier et sa persévérance portent leurs fruits."
@@ -2576,6 +2586,7 @@ RÈGLES TECHNIQUES ABSOLUES :
 12. PAS DE DOUBLONS D'INJONCTION — ne jamais enchaîner "Il est essentiel" + "Il faut" + "Il est important". Une seule conclusion directe suffit.
 13. CONSEILS PRÉCIS — pas de formulations creuses comme "se structurer". "Approfondir le travail" est acceptable.. Préférer : "revoir le cours chaque soir", "oser poser des questions", "rendre les devoirs régulièrement".
 14. INTERDIT D\'UTILISER "JE" — rédige entièrement à la 3e personne. Parle de l\'élève : "Cet élève", "Il/Elle", son prénom. Jamais "Je note que", "J\'observe", "Je suis satisfait(e)". L\'appréciation décrit l\'élève, elle ne parle pas du professeur.':'12. Le "je" est autorisé mais doit rester rare et naturel.'}
+14. VARIÉTÉ LEXICALE — ne jamais répéter le même mot clé plus d'une fois. Synonymes : "difficulté(s)" → lacunes, fragilités, points à consolider, situation compliquée ; "travail" → efforts, investissement, implication, application ; "progresser" → s'améliorer, avancer, évoluer, gagner en maîtrise ; "en classe" → en cours, lors des séances.
 15. Répondre UNIQUEMENT avec l'appréciation rédigée, sans guillemets, sans titre, sans commentaire.`;
 }
 
