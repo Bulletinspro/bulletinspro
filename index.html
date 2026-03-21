@@ -2324,7 +2324,7 @@ function buildPrompt(st,cls,period,seed,memSamp){
     2:"Deuxième trimestre — mi-parcours. Ton : évolution depuis le début d'année, cap pour la fin. Ne pas ajouter de contenu supplémentaire, juste nuancer le ton en ce sens.",
     3:"Troisième trimestre — fin d'année. La dernière phrase conclut l'année et dit si l'élève est prêt(e) pour la classe suivante. Cette phrase remplace la conclusion habituelle, elle ne s'y ajoute pas.",
   })[period]||'';
-  const gender=st.gender==='F'?'fille':'garçon';
+  const gender=st.gender==='F' ? 'FILLE — pronom : ELLE. Article démonstratif : CETTE (pas cet). Adjectifs au FÉMININ : sérieuse, appliquée, investie, motivée, régulière. JAMAIS "il", JAMAIS "cet élève" (toujours "cette élève").' : 'GARÇON — pronom : IL. Article démonstratif : CET (pas cette). Adjectifs au MASCULIN : sérieux, appliqué, investi, motivé, régulier. JAMAIS "elle", JAMAIS "cette élève" (toujours "cet élève").';
   const accord=st.gender==='F'?'féminin':'masculin';
 
   const charLimit=cls.charLimit||750;
@@ -2446,7 +2446,7 @@ RÈGLES TECHNIQUES ABSOLUES :
 2. TEXTE BLOC CONTINU — UN SEUL PARAGRAPHE. Absolument aucun saut de ligne, aucun \\n, aucune séparation entre phrases. Tout doit tenir en un bloc de texte unique comme dans Pronote.
 3. Texte FLUIDE — aucune liste, aucun tiret. Connecteurs variés : "Cependant,", "Néanmoins,", "Par ailleurs,", "Tout en saluant… on notera que", "C'est pourquoi", "Ainsi,", etc.
 4. Ne mentionne pas chaque observation séparément. Si 3 éléments vont dans le même sens, une seule formulation synthétique suffit.
-5. Accord au ${accord} PARTOUT (adjectifs, participes, pronons).
+5. Accord au ${accord} PARTOUT sans exception. Pour une FILLE : elle, sa, ses, sérieuse, appliquée, investie, motivée, régulière, curieuse — JAMAIS "il", "son" (sauf si suivi d'un nom masculin), "sérieux". Pour un GARÇON : il, son, ses, sérieux, appliqué, investi, motivé, régulier, curieux — JAMAIS "elle".
 6. Ton : ${toneDesc}.
 7. VOCABULAIRE FRANÇAIS SCOLAIRE UNIQUEMENT — contexte : établissement scolaire français, élèves de collège ou lycée. Interdit : "stagiaire", "étudiant(e)", "élève du secondaire" (canadianisme), "évaluation" pour désigner le bulletin ou le trimestre. Utiliser : "élève", "ce trimestre/semestre", "en classe", "ce bulletin". L'appréciation parle d'un trimestre scolaire, pas d'une "évaluation".
 8. LANGUE : UNIQUEMENT en français. Aucun mot anglais même pour un cours d'anglais.
