@@ -790,6 +790,8 @@ body{font-family:'DM Sans',sans-serif;font-weight:300;background:var(--bg);color
       <button class="tone-btn active equilibre" onclick="setClsTone('equilibre',this)">Équilibré</button>
       <button class="tone-btn encourageant" onclick="setClsTone('encourageant',this)">Encourageant</button>
     </div>
+    <span class="dlbl" style="margin-left:8px">Nom :</span>
+    <button id="usename-toggle" class="tone-btn" onclick="toggleUseName()" title="Inclure le prénom dans les appréciations">👤 Désactivé</button>
   </div>
   <div class="content" id="content">
     <div class="welcome-screen" style="flex:1">
@@ -1802,6 +1804,25 @@ function showConfirm(title, msg, onConfirm){
   mo.classList.add('open');
 }
 
+function toggleUseName(){
+  const cls=S.classes[S.active]; if(!cls)return;
+  cls.useName=!cls.useName;
+  save();
+  updateUseNameBtn();
+  toast(cls.useName?'👤 Prénom activé dans les appréciations':'👤 Prénom désactivé');
+}
+function updateUseNameBtn(){
+  const cls=S.classes[S.active]; if(!cls)return;
+  const btn=document.getElementById('usename-toggle');
+  if(!btn)return;
+  if(cls.useName){
+    btn.textContent='👤 Activé';
+    btn.classList.add('active');
+  } else {
+    btn.textContent='👤 Désactivé';
+    btn.classList.remove('active');
+  }
+}
 function setClsTone(tone,btn){
   if(!S.active)return;
   S.classes[S.active].tone=tone;
@@ -1836,6 +1857,7 @@ function renderMain(){
   }
 
   document.getElementById('topbar-r').style.display='flex';
+  updateUseNameBtn();
   document.getElementById('view-tabs').style.display='block';
   document.getElementById('dbar').style.display='flex';
 
@@ -2429,9 +2451,9 @@ PRINCIPE FONDAMENTAL — SYNTHÈSE, PAS INVENTAIRE :
 Les observations ci-dessus sont un portrait de l'élève, pas une liste de choses à mentionner. Ton rôle est de SYNTHÉTISER : dégager l'impression d'ensemble et l'exprimer en quelques phrases naturelles. Un élève très positif avec un seul bémol (ex: bavardages) = une appréciation courte et positive avec une nuance légère. Un élève en difficulté = donner l'idée générale du problème, pas énumérer chaque manquement.
 
 STRUCTURE (guide souple, pas un plan rigide) :
-① Ouvre par le bilan global choisi. Une phrase d'ensemble.
+① Ouvre par le bilan global choisi — 2 à 5 mots, suivi d'un point. Ce mot résume le trimestre. Ne jamais le contredire dans la conclusion (si on ouvre par "Bon trimestre", on ne peut pas finir par "c'est un excellent trimestre").
 ② En 1 ou 2 phrases : ce qui caractérise cet élève ce trimestre (travail, attitude, compétences — fondu ensemble si possible).
-③ Conclus par une phrase prospective : encouragement précis, conseil actionnable, ou mise en garde constructive.
+③ Conclus par une phrase prospective courte : encouragement précis ou conseil actionnable. Pas de second bilan global.
 
 RÈGLE DU POSITIF EN PREMIER : même pour un élève en difficulté, trouve d'abord ce qui va (volonté, progrès minimes, qualité personnelle) avant les manquements. Les points négatifs se formulent en termes de ce qui doit changer, jamais comme un jugement définitif.
 
@@ -2450,7 +2472,9 @@ RÈGLES TECHNIQUES ABSOLUES :
 6. Ton : ${toneDesc}.
 7. VOCABULAIRE FRANÇAIS SCOLAIRE UNIQUEMENT — contexte : établissement scolaire français, élèves de collège ou lycée. Interdit : "stagiaire", "étudiant(e)", "élève du secondaire" (canadianisme), "évaluation" pour désigner le bulletin ou le trimestre. Utiliser : "élève", "ce trimestre/semestre", "en classe", "ce bulletin". L'appréciation parle d'un trimestre scolaire, pas d'une "évaluation".
 8. LANGUE : UNIQUEMENT en français. Aucun mot anglais même pour un cours d'anglais.
-9. MOTS INVENTÉS INTERDITS : pas de "bavardise", pas de néologismes. Vocabulaire attesté uniquement.
+9. MOTS INVENTÉS ET ANGLICISMES INTERDITS : pas de "bavardise", pas de "sérieuse attitude" (ordre anglais — dire "attitude sérieuse"), pas de néologismes.
+9b. COHÉRENCE INTERNE — ne jamais contredire l'ouverture dans la conclusion. Si on commence par "Bon trimestre" on ne peut pas finir par "c'est un excellent trimestre". Le bilan d'ouverture est unique et ne se répète pas.
+9c. PHRASES COHÉRENTES — chaque phrase doit avoir un sens complet et logique. Interdit : "elle peine à comprendre certains concepts, essentielle pour se confronter au travail" (incohérent). Si une phrase ne se tient pas logiquement, la supprimer.
 10. SI LE PRÉNOM EST FOURNI : utilise-le naturellement. Ne jamais écrire "(nom)" ou "(prénom)". N'utilise JAMAIS un prénom des exemples (Zoé, Mathéo, Léonie, Quincy, Kelly) — utilise UNIQUEMENT le prénom fourni dans ÉLÈVE.
 11. FORMULATIONS NATURELLES — comme un vrai enseignant français parlerait. Chaque appréciation doit sonner humain, pas algorithmique.
 12. PAS DE DOUBLONS D'INJONCTION — ne jamais enchaîner "Il est essentiel" + "Il faut" + "Il est important". Une seule conclusion directe suffit.
