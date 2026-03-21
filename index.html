@@ -2148,6 +2148,7 @@ function renderEditor(id){
           </div>
           <button class="act-btn gen-btn" onclick="genOne('${id}')">↻ Générer</button>
           <span style="font-family:'DM Mono',monospace;font-size:.72rem;font-weight:700;color:var(--accent);background:var(--accent-l);border:1.5px solid var(--accent-b);padding:3px 8px;border-radius:6px;margin-left:2px;white-space:nowrap">Ctrl+↵</span>
+          <button class="act-btn" onclick="resetComment('${id}')" title="Effacer l'appréciation">🗑</button>
           <button class="act-btn" id="voice-btn-${id}" onclick="toggleVoice('${id}')" title="Saisie vocale">🎙️</button>
           <button class="copy-btn" id="cpb-${id}" onclick="copyC('${id}')">📋 Copier</button>
         </div>
@@ -2273,6 +2274,16 @@ function updCC(id,val){
   el.textContent=`${val.length}/${lim}`;
   el.className='cchar'+(val.length>lim?' over':val.length>0?' ok':'');
 }
+function resetComment(id){
+  const ta=document.getElementById('cta-'+id); if(!ta)return;
+  ta.value='';
+  saveCmt(id,'');
+  updCC(id,'');
+  updateProgressBar();
+  renderStudentList();
+  toast('🗑 Appréciation effacée');
+}
+
 function copyC(id){const ta=document.getElementById('cta-'+id);if(!ta?.value)return;navigator.clipboard.writeText(ta.value).then(()=>{const b=document.getElementById('cpb-'+id);b.textContent='✓ Copié';b.classList.add('copied');setTimeout(()=>{b.textContent='Copier';b.classList.remove('copied');},1800);});}
 
 // ── PROMPT BUILDERS ───────────────────────────────────────────────────────────
@@ -2587,13 +2598,15 @@ async function generateAll(){
 }
 
 async function genBulk(sid){
-  const cls=S.classes[S.active]; const st=getSt(sid); if(!st)return;
+  const cls=S.classes[S.active]; const st=getSt(sid); if(!st) throw new Error('student not found');
   const ta=document.getElementById('bta-'+sid);
   if(!ta) throw new Error('textarea not found for '+sid);
   ta.classList.add('gen');
   try{
     const seed=STYLE_SEEDS[Math.floor(Math.random()*STYLE_SEEDS.length)];
-    const txt=fitToLimit((await callClaude(buildPrompt(st,cls,S.period,seed,sampMem(S.active)), 3, true)).replace(/\n+/g,' ').trim(), cls.charLimit||750);
+    const raw=await callClaude(buildPrompt(st,cls,S.period,seed,sampMem(S.active)), 3, true);
+    const txt=fitToLimit(raw.replace(/\n+/g,' ').trim(), cls.charLimit||750);
+    if(!txt) throw new Error('empty text after processing');
     ta.classList.remove('gen'); ta.value=txt;
     addMem(S.active,txt); bulkSave(sid,txt);
   }catch(e){
@@ -2660,6 +2673,7 @@ function renderBulkView(content){
         <button class="btn btn-o btn-sm" onclick="doCSV()">⬇ CSV</button>
         <button class="btn btn-o btn-sm" onclick="exportPDF()">📄 PDF</button>
         <button class="btn btn-o btn-sm" onclick="exportWord()">📝 Word</button>
+        <button class="btn btn-sm" style="background:var(--warn-l);color:var(--warn);border:1px solid var(--warn-b)" onclick="resetAllAppreciations()">🗑 Effacer tout</button>
       </div>
     </div>
     <div id="gen-progress-banner" style="display:none;background:linear-gradient(135deg,#6B2FD9,#A855F7);color:#fff;border-radius:12px;padding:14px 18px;margin-bottom:16px;font-family:'DM Mono',monospace;font-size:.78rem;text-align:center;letter-spacing:.04em"></div>`;
@@ -2692,6 +2706,21 @@ function bulkSave(id,val){
   const el=document.getElementById('bcc-'+id);if(el){el.textContent=`${val.length}/750`;el.className='cchar'+(val.length>750?' over':val.length>0?' ok':'');}
 }
 function copyOne(id){const ta=document.getElementById('bta-'+id);if(ta?.value)navigator.clipboard.writeText(ta.value).then(()=>toast('Copié !'));}
+function resetAllAppreciations(){
+  const cls=S.classes[S.active]; if(!cls)return;
+  if(!confirm(`Effacer les ${cls.students.length} appréciations du ${S.period===1?'T1':S.period===2?'T2':'T3'} ? Cette action est irréversible.`))return;
+  cls.students.forEach(st=>{
+    if(!st.comments)st.comments={};
+    st.comments[S.period]='';
+  });
+  save();
+  // Re-render bulk view
+  const content=document.getElementById('content');
+  if(content) renderBulkView(content);
+  updateProgressBar();
+  toast('🗑 Appréciations effacées');
+}
+
 function copyAll(){
   const cls=S.classes[S.active];
   const lines=cls.students.map(s=>{const c=(s.comments&&s.comments[S.period])||'';return `Élève n°${s.num}\n${c}`;}).join('\n\n---\n\n');
