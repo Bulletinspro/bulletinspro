@@ -854,6 +854,11 @@ body{font-family:'DM Sans',sans-serif;font-weight:300;background:var(--bg);color
     <input class="mo-inp" id="nc-name" placeholder="ex: 3ème A, Terminale B..." onkeydown="if(event.key==='Enter')createClass()">
     <div class="mo-lbl">Matière</div>
     <select class="mo-sel" id="nc-subj"></select>
+    <div class="mo-lbl">Niveau scolaire</div>
+    <div class="mo-radio">
+      <label><input type="radio" name="nc-level" value="college" checked> Collège (6e → 3e)</label>
+      <label><input type="radio" name="nc-level" value="lycee"> Lycée (2nde → Term.)</label>
+    </div>
     <div class="mo-lbl">Périodes</div>
     <div class="mo-radio">
       <label><input type="radio" name="nc-period" value="trimestre" checked> Trimestres (3)</label>
@@ -950,6 +955,11 @@ body{font-family:'DM Sans',sans-serif;font-weight:300;background:var(--bg);color
     <input class="mo-inp" id="ec-name" placeholder="ex: 3ème A, Terminale B...">
     <div class="mo-lbl">Matière</div>
     <select class="mo-sel" id="ec-subj"></select>
+    <div class="mo-lbl">Niveau scolaire</div>
+    <div class="mo-radio">
+      <label><input type="radio" name="ec-level" value="college"> Collège (6e → 3e)</label>
+      <label><input type="radio" name="ec-level" value="lycee"> Lycée (2nde → Term.)</label>
+    </div>
     <div class="mo-lbl">Périodes</div>
     <div class="mo-radio">
       <label><input type="radio" name="ec-period" value="trimestre"> Trimestres (3)</label>
@@ -1708,6 +1718,7 @@ function openEditClass(id){
     if(k===cls.subject)o.selected=true;
     sel.appendChild(o);
   });
+  document.querySelectorAll('input[name="ec-level"]').forEach(r=>{r.checked=r.value===(cls.schoolLevel||'college');});
   document.querySelectorAll('input[name="ec-period"]').forEach(r=>{r.checked=r.value===cls.periodType;});
   document.getElementById('ec-eval').value=cls.evalType||'note';
   document.getElementById('mo-edit-cls').classList.add('open');
@@ -1720,6 +1731,7 @@ function saveEditClass(){
   cls.name=name;
   cls.subject=document.getElementById('ec-subj').value;
   cls.periodType=document.querySelector('input[name="ec-period"]:checked').value;
+  cls.schoolLevel=document.querySelector('input[name="ec-level"]:checked')?.value||'college';
   cls.evalType=document.getElementById('ec-eval').value;
   cls.charLimit=parseInt(document.getElementById('ec-charlimit').value)||750;
   cls.useName=document.getElementById('ec-usename').checked;
@@ -1743,6 +1755,7 @@ function createClass(){
   const name=document.getElementById('nc-name').value.trim(); if(!name)return;
   const subject=document.getElementById('nc-subj').value;
   const periodType=document.querySelector('input[name="nc-period"]:checked').value;
+  const schoolLevel=document.querySelector('input[name="nc-level"]:checked')?.value||'college';
   const evalType=document.getElementById('nc-eval').value;
   const charLimit=parseInt(document.getElementById('nc-charlimit').value)||750;
   const useName=document.getElementById('nc-usename').checked;
@@ -1755,7 +1768,7 @@ function createClass(){
       students.push({id:'s'+Date.now()+i,num:i,name:'',gender:'M',boxes:{},grade:'',level:'',comps:{},tone:null,orient:{on:false,level:1,path:'',note:''},comments:{}});
     }
   }
-  S.classes[id]={name,subject,periodType,evalType,charLimit,useName,noJe,students,tone:'equilibre',classBoxes:{},classComments:{}};
+  S.classes[id]={name,subject,periodType,schoolLevel,evalType,charLimit,useName,noJe,students,tone:'equilibre',classBoxes:{},classComments:{}};
   closeMo('mo-cls'); save(); renderSidebar(); selectClass(id); toast(`"${name}" créée — ${students.length} élève(s)`);
 }
 
@@ -1920,7 +1933,7 @@ function renderStudentsView(content){
       <div class="add-row" id="add-row" style="display:none">
         <div class="add-form">
           <input class="add-inp" id="ns-num" type="number" min="1" max="38" placeholder="N°" style="width:50px">
-          <input class="add-inp" id="ns-name" placeholder="Nom (optionnel)" style="flex:1">
+          <input class="add-inp" id="ns-name" placeholder="Prénom (optionnel)" style="flex:1">
           <div class="gender-tog">
             <button class="gbtn m active" id="gb-m" onclick="selG('M')">M</button>
             <button class="gbtn f" id="gb-f" onclick="selG('F')">F</button>
@@ -2396,23 +2409,48 @@ function buildPrompt(st,cls,period,seed,memSamp){
     ? `BILAN GLOBAL CHOISI PAR L'ENSEIGNANT : "${verdictObj.l}." — OBLIGATOIRE : cette expression ouvre l'appréciation, suivie d'un point. La phrase suivante commence par une majuscule. Ne jamais accoler deux phrases sans point entre elles.`
     : `BILAN GLOBAL : l'enseignant n'a pas choisi d'expression d'ouverture — choisis toi-même la plus adaptée au profil parmi : "Bon trimestre.", "Trimestre satisfaisant.", "Trimestre encourageant.", "Trimestre décevant.", "Trimestre insuffisant.", "Très bon trimestre.", "Trimestre inquiétant.". Place-la en tout début d'appréciation, suivie d'un point.`;
 
-  const studentName = st.name ? st.name : null;
+  // Extract first name — handles formats: "Victoire", "BUISSON Victoire", "Victoire BUISSON"
+  let studentName = null;
+  if(st.name){
+    const parts=st.name.trim().split(/\s+/);
+    if(parts.length===1){
+      // Single word — it's the first name
+      studentName=parts[0];
+    } else {
+      // Multiple words — find the non-uppercase one (first name is capitalized, not ALL CAPS)
+      const firstName=parts.find(p=>p===p.charAt(0).toUpperCase()+p.slice(1).toLowerCase() && p!==p.toUpperCase());
+      studentName=firstName||parts[parts.length-1]; // fallback to last word
+    }
+    // Capitalize properly
+    if(studentName) studentName=studentName.charAt(0).toUpperCase()+studentName.slice(1).toLowerCase();
+  }
   const studentRef = cls.useName
     ? (studentName
         ? `Prénom de l'élève : ${studentName}. Utilise son prénom naturellement dans l'appréciation (ex: "${studentName} fait preuve de…").`
         : `L'élève n'a pas de prénom renseigné. Écris "(nom de l'élève)" là où tu aurais mis le prénom.`)
     : `Ne mentionne pas le prénom. N'écris jamais "(nom)" ou "(prénom)" ou tout placeholder. Rédige sans prénom.`;
 
-  return `Tu es un professeur français expérimenté rédigeant une appréciation de bulletin scolaire pour un établissement scolaire français (collège ou lycée, classes de 6e à Terminale).
+  const schoolLevelCtx = cls.schoolLevel==='lycee'
+    ? 'Lycée (2nde à Terminale) — "études", "parcours", "projet" sont appropriés.'
+    : 'Collège (6e à 3e) — éviter "études" et "parcours". Préférer : "en classe", "ce trimestre", "son année", "son travail".';
+
+  const citetEleve = st.gender==='F' ? 'cette élève' : 'cet élève';
+  const unEleve = st.gender==='F' ? 'une élève' : 'un élève';
+
+  return `Tu es un professeur français expérimenté rédigeant une appréciation de bulletin scolaire. Niveau : ${schoolLevelCtx}
 
 CONTEXTE TEMPOREL : ${pLabel} — ${periodCtx}
 
 CONTEXTE : Cette appréciation est une parmi environ 12 que l'élève recevra ce trimestre. Elle doit être concise, lisible, utile. Les parents et l'élève doivent en retenir l'essentiel en quelques secondes.
 
-ÉLÈVE : ${gender}, tous les accords au ${accord} SANS EXCEPTION — adjectifs, participes passés, pronoms, TOUT. Si l'élève est une fille : "sérieuse", "appliquée", "investie". Si c'est un garçon : "sérieux", "appliqué", "investi". Ne jamais mélanger les genres dans une même phrase. Période : ${pLabel}${subLabel ? ' — ' + subLabel : ''}.
+ÉLÈVE : ${gender}, tous les accords au ${accord} SANS EXCEPTION. Article démonstratif : "${citetEleve}" (JAMAIS "${st.gender==='F'?'cet élève':'cette élève'}"). Article indéfini : "${unEleve}" (JAMAIS "${st.gender==='F'?'une élève':'un élève'}"). Période : ${pLabel}${subLabel ? ' — ' + subLabel : ''}.
 ${studentRef}
 ${evalCtx}
 ${verdictCtx}
+
+GRAMMAIRE OBLIGATOIRE :
+- "faire preuve de" se construit avec un NOM : "faire preuve de sérieux", "faire preuve d'application". JAMAIS "faire preuve de sérieuse" (adjectif interdit ici).
+- Le bilan d'ouverture s'écrit en minuscules après le premier mot : "Bon trimestre." PAS "BON TRIMESTRE."
 
 OBSERVATIONS DE L'ENSEIGNANT :
 ${checked.length ? checked.map(i => '• ' + i).join('\n') : '• Profil standard'}
