@@ -2431,8 +2431,8 @@ function buildPrompt(st,cls,period,seed,memSamp){
     : `Ne mentionne pas le prénom. N'écris jamais "(nom)" ou "(prénom)" ou tout placeholder. Rédige sans prénom.`;
 
   const schoolLevelCtx = cls.schoolLevel==='lycee'
-    ? 'Lycée (2nde à Terminale) — "études", "parcours", "projet" sont appropriés.'
-    : 'Collège (6e à 3e) — éviter "études" et "parcours". Préférer : "en classe", "ce trimestre", "son année", "son travail".';
+    ? 'Lycée (2nde à Terminale) — "études", "parcours", "projet scolaire" sont appropriés.'
+    : 'Collège (6e à 3e) — MOT INTERDIT : "études" (les collégiens ne font pas d\'études, ils vont en cours). MOT INTERDIT : "parcours". Utiliser uniquement : "en classe", "ce trimestre", "son année", "son travail", "les cours".';
 
   const citetEleve = st.gender==='F' ? 'cette élève' : 'cet élève';
   const unEleve = st.gender==='F' ? 'une élève' : 'un élève';
@@ -2449,8 +2449,14 @@ ${evalCtx}
 ${verdictCtx}
 
 GRAMMAIRE OBLIGATOIRE :
-- "faire preuve de" se construit avec un NOM : "faire preuve de sérieux", "faire preuve d'application". JAMAIS "faire preuve de sérieuse" (adjectif interdit ici).
+- "faire preuve de" se construit avec UN SEUL NOM : "faire preuve de sérieux", "faire preuve d'application". Si plusieurs qualités, les enchaîner autrement : "sérieuse, motivée et investie" ou "qui fait preuve de sérieux et d'investissement". JAMAIS "fait preuve de sérieux, motivée et investie" (mélange nom + adjectifs).
 - Le bilan d'ouverture s'écrit en minuscules après le premier mot : "Bon trimestre." PAS "BON TRIMESTRE."
+
+CAS PARTICULIERS — PARTICIPATION ET CONFIANCE :
+- Si "discret(e) et réservé(e)" ou "manque de confiance" est coché : NE PAS écrire "il faut participer davantage" ou "elle doit s'exprimer en classe" comme s'il s'agissait d'un manque de volonté. La timidité n'est pas un défaut de travail. Formulations adaptées : "continuer à oser s'exprimer", "ne pas hésiter à prendre la parole, les erreurs faisant partie de l'apprentissage", "gagner en confiance progressivement". Ton bienveillant obligatoire sur ce point.
+
+CAS PARTICULIERS — TRAVAIL RÉGULIER MAIS SUPERFICIEL :
+- Si "travail régulier" ET "travail satisfaisant sans pleinement investie" sont tous deux cochés : l'élève FAIT son travail régulièrement mais de façon trop superficielle. NE PAS écrire "travailler régulièrement" comme conseil — c'est déjà le cas. Écrire plutôt : "poursuivre ce travail régulier en l'approfondissant", "continuer sur cette lancée en allant plus loin dans les révisions".
 
 OBSERVATIONS DE L'ENSEIGNANT :
 ${checked.length ? checked.map(i => '• ' + i).join('\n') : '• Profil standard'}
