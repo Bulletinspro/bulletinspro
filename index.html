@@ -2599,18 +2599,28 @@ async function generateAll(){
 
 async function genBulk(sid){
   const cls=S.classes[S.active]; const st=getSt(sid); if(!st) throw new Error('student not found');
+  // Mark textarea as generating if visible
   const ta=document.getElementById('bta-'+sid);
-  if(!ta) throw new Error('textarea not found for '+sid);
-  ta.classList.add('gen');
+  if(ta) ta.classList.add('gen');
   try{
     const seed=STYLE_SEEDS[Math.floor(Math.random()*STYLE_SEEDS.length)];
     const raw=await callClaude(buildPrompt(st,cls,S.period,seed,sampMem(S.active)), 3, true);
     const txt=fitToLimit(raw.replace(/\n+/g,' ').trim(), cls.charLimit||750);
     if(!txt) throw new Error('empty text after processing');
-    ta.classList.remove('gen'); ta.value=txt;
-    addMem(S.active,txt); bulkSave(sid,txt);
+    // Save directly to state — don't depend on DOM being intact
+    if(!st.comments)st.comments={};
+    st.comments[S.period]=txt;
+    save();
+    addMem(S.active,txt);
+    // Update DOM if textarea still exists (may have been re-rendered)
+    const taFresh=document.getElementById('bta-'+sid);
+    if(taFresh){taFresh.classList.remove('gen');taFresh.value=txt;}
+    // Update char counter
+    const bcc=document.getElementById('bcc-'+sid);
+    if(bcc){bcc.textContent=`${txt.length}/${cls.charLimit||750}`;bcc.className='cchar ok';}
   }catch(e){
-    ta.classList.remove('gen');
+    const taFresh=document.getElementById('bta-'+sid);
+    if(taFresh) taFresh.classList.remove('gen');
     throw e;
   }
 }
@@ -2690,7 +2700,8 @@ function renderBulkView(content){
       <div class="bulk-bd">
         <textarea class="bulk-ta" id="bta-${st.id}" oninput="bulkSave('${st.id}',this.value)">${comment}</textarea>
         <div class="bulk-acts">
-          <button class="copy-btn" onclick="copyOne('${st.id}')">Copy</button>
+          <button class="copy-btn" onclick="copyOne('${st.id}')">📋</button>
+          <button class="act-btn" onclick="resetBulk('${st.id}')" title="Effacer">🗑</button>
           <button class="act-btn" onclick="genBulk('${st.id}')">↻</button>
         </div>
       </div>
@@ -2706,6 +2717,14 @@ function bulkSave(id,val){
   const el=document.getElementById('bcc-'+id);if(el){el.textContent=`${val.length}/750`;el.className='cchar'+(val.length>750?' over':val.length>0?' ok':'');}
 }
 function copyOne(id){const ta=document.getElementById('bta-'+id);if(ta?.value)navigator.clipboard.writeText(ta.value).then(()=>toast('Copié !'));}
+function resetBulk(id){
+  const ta=document.getElementById('bta-'+id); if(!ta)return;
+  ta.value='';
+  bulkSave(id,'');
+  updateProgressBar();
+  renderStudentList();
+  toast('🗑 Appréciation effacée');
+}
 function resetAllAppreciations(){
   const cls=S.classes[S.active]; if(!cls)return;
   if(!confirm(`Effacer les ${cls.students.length} appréciations du ${S.period===1?'T1':S.period===2?'T2':'T3'} ? Cette action est irréversible.`))return;
