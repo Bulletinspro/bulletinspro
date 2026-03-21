@@ -1174,7 +1174,11 @@ const CORE_BOXES = {
       {id:'qa5',l:'Persévérance',v:'pos'},
       {id:'qa6',l:'Entraide avec les camarades',v:'pos'},
       {id:'qa7',l:'Méthode de travail efficace',v:'pos'},
+      {id:'qa12',l:'Bonne volonté sincère',v:'pos'},
       {id:'qa11',l:'Potentiel sous-exploité par manque d\'ambition',v:'neutral'},
+      {id:'qa13',l:'Semble avoir d\'autres préoccupations en ce moment',v:'neutral'},
+      {id:'qa14',l:'Période personnelle difficile — bienveillance nécessaire',v:'neutral'},
+      {id:'qa15',l:'Fragilité émotionnelle perceptible',v:'neutral'},
       {id:'qa8',l:'Manque de méthode',v:'neg'},
       {id:'qa9',l:'Manque d\'autonomie',v:'neg'},
       {id:'qa10',l:'Attitude passive — manque d\'enthousiasme général',v:'neg'},
@@ -1188,8 +1192,12 @@ const CORE_BOXES = {
       {id:'co3',l:'Respectueux(se) et sérieux(se)',v:'pos'},
       {id:'co10',l:'Fait preuve de maturité',v:'pos'},
       {id:'co11',l:'Attitude constructive',v:'pos'},
+      {id:'co13',l:'Élève agréable et sympathique',v:'pos'},
+      {id:'co14',l:'Bonne intégration dans la classe',v:'pos'},
       {id:'co4',l:'Comportement correct',v:'neutral'},
       {id:'co12',l:'Discret(e) et réservé(e)',v:'neutral'},
+      {id:'co15',l:'Semble traverser une période difficile',v:'neutral'},
+      {id:'co16',l:'Manque de confiance en lui/elle',v:'neutral'},
       {id:'co5',l:'Manque de concentration',v:'neg'},
       {id:'co6',l:'Bavarde parfois',v:'neg'},
       {id:'co7',l:'Bavardages incessants',v:'neg'},
@@ -1605,6 +1613,7 @@ async function gdSaveToDrive(){
 
 function gdScheduleSync(){
   if(!GD.accessToken)return;
+  if(_generating)return; // Pause sync during bulk generation — prevent re-renders
   clearTimeout(GD.syncTimer);
   GD.syncTimer=setTimeout(()=>gdSaveToDrive(),2000); // debounce 2s
 }
@@ -2429,7 +2438,8 @@ RÈGLE DU POSITIF EN PREMIER : même pour un élève en difficulté, trouve d'ab
 CAS PARTICULIERS :
 - Si les observations indiquent une absence de notes ou un dossier incomplet : ne pas commenter les résultats académiques. Centrer l'appréciation sur l'assiduité et ses conséquences, sans inventer de résultats.
 - Si les observations indiquent des absences ciblées sur les évaluations importantes : le signaler clairement et professionnellement, sans agressivité mais sans édulcorer.
-- Si l'élève est quasi-absent : l'appréciation doit être courte, factuelle, et mentionner l'impossibilité d'évaluer le niveau réel.
+- Si les observations indiquent une fragilité émotionnelle ou une période personnelle difficile : l'appréciation doit être bienveillante et encourageante avant tout. Ne pas insister sur les manquements. Trouver ce qui va, valoriser l'attitude, terminer sur un message d'espoir discret. Le bulletin peut être lu par un adolescent fragile — une phrase bien formulée peut faire beaucoup de bien, une phrase maladroite peut faire du mal.
+- Si l'élève est agréable malgré de mauvais résultats : le souligner explicitement — c'est une qualité réelle qui mérite d'être reconnue. L'appréciation ne doit pas être uniquement négative.
 
 RÈGLES TECHNIQUES ABSOLUES :
 1. Longueur STRICTE : entre ${targetMin} et ${targetMax} caractères espaces inclus. Objectif idéal : ${Math.round((targetMin+targetMax)/2)} caractères. JAMAIS au-dessus de ${targetMax}.${charLimit<=400?' Format court imposé : 2-3 phrases maximum, aller droit au but, pas de développement.':' Si le profil est simple, 3 phrases suffisent.'}
@@ -2539,61 +2549,80 @@ async function generateAll(){
   const cls=S.classes[S.active]; if(!cls||!cls.students.length)return;
   _generating=true;
 
-  // Lock all generate buttons
-  document.querySelectorAll('[onclick*="goGenAll"], [onclick*="generateAll"]').forEach(b=>{b.disabled=true;b.style.opacity='.5';});
-
+  document.querySelectorAll('[onclick*="goGenAll"]').forEach(b=>{b.disabled=true;b.style.opacity='.5';});
   const banner=document.getElementById('gen-progress-banner');
   const setBanner=(msg)=>{if(banner){banner.style.display='block';banner.innerHTML=msg;}};
 
-  const BATCH=8; // Conservative — 8 calls with 3s gap = 24s < 60s window
+  const BATCH=8;
   const total=cls.students.length;
   let done=0, errors=0;
 
   try{
     for(let i=0;i<total;i++){
-      // Pause 62s between batches
+      const sid=cls.students[i].id;
+      const st=getSt(sid);
+      if(!st){errors++;continue;}
+
+      // Pause between batches
       if(i>0 && i%BATCH===0){
-        let countdown=62;
-        setBanner(`⏳ Pause API — reprise dans <strong>${countdown}s</strong> &nbsp;·&nbsp; ${done}/${total} rédigées`);
+        let countdown=65;
         await new Promise(resolve=>{
           const iv=setInterval(()=>{
             countdown--;
             setBanner(`⏳ Pause API — reprise dans <strong>${countdown}s</strong> &nbsp;·&nbsp; ${done}/${total} rédigées`);
             if(countdown<=0){clearInterval(iv);resolve();}
           },1000);
+          setBanner(`⏳ Pause API — reprise dans <strong>${countdown}s</strong> &nbsp;·&nbsp; ${done}/${total} rédigées`);
         });
       }
 
-      setBanner(`✏️ Génération en cours… <strong>${done+1}/${total}</strong>`);
-      const sid=cls.students[i].id;
-      let retried=false;
-      for(let attempt=0;attempt<2;attempt++){
+      setBanner(`✏️ Génération <strong>${i+1}/${total}</strong> — ${st.name||'Élève n°'+st.num}…`);
+
+      let success=false;
+      for(let attempt=0;attempt<3&&!success;attempt++){
+        if(attempt>0){
+          setBanner(`⚠️ Nouvelle tentative (${attempt}/2) pour élève ${i+1}…`);
+          await new Promise(r=>setTimeout(r,5000*(attempt)));
+        }
         try{
-          await genBulk(sid);
+          // Generate directly — save to state
+          const seed=STYLE_SEEDS[Math.floor(Math.random()*STYLE_SEEDS.length)];
+          const raw=await callClaude(buildPrompt(st,cls,S.period,seed,sampMem(S.active)), 1, true);
+          const txt=fitToLimit(raw.replace(/\n+/g,' ').trim(), cls.charLimit||750);
+          if(!txt) throw new Error('empty');
+          // Save to correct student
+          if(!st.comments)st.comments={};
+          st.comments[S.period]=txt;
+          addMem(S.active,txt);
+          // Update textarea if visible
+          const ta=document.getElementById('bta-'+sid);
+          if(ta){ta.classList.remove('gen');ta.value=txt;}
+          const bcc=document.getElementById('bcc-'+sid);
+          if(bcc){bcc.textContent=`${txt.length}/${cls.charLimit||750}`;bcc.className='cchar ok';}
+          success=true;
           done++;
           setBanner(`✅ <strong>${done}/${total}</strong> appréciations rédigées…`);
-          break;
         }catch(e){
-          if(attempt===0){
-            // Wait 10s and retry once
-            setBanner(`⚠️ Erreur élève ${done+1} — nouvelle tentative dans 10s…`);
-            await new Promise(r=>setTimeout(r,10000));
-          } else {
-            errors++;
-            console.warn('genBulk error after retry',sid,e);
-          }
+          console.warn(`Attempt ${attempt+1} failed for ${sid}:`,e.message);
         }
       }
+      if(!success) errors++;
 
-      if(i<total-1) await new Promise(r=>setTimeout(r,3000));
+      // Save state periodically (not every call to avoid re-renders)
+      if(i%4===3 || i===total-1) save();
+
+      // Pause between calls
+      if(i<total-1) await new Promise(r=>setTimeout(r,2500));
     }
 
-    setBanner(`🎉 Terminé — <strong>${done}/${total}</strong> appréciations générées !`);
-    setTimeout(()=>{if(banner)banner.style.display='none';},4000);
+    // Final save
+    save();
+    setBanner(`🎉 Terminé — <strong>${done}/${total}</strong> générées${errors>0?` · ${errors} erreur(s)`:''}`);
+    setTimeout(()=>{if(banner)banner.style.display='none';},5000);
 
   }finally{
     _generating=false;
-    document.querySelectorAll('[onclick*="goGenAll"], [onclick*="generateAll"]').forEach(b=>{b.disabled=false;b.style.opacity='';});
+    document.querySelectorAll('[onclick*="goGenAll"]').forEach(b=>{b.disabled=false;b.style.opacity='';});
   }
 }
 
