@@ -1254,6 +1254,10 @@ const SUBJECT_BOXES = {
         {id:'lo6',l:'Prononciation à travailler',v:'neg'},
         {id:'lo7',l:'Discret(e), s\'exprime peu en cours',v:'neutral'},
         {id:'lo8',l:'Accent et intonation à améliorer',v:'neg'},
+        {id:'lo9',l:"Des efforts à l'oral — en progrès",v:'neutral'},
+        {id:'lo10',l:'Participation orale encourageante',v:'neutral'},
+        {id:'lo11',l:"S'exprime mais avec des hésitations",v:'neutral'},
+        {id:'lo12',l:'Compréhension orale satisfaisante',v:'neutral'},
       ]
     },
     ecrit: {
@@ -1266,6 +1270,10 @@ const SUBJECT_BOXES = {
         {id:'ec5',l:'Bon niveau de langue à l\'écrit',v:'pos'},
         {id:'ec6',l:'Difficultés en compréhension',v:'neg'},
         {id:'ec7',l:'Erreurs grammaticales fréquentes',v:'neg'},
+        {id:'ec10',l:"Des progrès à l'écrit — en bonne voie",v:'neutral'},
+        {id:'ec11',l:"Expression écrite en progression",v:'neutral'},
+        {id:'ec12',l:'Compréhension en cours de consolidation',v:'neutral'},
+        {id:'ec13',l:'Rédaction correcte mais perfectible',v:'neutral'},
         {id:'ec8',l:'Vocabulaire limité',v:'neg'},
         {id:'ec9',l:'Expression écrite à développer',v:'neg'},
       ]
@@ -2407,7 +2415,13 @@ function buildPrompt(st,cls,period,seed,memSamp){
   const verdictObj = st.verdict ? VERDICT_PILLS.find(v=>v.id===st.verdict) : null;
   const verdictCtx = verdictObj
     ? `BILAN GLOBAL CHOISI PAR L'ENSEIGNANT : "${verdictObj.l}." — OBLIGATOIRE : cette expression ouvre l'appréciation, suivie d'un point. La phrase suivante commence par une majuscule. Ne jamais accoler deux phrases sans point entre elles.`
-    : `BILAN GLOBAL : l'enseignant n'a pas choisi d'expression d'ouverture — choisis toi-même la plus adaptée au profil parmi : "Bon trimestre.", "Trimestre satisfaisant.", "Trimestre encourageant.", "Trimestre décevant.", "Trimestre insuffisant.", "Très bon trimestre.", "Trimestre inquiétant.". Place-la en tout début d'appréciation, suivie d'un point.`;
+    : `BILAN GLOBAL : l'enseignant n'a pas choisi d'expression d'ouverture — tu dois en choisir une qui correspond PRÉCISÉMENT au profil réel de l'élève (niveau, résultats, observations). Voici le guide de sélection :
+- Profil quasi-entièrement positif, bon niveau → "Excellent trimestre." ou "Très bon trimestre."
+- Profil globalement positif avec quelques bémols → "Bon trimestre."
+- Profil mitigé, des efforts mais des lacunes → "Trimestre satisfaisant." ou "Trimestre encourageant."
+- Profil fragile, difficultés réelles, régression légère → "Trimestre fragile." ou "Trimestre décevant."
+- Profil en grande difficulté, régression importante → "Trimestre insuffisant." ou "Trimestre inquiétant."
+ATTENTION : si le niveau est "fragile" ou "insuffisant", ou si une régression est notée, NE PAS choisir "Bon trimestre" ou mieux. Le bilan doit refléter honnêtement la réalité.`;
 
   // Extract first name — handles formats: "Victoire", "BUISSON Victoire", "Victoire BUISSON"
   let studentName = null;
@@ -2449,13 +2463,21 @@ ${evalCtx}
 ${verdictCtx}
 
 GRAMMAIRE OBLIGATOIRE :
-- "faire preuve de" se construit avec UN SEUL NOM : "faire preuve de sérieux", "faire preuve d'application". Si plusieurs qualités, les enchaîner autrement : "sérieuse, motivée et investie" ou "qui fait preuve de sérieux et d'investissement". JAMAIS "fait preuve de sérieux, motivée et investie" (mélange nom + adjectifs).
+- "faire preuve de" exige UN SEUL NOM ABSTRAIT après "de" : "faire preuve de sérieux", "faire preuve d'application", "faire preuve de persévérance". JAMAIS plusieurs éléments : "fait preuve de sérieux, régulier et investi" est incorrect. Pour plusieurs qualités, abandonner "faire preuve de" et écrire directement : "Victoire est sérieuse, régulière et investie."
 - Le bilan d'ouverture s'écrit en minuscules après le premier mot : "Bon trimestre." PAS "BON TRIMESTRE."
 
 CAS PARTICULIERS — PARTICIPATION ET CONFIANCE :
-- Si "discret(e) et réservé(e)" ou "manque de confiance" est coché : NE PAS écrire "il faut participer davantage" ou "elle doit s'exprimer en classe" comme s'il s'agissait d'un manque de volonté. La timidité n'est pas un défaut de travail. Formulations adaptées : "continuer à oser s'exprimer", "ne pas hésiter à prendre la parole, les erreurs faisant partie de l'apprentissage", "gagner en confiance progressivement". Ton bienveillant obligatoire sur ce point.
+- Si "discret(e) et réservé(e)" ou "manque de confiance" est coché : NE PAS écrire "il faut participer davantage" comme s'il s'agissait d'un manque de volonté. La timidité n'est pas un défaut de travail. Utiliser des formulations naturelles et bienveillantes, par exemple :
+  → "Il lui faudra gagner en confiance pour oser davantage s'exprimer en classe."
+  → "Elle gagnera à oser prendre la parole plus souvent — les erreurs font partie de l'apprentissage."
+  → "Un peu plus d'assurance à l'oral lui permettrait de progresser encore."
+  Ces formulations sont des MODÈLES de construction — s'en inspirer, ne pas les copier mot pour mot.
 
-CAS PARTICULIERS — TRAVAIL RÉGULIER MAIS SUPERFICIEL :
+RÈGLE DE PLACEMENT DES NUANCES :
+Pour un profil positif ou très positif, les observations légèrement négatives (bavarde parfois, manque de concentration occasionnel) ne s'placent PAS juste après l'introduction. Elles s'intègrent discrètement dans la phrase de conclusion, comme un conseil léger :
+→ "Excellent trimestre. Victoire est sérieuse, investie et participe activement. Il lui faudra néanmoins veiller à limiter les bavardages pour rester concentrée. Félicitations."
+→ PAS : "Victoire est sérieuse... mais elle bavarde parfois." (la nuance casse brutalement l'élan positif)
+Pour un profil mitigé ou difficile, les points négatifs peuvent apparaître au cœur de l'appréciation.
 - Si "travail régulier" ET "travail satisfaisant sans pleinement investie" sont tous deux cochés : l'élève FAIT son travail régulièrement mais de façon trop superficielle. NE PAS écrire "travailler régulièrement" comme conseil — c'est déjà le cas. Écrire plutôt : "poursuivre ce travail régulier en l'approfondissant", "continuer sur cette lancée en allant plus loin dans les révisions".
 
 OBSERVATIONS DE L'ENSEIGNANT :
@@ -2494,8 +2516,22 @@ Ce que ces exemples illustrent :
 PRINCIPE FONDAMENTAL — SYNTHÈSE, PAS INVENTAIRE :
 Les observations ci-dessus sont un portrait de l'élève, pas une liste de choses à mentionner. Ton rôle est de SYNTHÉTISER : dégager l'impression d'ensemble et l'exprimer en quelques phrases naturelles. Un élève très positif avec un seul bémol (ex: bavardages) = une appréciation courte et positive avec une nuance légère. Un élève en difficulté = donner l'idée générale du problème, pas énumérer chaque manquement.
 
-RÈGLE ABSOLUE — NE JAMAIS INVENTER :
-Tu n'as le droit de mentionner QUE ce qui figure dans les observations cochées ci-dessus. RIEN d'autre.
+RÈGLE ABSOLUE — TOUTES LES OBSERVATIONS COCHÉES DOIVENT APPARAÎTRE :
+Chaque observation cochée DOIT être couverte dans l'appréciation. Mais "couverte" ne veut pas dire "citée séparément" — plusieurs observations liées se fondent en une seule phrase naturelle.
+Exemples de fusion :
+- "discret(e)" + "manque de confiance" + "participation faible" → une seule phrase : "Un peu plus d'assurance à l'oral lui permettrait de s'exprimer davantage."
+- "travail régulier" + "résultats satisfaisants" + "persévérance" → une seule phrase : "Son travail régulier et sa persévérance portent leurs fruits."
+- "bavarde parfois" + "manque de concentration" → une seule mention : "quelques bavardages qui nuisent parfois à sa concentration."
+L'objectif est que TOUTES les idées soient présentes, pas que chaque observation soit une phrase distincte.
+
+RÈGLE ABSOLUE — FIDÉLITÉ AUX OBSERVATIONS COCHÉES :
+1. Tout ce qui est coché DOIT apparaître (même brièvement).
+2. Rien qui n'est PAS coché ne doit apparaître — ni positif ni négatif.
+C'est la règle la plus importante du prompt. Violation dans les deux sens :
+- "bavarde parfois" NON coché → INTERDIT d'écrire qu'elle bavarde.
+- "difficultés de compréhension" NON coché → INTERDIT de l'écrire.
+- "persévérante" NON coché → INTERDIT de l'écrire.
+Le professeur a choisi PRÉCISÉMENT ses observations. Ajouter quelque chose qu'il n'a pas coché, c'est lui faire dire ce qu'il n'a pas dit.
 - Si "difficultés de compréhension" n'est PAS dans la liste → ne pas l'écrire.
 - Si "manque de méthode" n'est PAS dans la liste → ne pas l'écrire.
 - Si "résultats insuffisants" n'est PAS dans la liste → ne pas l'écrire.
