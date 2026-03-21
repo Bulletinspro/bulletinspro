@@ -1241,6 +1241,7 @@ const CORE_BOXES = {
       {id:'ob16',l:'Persévérer malgré les difficultés',v:'neutral'},
       {id:'ob9',l:'Implication accrue nécessaire',v:'neg'},
       {id:'ob10',l:'Attitude constructive requise',v:'neg'},
+      {id:'ob19',l:"S'investir davantage",v:'neutral'},
       {id:'ob11',l:'Respect à adopter en urgence',v:'neg'},
       {id:'ob12',l:'Investissement indispensable pour progresser',v:'neg'},
     ]
@@ -1529,6 +1530,36 @@ async function gdLoadFromDrive(){
       );
       if(!getRes.ok) throw new Error('get failed '+getRes.status);
       const remote=await getRes.json();
+
+      // SMART MERGE: local wins if its timestamp is newer than remote
+      const local=JSON.parse(localStorage.getItem('bp3')||'{}');
+      if(local.classes && remote.classes){
+        Object.keys(local.classes).forEach(cid=>{
+          if(!remote.classes[cid]) return;
+          const localCls=local.classes[cid];
+          const remoteCls=remote.classes[cid];
+          if(!localCls.students||!remoteCls.students) return;
+          localCls.students.forEach(localSt=>{
+            const remoteSt=remoteCls.students.find(s=>s.id===localSt.id);
+            if(!remoteSt) return;
+            if(!localSt.comments) return;
+            Object.keys(localSt.comments).forEach(period=>{
+              const localCmt=localSt.comments[period]||'';
+              const remoteCmt=(remoteSt.comments&&remoteSt.comments[period])||'';
+              const localTs=(localSt.commentTs&&localSt.commentTs[period])||0;
+              const remoteTs=(remoteSt.commentTs&&remoteSt.commentTs[period])||0;
+              // Local wins if: newer timestamp OR same timestamp but longer text
+              if(localTs > remoteTs || (localTs===remoteTs && localCmt.length > remoteCmt.length)){
+                if(!remoteSt.comments) remoteSt.comments={};
+                if(!remoteSt.commentTs) remoteSt.commentTs={};
+                remoteSt.comments[period]=localCmt;
+                remoteSt.commentTs[period]=localTs;
+              }
+            });
+          });
+        });
+      }
+
       S=remote;
       save();
       renderSidebar();renderPPSidebar();
@@ -1632,7 +1663,8 @@ async function gdSaveToDrive(){
     gdSetStatus('connected','Drive connecté',false);
   }catch(e){
     console.error('GD save error',e);
-    gdSetStatus('error','Erreur sync',true,'↺ Reconnecter','gdAuth()');
+    gdSetStatus('error','⚠️ Sync échouée — données locales préservées',true,'↺ Reconnecter','gdAuth()');
+    toast('⚠️ Synchronisation Drive échouée ! Vos données sont sauvegardées localement mais pas sur Drive. Reconnectez-vous.');
   } finally {
     GD.syncing=false;
   }
@@ -1642,7 +1674,7 @@ function gdScheduleSync(){
   if(!GD.accessToken)return;
   if(_generating)return; // Pause sync during bulk generation — prevent re-renders
   clearTimeout(GD.syncTimer);
-  GD.syncTimer=setTimeout(()=>gdSaveToDrive(),2000); // debounce 2s
+  GD.syncTimer=setTimeout(()=>gdSaveToDrive(),500); // debounce 500ms — faster to avoid data loss
 }
 
 function gdDisconnect(){
@@ -2325,7 +2357,14 @@ function setOP(id,path,btn){const st=getSt(id);st.orient.path=path;btn.closest('
 function setON(id,v){getSt(id).orient.note=v;save();}
 
 function onCI(id,val){saveCmt(id,val);updCC(id,val);updateProgressBar();}
-function saveCmt(id,val){const st=getSt(id);if(!st.comments)st.comments={};st.comments[S.period]=val;save();renderStudentList();}
+function saveCmt(id,val){
+  const st=getSt(id);
+  if(!st.comments)st.comments={};
+  if(!st.commentTs)st.commentTs={};
+  st.comments[S.period]=val;
+  st.commentTs[S.period]=Date.now(); // timestamp for merge conflict resolution
+  save();renderStudentList();
+}
 function updCC(id,val){
   const el=document.getElementById('cc-'+id);if(!el)return;
   const cls=S.classes[S.active];
@@ -2723,9 +2762,11 @@ async function generateAll(){
           const raw=await callClaude(buildPrompt(st,cls,S.period,seed,sampMem(S.active)), 3, true);
           const txt=fitToLimit(raw.replace(/\n+/g,' ').trim(), cls.charLimit||750);
           if(!txt) throw new Error('empty');
-          // Save to correct student
+          // Save to correct student with timestamp
           if(!st.comments)st.comments={};
+          if(!st.commentTs)st.commentTs={};
           st.comments[S.period]=txt;
+          st.commentTs[S.period]=Date.now();
           addMem(S.active,txt);
           // Update textarea if visible
           const ta=document.getElementById('bta-'+sid);
@@ -2771,7 +2812,9 @@ async function genBulk(sid){
     if(!txt) throw new Error('empty text after processing');
     // Save directly to state — don't depend on DOM being intact
     if(!st.comments)st.comments={};
+    if(!st.commentTs)st.commentTs={};
     st.comments[S.period]=txt;
+    st.commentTs[S.period]=Date.now();
     save();
     addMem(S.active,txt);
     // Update DOM if textarea still exists (may have been re-rendered)
@@ -2875,7 +2918,11 @@ function renderBulkView(content){
 
 function bulkSave(id,val){
   const st=getSt(id); if(!st)return;
-  if(!st.comments)st.comments={}; st.comments[S.period]=val; save();
+  if(!st.comments)st.comments={};
+  if(!st.commentTs)st.commentTs={};
+  st.comments[S.period]=val;
+  st.commentTs[S.period]=Date.now();
+  save();
   const el=document.getElementById('bcc-'+id);if(el){el.textContent=`${val.length}/750`;el.className='cchar'+(val.length>750?' over':val.length>0?' ok':'');}
 }
 function copyOne(id){const ta=document.getElementById('bta-'+id);if(ta?.value)navigator.clipboard.writeText(ta.value).then(()=>toast('Copié !'));}
