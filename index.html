@@ -2916,18 +2916,17 @@ async function generateAll(){
       for(let attempt=0;attempt<3&&!success;attempt++){
         if(attempt>0){
           setBanner(`⚠️ Nouvelle tentative (${attempt}/2) pour élève ${i+1}…`);
-          await new Promise(r=>setTimeout(r,10000*attempt+5000));
+          await new Promise(r=>setTimeout(r,8000));
         }
         try{
           const seed=STYLE_SEEDS[Math.floor(Math.random()*STYLE_SEEDS.length)];
           const raw=await callClaude(buildPrompt(st,cls,S.period,seed,sampMem(S.active)), 3, true);
           let txt=fitToLimit(raw.replace(/\n+/g,' ').trim(), cls.charLimit||750);
-          const minLen=Math.max(Math.round((cls.charLimit||750)*0.70),(cls.charLimit||750)-200);
-          const {checkedNeg,checkedPos}=buildPromptMeta(st,cls);
           if(!txt) throw new Error('empty');
-          if(txt.length<minLen) throw new Error(`too short: ${txt.length}<${minLen}`);
-          // In bulk mode: strip hallucinated sentences instead of retrying
-          txt=stripHallucinatedSentences(txt,checkedNeg,checkedPos,st.verdict);
+          const {checkedNeg,checkedPos}=buildPromptMeta(st,cls);
+          // Try to strip hallucinated sentences — but keep original if stripping leaves too little
+          const stripped=stripHallucinatedSentences(txt,checkedNeg,checkedPos,st.verdict);
+          if(stripped && stripped.length>100) txt=stripped;
           // Save to correct student with timestamp
           if(!st.comments)st.comments={};
           if(!st.commentTs)st.commentTs={};
