@@ -2549,10 +2549,15 @@ Pour un profil positif ou très positif, les observations légèrement négative
 Pour un profil mitigé ou difficile, les points négatifs peuvent apparaître au cœur de l'appréciation.
 - Si "travail régulier" ET "travail satisfaisant sans pleinement investie" sont tous deux cochés : l'élève FAIT son travail régulièrement mais de façon trop superficielle. NE PAS écrire "travailler régulièrement" comme conseil — c'est déjà le cas. Écrire plutôt : "poursuivre ce travail régulier en l'approfondissant", "continuer sur cette lancée en allant plus loin dans les révisions".
 
-OBSERVATIONS DE L'ENSEIGNANT :
-${checked.length ? checked.map(i => '• ' + i).join('\n') : '• Profil standard'}
-${checkedNeg.length ? `\nÉLÉMENTS NÉGATIFS — OBLIGATION ABSOLUE DE LES MENTIONNER TOUS :\n${checkedNeg.map(i=>'⚠️ '+i).join('\n')}\nChacun de ces points DOIT apparaître dans l'appréciation. Aucune exception.` : '\nAUCUN comportement négatif coché — ne pas en inventer.'}
-${uncheckedNeg.length ? `\nCOMPORTEMENTS NON OBSERVÉS — FORMELLEMENT INTERDITS :\nNe JAMAIS mentionner : ${uncheckedNeg.slice(0,8).join(', ')}. Ces éléments n'ont PAS été cochés par l'enseignant.` : ''}
+PROFIL COMPLET DE L'ÉLÈVE — LISTE EXHAUSTIVE ET DÉFINITIVE :
+Voici TOUT ce que l'enseignant a observé. Rien d'autre n'existe sur cet élève.
+${checked.length ? checked.map(i => '• ' + i).join('\n') : '• Profil standard — aucune observation particulière'}
+
+RÈGLE ABSOLUE : Tu ne peux utiliser QUE ces observations. Toute information absente de cette liste est INCONNUE et doit être traitée comme inexistante. En particulier :
+${checkedNeg.length
+  ? `Ces points négatifs ont été cochés et DOIVENT apparaître : ${checkedNeg.map(i=>'"'+i+'"').join(', ')}.`
+  : `Aucun point négatif n'a été coché. L'appréciation ne mentionne AUCUN défaut, AUCUN bavardage, AUCUN manque de concentration, AUCUNE difficulté — sauf si explicitement listé ci-dessus.`
+}
 ${aeshCtx}${orientCtx}${memCtx}
 
 EXEMPLES DE STYLE À IMITER — appréciations réelles d'enseignants français :
@@ -2612,7 +2617,7 @@ Le professeur a choisi PRÉCISÉMENT ses observations. Ajouter quelque chose qu'
 - Si "difficultés de compréhension" n'est PAS dans la liste → ne pas l'écrire.
 - Si "manque de méthode" n'est PAS dans la liste → ne pas l'écrire.
 - Si "résultats insuffisants" n'est PAS dans la liste → ne pas l'écrire.
-Inventer une observation non cochée est une erreur grave — le professeur a choisi précisément ce qu'il voulait dire. "Bavarde parfois" = bavardages occasionnels en classe — PAS "bavardages pendant les évaluations", PAS "distrait(e) pendant les contrôles". "Manque de concentration" = tendance générale — PAS "inattentif lors des exercices importants". Ne jamais inventer un contexte spécifique (évaluations, exposés, exercices) si l'observation est générale.
+Inventer une observation non cochée est une erreur grave. INTENSITÉ EXACTE OBLIGATOIRE : "Bavarde parfois" = écrire "parfois" — JAMAIS "souvent", "fréquemment", "régulièrement". Changer l'intensité d'une observation est interdit au même titre qu'en inventer une nouvelle. Le mot exact de l'observation s'utilise tel quel.
 
 STRUCTURE (guide souple, pas un plan rigide) :
 ① Ouvre par le bilan global choisi — 2 à 5 mots, suivi d'un point. Ce mot résume le trimestre. Ne jamais le contredire dans la conclusion (si on ouvre par "Bon trimestre", on ne peut pas finir par "c'est un excellent trimestre").
@@ -2621,10 +2626,10 @@ STRUCTURE (guide souple, pas un plan rigide) :
 
 RÈGLE DE PROPORTIONNALITÉ — FONDAMENTALE :
 Le poids accordé à chaque observation doit être proportionnel à son importance dans le profil global.
-- Si 8 observations positives et 1 négative → la négative mérite UNE nuance légère en passant ("même si elle peut parfois bavarder"), PAS une conclusion entière. La conclusion reste positive.
-- Si profil quasi-entièrement positif → conclusion = "Continuer sur cette lancée", "Félicitations", "Excellent trimestre à confirmer". JAMAIS un conseil de travail ou une mise en garde.
-- INTERDIT dans la conclusion d'un profil positif : "il est important que", "il est essentiel que", "elle doit veiller à", "elle devra".
-- FORMULATIONS VIDES INTERDITES : "régler ses difficultés", "travailler ses lacunes", "améliorer ses points faibles". Ces formulations ne disent rien de concret. Si une difficulté doit être mentionnée dans un profil positif, une seule formulation légère : "quelques difficultés de compréhension à lever" ou simplement ne pas la mentionner si le profil est excellent.
+- Si 8+ observations positives et 1 seule négative mineure (ex: "bavarde parfois") → le bilan reste EXCELLENT. Cette unique observation ne change pas le ton général. Elle s'intègre en une courte nuance : "même si elle peut parfois bavarder". C'est tout. La conclusion reste entièrement positive et valorisante.
+- Un seul point négatif mineur ne justifie PAS : changer le bilan de "Excellent" à "Bon", ni écrire "il est apparu que", ni transformer "parfois" en "souvent", ni faire de ce point le sujet principal de la conclusion.
+- Si profil quasi-entièrement positif → conclusion = "Continuer sur cette lancée", "Félicitations". JAMAIS un conseil de travail ou une mise en garde.
+- INTERDIT dans la conclusion d'un profil positif : "il est important que", "il est essentiel que", "elle doit veiller à".
 
 CAS PARTICULIERS :
 - Si "Dossier incomplet" ou "Aucune note" est coché ET que c'est la seule (ou quasi seule) observation : l'appréciation doit être TRÈS COURTE (2 phrases max), purement factuelle. NE RIEN INVENTER sur l'attitude, le sérieux, les capacités ou le comportement — ces informations ne sont pas disponibles. Ne pas écrire "fait preuve de sérieux", "élève agréable" ou quoi que ce soit sur le profil. Exemple : "Le dossier de ${citetEleve} est incomplet ce trimestre, ce qui ne permet pas d'évaluer son niveau. Il sera nécessaire de régulariser sa situation pour que le travail puisse être évalué."
