@@ -2603,7 +2603,8 @@ ATTENTION : si le niveau est "fragile" ou "insuffisant", ou si une régression e
   return `Tu es un professeur français rédigeant une appréciation de bulletin scolaire.
 Niveau : ${schoolLevelCtx} | ${pLabel} — ${periodCtx}
 
-ÉLÈVE : ${gender}. Articles : "${citetEleve}" / "${unEleve}". Accords au ${accord} PARTOUT.${subLabel?' Matière : '+subLabel+'.':''}
+ÉLÈVE : ${gender}. Articles : "${citetEleve}" / "${unEleve}". Accords au ${accord} PARTOUT.
+NE PAS mentionner la matière dans l'appréciation — le professeur et l'élève savent dans quel cours ils sont.
 ${studentRef}${evalCtx?'\n'+evalCtx:''}
 ${verdictCtx}
 
@@ -2618,6 +2619,14 @@ ${aeshCtx}${orientCtx}${prevCtx}${memCtx}
 
 RÈGLES DE SYNTHÈSE — OBLIGATOIRES :
 0. Longueur : maximum ${targetMax} caractères. Synthétise — 4-5 observations liées = 1 phrase fluide.
+0b. COUVERTURE : les domaines suivants cochés DOIVENT apparaître : ${[...new Set([...checkedPos,...checkedNeutral].map(c=>{
+  if(c.toLowerCase().includes('résultat')||c.toLowerCase().includes('progress')||c.toLowerCase().includes('régress')) return 'résultats';
+  if(c.toLowerCase().includes('travail')||c.toLowerCase().includes('effort')||c.toLowerCase().includes('devoir')) return 'travail';
+  if(c.toLowerCase().includes('particip')||c.toLowerCase().includes('oral')||c.toLowerCase().includes('question')||c.toLowerCase().includes('moteur')) return 'participation';
+  if(c.toLowerCase().includes('autonomi')||c.toLowerCase().includes('curiosité')||c.toLowerCase().includes('entraide')) return 'qualités';
+  if(c.toLowerCase().includes('comportement')||c.toLowerCase().includes('attitude')||c.toLowerCase().includes('bavard')) return 'comportement';
+  return null;
+}).filter(Boolean))].join(', ')||'tous les thèmes cochés'}.
 1. STRUCTURE : 3 à 5 phrases bien construites, chacune regroupant plusieurs observations. INTERDIT : une phrase par observation.
 2. PRÉNOM : 1 à 2 fois maximum. Varier les sujets : "${citetEleve}", "Son travail", "Ses résultats", connecteurs.
 3. CONNECTEURS VARIÉS : "Cependant,", "Toutefois,", "Par ailleurs,", "Néanmoins,", "C'est pourquoi,". Ne pas commencer 2 phrases consécutives par le même mot.
