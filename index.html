@@ -2387,6 +2387,18 @@ function resetComment(id){
 function copyC(id){const ta=document.getElementById('cta-'+id);if(!ta?.value)return;navigator.clipboard.writeText(ta.value).then(()=>{const b=document.getElementById('cpb-'+id);b.textContent='✓ Copié';b.classList.add('copied');setTimeout(()=>{b.textContent='Copier';b.classList.remove('copied');},1800);});}
 
 // ── PROMPT BUILDERS ───────────────────────────────────────────────────────────
+function buildPromptMeta(st,cls){
+  const allBoxes=getSubjectBoxes(cls.subject);
+  const checkedNeg=[];
+  Object.values(allBoxes).forEach(sec=>sec.items.forEach(item=>{
+    if(st.boxes&&st.boxes[item.id]&&item.v==='neg') checkedNeg.push(item.l);
+  }));
+  Object.values(CORE_BOXES).forEach(sec=>sec.items.forEach(item=>{
+    if(st.boxes&&st.boxes[item.id]&&item.v==='neg'&&!checkedNeg.includes(item.l)) checkedNeg.push(item.l);
+  }));
+  return {checkedNeg};
+}
+
 function buildPrompt(st,cls,period,seed,memSamp){
   const allBoxes=getSubjectBoxes(cls.subject);
   const checkedPos=[], checkedNeg=[], checkedNeutral=[];
@@ -2708,7 +2720,10 @@ async function callClaude(prompt, retries=3, bulkMode=false){
         body:JSON.stringify({
           model: model,
           max_tokens:1000,
-          messages:[{role:'user',content:prompt}]
+          messages:[
+            {role:'system', content:'Tu es un assistant qui rédige des appréciations scolaires. RÈGLE ABSOLUE : tu n\'utilises QUE les observations fournies par l\'enseignant. Tu n\'inventes AUCUNE information, AUCUN défaut, AUCUNE qualité absente de la liste. Si aucun comportement négatif n\'est listé, tu n\'en mentionnes AUCUN.'},
+            {role:'user',content:prompt}
+          ]
         })
       });
       if(r.status===429){
@@ -2730,13 +2745,38 @@ async function callClaude(prompt, retries=3, bulkMode=false){
   throw new Error('max retries exceeded');
 }
 
+// Keywords that signal hallucinated negatives
+const HALLUCINATION_KEYWORDS = [
+  'bavarage','bavardage','bavarde','bavard',
+  'distrait','distraite','distraction',
+  'manque de concentration','peu concentr',
+  'perturbat','perturbe'
+];
+
+function hasHallucination(txt, checkedNeg){
+  const t=txt.toLowerCase();
+  // Only flag if keyword present AND not in checkedNeg
+  return HALLUCINATION_KEYWORDS.some(kw=>{
+    if(!t.includes(kw)) return false;
+    // Check if this keyword corresponds to a checked negative
+    return !checkedNeg.some(neg=>neg.toLowerCase().includes(kw));
+  });
+}
+
 async function genOne(sid){
   const cls=S.classes[S.active]; const st=getSt(sid); if(!st)return;
   const ta=document.getElementById('cta-'+sid); if(!ta)return;
   ta.classList.add('gen'); ta.value='Rédaction en cours…';
   try{
     const seed=STYLE_SEEDS[Math.floor(Math.random()*STYLE_SEEDS.length)];
-    const txt=fitToLimit((await callClaude(buildPrompt(st,cls,S.period,seed,sampMem(S.active)))).replace(/\n+/g,' ').trim(), cls.charLimit||750);
+    const prompt=buildPrompt(st,cls,S.period,seed,sampMem(S.active));
+    const {checkedNeg}=buildPromptMeta(st,cls);
+    let txt='';
+    for(let attempt=0;attempt<3;attempt++){
+      txt=fitToLimit((await callClaude(prompt)).replace(/\n+/g,' ').trim(), cls.charLimit||750);
+      if(!hasHallucination(txt,checkedNeg)) break;
+      console.warn('Hallucination detected, retrying...',attempt+1);
+    }
     ta.classList.remove('gen'); ta.value=txt;
     addMem(S.active,txt); saveCmt(sid,txt); updCC(sid,txt);
     renderStudentList();
