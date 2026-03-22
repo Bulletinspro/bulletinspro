@@ -2648,7 +2648,7 @@ const _k='c2stb3ItdjEtMjVkZjQ3MDdjN2RmMmFlOTcwMGNjOTFlZjY0NGI5MjM3YzkyMzdkYzZmNj
 let _apiKey=atob(_k);
 
 async function callClaude(prompt, retries=3, bulkMode=false){
-  const model = 'llama-3.3-70b-versatile'; // Always use 70b — 8b can't handle the prompt complexity
+  const model = 'mistralai/mistral-7b-instruct:free';
   for(let attempt=0; attempt<retries; attempt++){
     try{
       const r=await fetch('https://openrouter.ai/api/v1/chat/completions',{
@@ -2825,7 +2825,7 @@ async function generateAll(){
           method:'POST',
           headers:{'Content-Type':'application/json','Authorization':`Bearer ${_apiKey}`,'HTTP-Referer':'https://bulletinspro.github.io','X-Title':'BulletinsPro'},
           body:JSON.stringify({
-            model:'meta-llama/llama-3.3-70b-instruct:free', // 131k tokens/min vs 6k for 70b — much better for bulk
+            model:'mistralai/mistral-7b-instruct:free', // Better rate limits than llama free tier
             max_tokens:800,
             messages:[
               {role:'system',content:'Tu rédiges des appréciations scolaires françaises. Utilise UNIQUEMENT les observations fournies. N\'invente rien.'},
