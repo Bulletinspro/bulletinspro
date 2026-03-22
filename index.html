@@ -2452,7 +2452,10 @@ function buildPrompt(st,cls,period,seed,memSamp){
 
   const charLimit=cls.charLimit||750;
   const targetMax=Math.round(charLimit*0.92);
-  const targetMin=Math.max(Math.round(charLimit*0.70), charLimit-200);
+  const richProfile=checked.length>=8;
+  const targetMin=richProfile
+    ? Math.max(Math.round(charLimit*0.80), charLimit-150)
+    : Math.max(Math.round(charLimit*0.70), charLimit-200);
   let evalCtx='';
   if(cls.evalType==='note'&&st.grade) evalCtx=`Moyenne : ${st.grade}/20. `;
   if((cls.evalType==='niveau'||cls.evalType==='mix')&&st.level) evalCtx+=`Niveau : ${st.level}. `;
@@ -2601,8 +2604,13 @@ Ce que ces exemples illustrent :
 - Les défauts graves sont nommés clairement et directement, surtout pour les élèves en grande difficulté
 - On peut terminer par un mot d'encouragement seul : "Félicitations." ou "Il est temps de réagir."
 
-PRINCIPE FONDAMENTAL — SYNTHÈSE, PAS INVENTAIRE :
-Les observations ci-dessus sont un portrait de l'élève, pas une liste de choses à mentionner. Ton rôle est de SYNTHÉTISER : dégager l'impression d'ensemble et l'exprimer en quelques phrases naturelles. Un élève très positif avec un seul bémol (ex: bavardages) = une appréciation courte et positive avec une nuance légère. Un élève en difficulté = donner l'idée générale du problème, pas énumérer chaque manquement.
+PRINCIPE FONDAMENTAL — SYNTHÈSE PROPORTIONNELLE :
+Le nombre d'observations cochées doit guider la richesse de l'appréciation.
+- 1 à 3 observations → appréciation courte, 2-3 phrases
+- 4 à 7 observations → appréciation moyenne, 3-4 phrases bien construites
+- 8 observations ou plus → appréciation complète, 4-5 phrases qui couvrent tous les aspects cochés
+Ne pas "sur-synthétiser" un profil riche en 2 phrases — ce serait gâcher l'information fournie par l'enseignant. Si beaucoup de choses positives sont cochées, l'appréciation doit le refléter par sa richesse.
+Les observations ci-dessus sont un portrait de l'élève. Ton rôle est de SYNTHÉTISER les éléments proches et de couvrir tous les aspects importants. Ne réduis pas un profil riche à 2 phrases — utilise la longueur disponible pour rendre justice à l'ensemble du profil. Groupe les observations liées en formulations naturelles mais assure-toi que chaque domaine coché (travail, participation, qualités, comportement) est présent dans l'appréciation.
 
 RÈGLE ABSOLUE — TOUTES LES OBSERVATIONS COCHÉES DOIVENT APPARAÎTRE :
 Chaque observation cochée DOIT être couverte. Pas d'exception, même sur un profil excellent.
@@ -2650,7 +2658,7 @@ CAS PARTICULIERS :
 - Si l'élève est agréable malgré de mauvais résultats : le souligner explicitement — c'est une qualité réelle qui mérite d'être reconnue. L'appréciation ne doit pas être uniquement négative.
 
 RÈGLES TECHNIQUES ABSOLUES :
-1. Longueur STRICTE : entre ${targetMin} et ${targetMax} caractères espaces inclus. Objectif idéal : ${Math.round((targetMin+targetMax)/2)} caractères. JAMAIS au-dessus de ${targetMax}.${charLimit<=400?' Format court imposé : 2-3 phrases maximum, aller droit au but, pas de développement.':' Si le profil est simple, 3 phrases suffisent.'}
+1. Longueur STRICTE : entre ${targetMin} et ${targetMax} caractères espaces inclus. Objectif idéal : ${Math.round((targetMin+targetMax)/2)} caractères. JAMAIS au-dessus de ${targetMax}.${richProfile?' Profil riche (8+ observations) : vise le haut de la fourchette, l\'appréciation doit être complète.':charLimit<=400?' Format court imposé : 2-3 phrases maximum.':' Si le profil est simple, 3 phrases suffisent.'}
 2. TEXTE BLOC CONTINU — UN SEUL PARAGRAPHE. Absolument aucun saut de ligne, aucun \\n, aucune séparation entre phrases. Tout doit tenir en un bloc de texte unique comme dans Pronote.
 3. Texte FLUIDE — aucune liste, aucun tiret. Connecteurs variés : "Cependant,", "Néanmoins,", "Par ailleurs,", "Tout en saluant… on notera que", "C'est pourquoi", "Ainsi,", etc.
 4. Ne mentionne pas chaque observation séparément. Si 3 éléments vont dans le même sens, une seule formulation synthétique suffit.
