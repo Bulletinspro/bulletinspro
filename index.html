@@ -2754,7 +2754,7 @@ async function generateAll(){
   const banner=document.getElementById('gen-progress-banner');
   const setBanner=(msg)=>{if(banner){banner.style.display='block';banner.innerHTML=msg;}};
 
-  const BATCH=5; // 70b model — 5 calls × 12s = 60s window
+  const BATCH=4; // 70b: ~4 calls × 15s = 60s window, safe margin
   const total=cls.students.length;
   let done=0, errors=0;
 
@@ -2808,8 +2808,8 @@ async function generateAll(){
       // Save state periodically (not every call to avoid re-renders)
       if(i%4===3 || i===total-1) save();
 
-      // Pause between calls — 70b needs more time (6000 tokens/min limit)
-      if(i<total-1) await new Promise(r=>setTimeout(r,12000));
+      // Pause between calls — 70b needs ~15s between calls
+      if(i<total-1) await new Promise(r=>setTimeout(r,15000));
     }
 
     // Final save
