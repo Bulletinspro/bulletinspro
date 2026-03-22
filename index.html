@@ -2389,8 +2389,28 @@ function copyC(id){const ta=document.getElementById('cta-'+id);if(!ta?.value)ret
 // ── PROMPT BUILDERS ───────────────────────────────────────────────────────────
 function buildPrompt(st,cls,period,seed,memSamp){
   const allBoxes=getSubjectBoxes(cls.subject);
-  const checked=[];
-  Object.values(allBoxes).forEach(sec=>sec.items.forEach(item=>{if(st.boxes&&st.boxes[item.id])checked.push(item.l);}));
+  const checkedPos=[], checkedNeg=[], checkedNeutral=[];
+  const allNegLabels=[];
+  // Collect from subject-specific boxes
+  Object.values(allBoxes).forEach(sec=>sec.items.forEach(item=>{
+    if(item.v==='neg') allNegLabels.push(item.l);
+    if(st.boxes&&st.boxes[item.id]){
+      if(item.v==='neg') checkedNeg.push(item.l);
+      else if(item.v==='neutral') checkedNeutral.push(item.l);
+      else checkedPos.push(item.l);
+    }
+  }));
+  // Collect from core boxes (shared)
+  Object.values(CORE_BOXES).forEach(sec=>sec.items.forEach(item=>{
+    if(item.v==='neg') allNegLabels.push(item.l);
+    if(st.boxes&&st.boxes[item.id]){
+      if(item.v==='neg'&&!checkedNeg.includes(item.l)) checkedNeg.push(item.l);
+      else if(item.v==='neutral'&&!checkedNeutral.includes(item.l)) checkedNeutral.push(item.l);
+      else if(item.v==='pos'&&!checkedPos.includes(item.l)) checkedPos.push(item.l);
+    }
+  }));
+  const uncheckedNeg=allNegLabels.filter(l=>!checkedNeg.includes(l));
+  const checked=[...checkedPos,...checkedNeutral,...checkedNeg];
 
   const tone=st.tone||cls.tone||'equilibre';
   const toneDesc={
@@ -2531,6 +2551,8 @@ Pour un profil mitigé ou difficile, les points négatifs peuvent apparaître au
 
 OBSERVATIONS DE L'ENSEIGNANT :
 ${checked.length ? checked.map(i => '• ' + i).join('\n') : '• Profil standard'}
+${checkedNeg.length ? `\nÉLÉMENTS NÉGATIFS — OBLIGATION ABSOLUE DE LES MENTIONNER TOUS :\n${checkedNeg.map(i=>'⚠️ '+i).join('\n')}\nChacun de ces points DOIT apparaître dans l'appréciation. Aucune exception.` : '\nAUCUN comportement négatif coché — ne pas en inventer.'}
+${uncheckedNeg.length ? `\nCOMPORTEMENTS NON OBSERVÉS — FORMELLEMENT INTERDITS :\nNe JAMAIS mentionner : ${uncheckedNeg.slice(0,8).join(', ')}. Ces éléments n'ont PAS été cochés par l'enseignant.` : ''}
 ${aeshCtx}${orientCtx}${memCtx}
 
 EXEMPLES DE STYLE À IMITER — appréciations réelles d'enseignants français :
