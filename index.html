@@ -2644,18 +2644,17 @@ function fitToLimit(txt, limit){
   return txt.slice(0, lastSpace).trim();
 }
 
-const _k='Z3NrX2t2eGx0UTVuWm50d0FKdGREUTgzV0dkeWIzRlllR1g1aUNyejNkak1TekRBUU9wd0ZHWWI=';
+const _k='c2stb3ItdjEtMjVkZjQ3MDdjN2RmMmFlOTcwMGNjOTFlZjY0NGI5MjM3YzkyMzdkYzZmNjg0NTA1MjI5MDRlM2UxNDdiOGQ2OQ==';
 let _apiKey=atob(_k);
 
 async function callClaude(prompt, retries=3, bulkMode=false){
   const model = 'llama-3.3-70b-versatile'; // Always use 70b — 8b can't handle the prompt complexity
   for(let attempt=0; attempt<retries; attempt++){
     try{
-      const r=await fetch('https://api.groq.com/openai/v1/chat/completions',{
+      const r=await fetch('https://openrouter.ai/api/v1/chat/completions',{
         method:'POST',
         headers:{
-          'Content-Type':'application/json',
-          'Authorization':`Bearer ${_apiKey}`
+          'Content-Type':'application/json','Authorization':`Bearer ${_apiKey}`,'HTTP-Referer':'https://bulletinspro.github.io','X-Title':'BulletinsPro'
         },
         body:JSON.stringify({
           model: model,
@@ -2786,8 +2785,8 @@ async function generateAll(){
   // Track tokens used this minute
   let tokensThisMinute=0;
   let minuteStart=Date.now();
-  const TOKEN_LIMIT=5500; // Stay under 6000/min with margin
-  const TOKENS_PER_CALL=950; // ~650 prompt + ~300 response
+  const TOKEN_LIMIT=120000; // 8b-instant: 131k tokens/min
+  const TOKENS_PER_CALL=950;
 
   const waitMs=(ms)=>new Promise(r=>setTimeout(r,ms));
 
@@ -2816,14 +2815,17 @@ async function generateAll(){
 
       setBanner(`✏️ Génération <strong>${i+1}/${total}</strong> — ${st.name||'Élève n°'+st.num}…`);
 
-      try{
+      let retries429=0;
+      let studentDone=false;
+      while(!studentDone){
+        try{
         const seed=STYLE_SEEDS[Math.floor(Math.random()*STYLE_SEEDS.length)];
         // Single attempt — no retries in bulk to avoid cascading 429s
-        const r=await fetch('https://api.groq.com/openai/v1/chat/completions',{
+        const r=await fetch('https://openrouter.ai/api/v1/chat/completions',{
           method:'POST',
-          headers:{'Content-Type':'application/json','Authorization':`Bearer ${_apiKey}`},
+          headers:{'Content-Type':'application/json','Authorization':`Bearer ${_apiKey}`,'HTTP-Referer':'https://bulletinspro.github.io','X-Title':'BulletinsPro'},
           body:JSON.stringify({
-            model:'llama-3.3-70b-versatile',
+            model:'meta-llama/llama-3.3-70b-instruct:free', // 131k tokens/min vs 6k for 70b — much better for bulk
             max_tokens:800,
             messages:[
               {role:'system',content:'Tu rédiges des appréciations scolaires françaises. Utilise UNIQUEMENT les observations fournies. N\'invente rien.'},
@@ -2833,11 +2835,17 @@ async function generateAll(){
         });
 
         if(r.status===429){
-          // Rate limited — wait 60s and retry this student
-          await countdown(62, s=>`⏳ Limite API pour élève ${i+1} — reprise dans <strong>${s}s</strong>`);
-          tokensThisMinute=0;minuteStart=Date.now();
-          i--; // retry same student
-          continue;
+          if(retries429>=2){
+            // Too many 429s — skip this student and move on
+            errors++;
+            setBanner(`⚠️ Élève ${i+1} ignoré après trop d'erreurs API — on continue…`);
+            await waitMs(3000);
+            break;
+          }
+          retries429++;
+          await countdown(65, s=>`⏳ Limite API élève ${i+1} (tentative ${retries429}/2) — reprise dans <strong>${s}s</strong>`);
+          tokensThisMinute=0; minuteStart=Date.now();
+          continue; // retry same student
         }
 
         if(!r.ok) throw new Error('API error '+r.status);
@@ -2860,20 +2868,23 @@ async function generateAll(){
 
         tokensThisMinute+=TOKENS_PER_CALL;
         done++;
+        studentDone=true;
         setBanner(`✅ <strong>${done}/${total}</strong> appréciations rédigées…`);
 
-        // Save to localStorage immediately (no Drive sync during generation)
+        // Save to localStorage immediately
         try{localStorage.setItem('bp3',JSON.stringify(S));}catch(e){}
 
       }catch(e){
         errors++;
+        studentDone=true;
         console.warn('Bulk error student',sid,e.message);
         setBanner(`⚠️ Erreur élève ${i+1} — on continue… (${errors} erreur(s))`);
         await waitMs(2000);
       }
+      } // end while
 
-      // Minimum pause between calls to avoid rate limit
-      if(i<total-1) await waitMs(10000);
+      // Minimum pause between calls — 8b-instant can handle fast calls
+      if(i<total-1) await waitMs(2000);
     }
 
     // Final save including Drive sync
