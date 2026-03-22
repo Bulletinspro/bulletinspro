@@ -2467,10 +2467,36 @@ function buildPrompt(st,cls,period,seed,memSamp){
 
   const charLimit=cls.charLimit||750;
   const targetMax=Math.round(charLimit*0.92);
-  const richProfile=checked.length>=8;
-  const targetMin=richProfile
-    ? Math.max(Math.round(charLimit*0.80), charLimit-150)
-    : Math.max(Math.round(charLimit*0.70), charLimit-200);
+
+  // Count distinct thematic groups (not raw pill count)
+  // Pills saying the same thing from different angles count as 1
+  const THEME_GROUPS=[
+    ['discret','réservé','exprime peu','participe peu','évite de prendre','timide','confiance'],
+    ['bavard','bavardage'],
+    ['travail régulier','efforts soutenus','soin apporté','devoirs toujours','travail sérieux'],
+    ['résultats','progression','régression','fragile','insuffisant','excellent'],
+    ['participe activement','pose de bonnes','engagement exemplaire','moteur'],
+    ['autonomie','méthode','organisation'],
+    ['comportement','attitude','maturité','perturbat'],
+    ['assiduité','absent','ponctualité'],
+    ['oral','prononciation','expression orale','aisance'],
+    ['écrit','grammaire','vocabulaire','compréhension écrite'],
+    ['curiosité','esprit critique','créativité'],
+    ['AESH','accompagnement'],
+  ];
+  const usedGroups=new Set();
+  checked.forEach(item=>{
+    const il=item.toLowerCase();
+    let matched=false;
+    THEME_GROUPS.forEach((grp,gi)=>{
+      if(!matched && grp.some(kw=>il.includes(kw))){
+        usedGroups.add(gi); matched=true;
+      }
+    });
+    if(!matched) usedGroups.add('misc_'+item); // unique misc item
+  });
+  const thematicCount=usedGroups.size;
+  const richProfile=thematicCount>=6;
   let evalCtx='';
   if(cls.evalType==='note'&&st.grade) evalCtx=`Moyenne : ${st.grade}/20. `;
   if((cls.evalType==='niveau'||cls.evalType==='mix')&&st.level) evalCtx+=`Niveau : ${st.level}. `;
@@ -2568,19 +2594,19 @@ ${isDiscreet ? '\n⛔ Discret/réservé coché → INTERDIRE : participe activem
 ${aeshCtx}${orientCtx}${memCtx}
 
 RÈGLES :
-1. Longueur : entre ${Math.round(targetMax*0.4)+(checked.length*25)} et ${targetMax} caractères. ${checked.length} observations → minimum ${Math.round(targetMax*0.4)+(checked.length*25)} caractères obligatoire. Les phrases doivent être complètes et naturelles, pas télégraphiques.
+1. Longueur : entre ${Math.min(Math.round(targetMax*0.2)+(thematicCount*55), Math.round(targetMax*0.92))} et ${targetMax} caractères. ${thematicCount} thèmes distincts → minimum ${Math.min(Math.round(targetMax*0.2)+(thematicCount*55), Math.round(targetMax*0.92))} caractères. Phrases complètes et naturelles.
 2. UN seul paragraphe continu — aucun saut de ligne.
-3. FLUIDE : fondre 2-3 observations en une phrase. Jamais 3 phrases consécutives avec le même sujet (Elle…Elle…Elle… interdit).
+3. FUSION OBLIGATOIRE : plusieurs observations qui disent la même chose = UNE SEULE phrase. "Discret(e)", "participe peu", "évite de prendre la parole" → une seule formulation bienveillante : "Elle gagnerait à oser davantage s'exprimer en classe." Ne pas répéter la même idée en conclusion si elle a déjà été mentionnée.
 4. Bilan d'ouverture minuscules ("Bon trimestre." pas "BON TRIMESTRE.") — ne pas répéter en conclusion.
 5. "faire preuve de" + UN NOM uniquement. Plusieurs qualités : "sérieuse, régulière et investie" (pas "fait preuve de sérieux, régulière et investie").
 6. Ton : ${toneDesc}. Langue : français uniquement.
 7. Félicitations : seulement si verdict excellent/très bon OU pill félicitations cochée.
 8. Discret/réservé : bienveillance — pas "doit participer davantage". Dire : "gagner en confiance pour oser s'exprimer".
-9. Variété : difficulté→lacunes/fragilités, travail→efforts/investissement, progresser→avancer/évoluer.
-10. CLICHÉS INTERDITS : "ambiance de classe qui n'est pas toujours propice", "même dans une ambiance", ne pas répéter deux fois le même connecteur dans une phrase.
-10b. GRAMMAIRE : "de"→"d'" devant voyelle : "d'excellents résultats", "d'une belle autonomie". JAMAIS "des excellents" ni "Avec d'une" — toujours "Avec une".
-10c. PHRASES SENSÉES : pas d'expressions inventées ("élévation d'esprit", etc.). Vocabulaire scolaire attesté uniquement.
-10d. RÉPÉTITIONS INTERDITES : ne jamais utiliser "avec" plus d'une fois. Ne jamais répéter le même mot clé à moins de 2 phrases d'écart. Varier : "avec"→ "grâce à", "dont", "témoignant de", "qui fait preuve de".
+9. Variété lexicale : éviter de répéter le même mot clé 2 fois de suite. "avec"→"grâce à"/"dont"/"témoignant de". MAIS : certains mots ne doivent PAS être remplacés par des inventions — "moteur de la classe" reste "moteur de la classe" (JAMAIS "motorisation"). Si un mot précis existe, l'utiliser tel quel.
+10. PHRASES CLAIRES : une phrase = une idée principale. Ne pas entasser 4 observations dans une seule phrase avec des virgules en cascade. Max 2 idées liées par phrase.
+10b. GRAMMAIRE : "de"→"d'" devant voyelle : "d'excellents résultats". JAMAIS "des excellents".
+10c. PAS D'EXPRESSIONS INVENTÉES : "motorisation", "font l'admiration", "élévation d'esprit" → INTERDITS. Vocabulaire scolaire attesté uniquement.
+11. Répondre UNIQUEMENT avec l'appréciation, sans guillemets ni commentaire.
 11. Répondre UNIQUEMENT avec l'appréciation, sans guillemets ni commentaire.`;
 }
 
@@ -2785,10 +2811,27 @@ async function generateAll(){
         const raw=await callClaude(buildPrompt(st,cls,S.period,seed,sampMem(S.active)), 3, true);
         let txt=fitToLimit(raw.replace(/\n+/g,' ').trim(), cls.charLimit||750);
         if(!txt) throw new Error('empty');
-        // Soft strip hallucinated sentences
         const {checkedNeg,checkedPos}=buildPromptMeta(st,cls);
+        // Strip hallucinated sentences
         const stripped=stripHallucinatedSentences(txt,checkedNeg,checkedPos,st.verdict);
         if(stripped&&stripped.length>80) txt=stripped;
+        // If a checked negative is missing, add it naturally before Félicitations or at end
+        if(checkedNeg.length){
+          const tl=txt.toLowerCase();
+          const NUANCES={'bavard':'on notera néanmoins quelques bavardages','distrait':'quelques distractions sont à surveiller','concentr':'la concentration reste un point de vigilance','participe peu':'une participation plus active serait bénéfique','évite de prendre':'elle gagnerait à oser davantage prendre la parole'};
+          checkedNeg.forEach(neg=>{
+            const nl=neg.toLowerCase();
+            if(tl.includes(nl.split(' ')[0])) return; // already mentioned
+            const key=Object.keys(NUANCES).find(k=>nl.includes(k));
+            const nuance=key?NUANCES[key]:`on notera ${nl}`;
+            if(txt.includes('Félicitations')){
+              txt=txt.replace('Félicitations',`Néanmoins, ${nuance}. Félicitations`);
+            } else {
+              txt=txt.replace(/\.$/, '')+`. Néanmoins, ${nuance}.`;
+            }
+            txt=fitToLimit(txt, cls.charLimit||750);
+          });
+        }
         // Save
         if(!st.comments)st.comments={};
         if(!st.commentTs)st.commentTs={};
