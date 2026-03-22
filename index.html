@@ -2591,6 +2591,7 @@ ${checkedNeg.length
   ? '\n⚠️ POINTS NÉGATIFS — DOIVENT APPARAÎTRE : '+checkedNeg.join(' | ')
   : '\n⛔ AUCUN défaut coché → INTERDITS : bavardage, distraction, difficulté, lacune.'}
 ${isDiscreet ? '\n⛔ Discret/réservé → INTERDIRE : "participe activement", "participe régulièrement". Dire : "suit attentivement", "s\'implique discrètement".' : ''}
+${checked.some(c=>c.toLowerCase().includes('régress')&&(isDiscreet||checkedNeg.length>=2)) ? '\n⚠️ RÉGRESSION + profil fragile : ne pas mentionner la régression brutalement. Dire plutôt : "des efforts supplémentaires permettront de retrouver une dynamique positive" ou "il lui faudra redoubler d\'efforts pour inverser la tendance". L\'objectif est d\'encourager, pas de décourager.' : ''}
 ${aeshCtx}${orientCtx}${memCtx}
 
 RÈGLES DE SYNTHÈSE — OBLIGATOIRES :
@@ -2601,8 +2602,8 @@ RÈGLES DE SYNTHÈSE — OBLIGATOIRES :
 4. MAX 2-3 adjectifs en début. RÉPÉTITIONS INTERDITES : "investie" dit → pas "engagement exemplaire". "Moteur" dit → pas "participe activement".
 5. Points négatifs sur profil positif : 1 phrase bienveillante EN FIN. Pas agressive.
 6. Ton : ${toneDesc}. Félicitations seulement si excellent/très bon verdict.
-7. "son travail est régulier" pas "elle est régulière dans son travail". "elle maîtrise l'expression orale" pas "elle exprime une bonne maîtrise".
-8. Mots inventés interdits : "entraideuse", "motorisation" → "aide ses camarades", "moteur de la classe".
+7. "son travail est régulier" pas "elle est régulière dans son travail". "elle maîtrise l'expression orale" pas "elle exprime une bonne maîtrise". "Cette élève" pas "Ceste élève". JAMAIS "satisfaisant" plus d'une fois.
+8. FUSION : 3 observations similaires (discret + participe peu + évite de prendre la parole) = UNE seule phrase courte et bienveillante. Ne pas les répéter en conclusion si déjà mentionnées.
 9. Répondre UNIQUEMENT avec l'appréciation, sans guillemets ni commentaire.`;
 }
 
@@ -2640,14 +2641,14 @@ function fitToLimit(txt, limit){
   return txt.slice(0, lastSpace).trim();
 }
 
-const _k='Z3NrX2xKT21pVW1Lc0FUMHlBeTk3OWxVV0dkeWIzRllYMktqbVJpM3hGZTJXYXBnR1R1dngzNHk=';
+const _k='c2stb3ItdjEtMjVkZjQ3MDdjN2RmMmFlOTcwMGNjOTFlZjY0NGI5MjM3YzkyMzdkYzZmNjg0NTA1MjI5MDRlM2UxNDdiOGQ2OQ==';
 let _apiKey=atob(_k);
 
 async function callClaude(prompt, retries=3, bulkMode=false){
-  const model = 'llama-3.3-70b-versatile';
+  const model = 'anthropic/claude-sonnet-4-5';
   for(let attempt=0; attempt<retries; attempt++){
     try{
-      const r=await fetch('https://api.groq.com/openai/v1/chat/completions',{
+      const r=await fetch('https://openrouter.ai/api/v1/chat/completions',{
         method:'POST',
         headers:{
           'Content-Type':'application/json','Authorization':`Bearer ${_apiKey}`,'HTTP-Referer':'https://bulletinspro.github.io','X-Title':'BulletinsPro'
@@ -2819,7 +2820,7 @@ async function generateAll(){
         try{
         const seed=STYLE_SEEDS[Math.floor(Math.random()*STYLE_SEEDS.length)];
         // Single attempt — no retries in bulk to avoid cascading 429s
-        const r=await fetch('https://api.groq.com/openai/v1/chat/completions',{
+        const r=await fetch('https://openrouter.ai/api/v1/chat/completions',{
           method:'POST',
           headers:{'Content-Type':'application/json','Authorization':`Bearer ${_apiKey}`,'HTTP-Referer':'https://bulletinspro.github.io','X-Title':'BulletinsPro'},
           body:JSON.stringify({
