@@ -2645,7 +2645,7 @@ const _k='c2stb3ItdjEtMjVkZjQ3MDdjN2RmMmFlOTcwMGNjOTFlZjY0NGI5MjM3YzkyMzdkYzZmNj
 let _apiKey=atob(_k);
 
 async function callClaude(prompt, retries=3, bulkMode=false){
-  const model = 'anthropic/claude-sonnet-4-5';
+  const model = 'anthropic/claude-3.5-sonnet';
   for(let attempt=0; attempt<retries; attempt++){
     try{
       const r=await fetch('https://openrouter.ai/api/v1/chat/completions',{
@@ -2668,7 +2668,10 @@ async function callClaude(prompt, retries=3, bulkMode=false){
         await new Promise(res=>setTimeout(res,wait));
         continue;
       }
-      if(!r.ok) throw new Error('API '+r.status);
+      if(!r.ok){
+        const errBody=await r.text().catch(()=>'');
+        throw new Error('API '+r.status+' '+errBody.slice(0,100));
+      }
       const d=await r.json();
       const txt=d.choices?.[0]?.message?.content?.trim()||'';
       if(!txt) throw new Error('empty response');
