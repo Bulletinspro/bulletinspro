@@ -2757,12 +2757,14 @@ async function genOne(sid){
       console.warn('Hallucination detected, retrying...');
     }
     ta.classList.remove('gen');
-    // Final safety strip even after retries
+    // Safety strip — only apply if result is non-empty
     const cleanTxt=stripHallucinatedSentences(txt,checkedNeg,checkedPos,st.verdict);
-    ta.value=cleanTxt;
-    addMem(S.active,cleanTxt); saveCmt(sid,cleanTxt); updCC(sid,cleanTxt);
+    const finalTxt=(cleanTxt&&cleanTxt.length>50)?cleanTxt:txt;
+    if(!finalTxt){toast('Erreur : génération vide');return;}
+    ta.value=finalTxt;
+    addMem(S.active,finalTxt); saveCmt(sid,finalTxt); updCC(sid,finalTxt);
     renderStudentList();
-  }catch(e){ta.classList.remove('gen');ta.value='';toast('Erreur de génération');}
+  }catch(e){ta.classList.remove('gen');ta.value='';console.error('genOne error:',e);toast('Erreur de génération: '+e.message);}
 }
 
 let _generating=false; // Global lock
