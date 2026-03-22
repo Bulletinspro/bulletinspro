@@ -2644,14 +2644,14 @@ function fitToLimit(txt, limit){
   return txt.slice(0, lastSpace).trim();
 }
 
-const _k='c2stb3ItdjEtMjVkZjQ3MDdjN2RmMmFlOTcwMGNjOTFlZjY0NGI5MjM3YzkyMzdkYzZmNjg0NTA1MjI5MDRlM2UxNDdiOGQ2OQ==';
+const _k='Z3NrX2t2eGx0UTVuWm50d0FKdGREUTgzV0dkeWIzRlllR1g1aUNyejNkak1TekRBUU9wd0ZHWWI=';
 let _apiKey=atob(_k);
 
 async function callClaude(prompt, retries=3, bulkMode=false){
-  const model = 'mistralai/mistral-7b-instruct:free';
+  const model = 'llama-3.3-70b-versatile';
   for(let attempt=0; attempt<retries; attempt++){
     try{
-      const r=await fetch('https://openrouter.ai/api/v1/chat/completions',{
+      const r=await fetch('https://api.groq.com/openai/v1/chat/completions',{
         method:'POST',
         headers:{
           'Content-Type':'application/json','Authorization':`Bearer ${_apiKey}`,'HTTP-Referer':'https://bulletinspro.github.io','X-Title':'BulletinsPro'
@@ -2821,11 +2821,11 @@ async function generateAll(){
         try{
         const seed=STYLE_SEEDS[Math.floor(Math.random()*STYLE_SEEDS.length)];
         // Single attempt — no retries in bulk to avoid cascading 429s
-        const r=await fetch('https://openrouter.ai/api/v1/chat/completions',{
+        const r=await fetch('https://api.groq.com/openai/v1/chat/completions',{
           method:'POST',
           headers:{'Content-Type':'application/json','Authorization':`Bearer ${_apiKey}`,'HTTP-Referer':'https://bulletinspro.github.io','X-Title':'BulletinsPro'},
           body:JSON.stringify({
-            model:'mistralai/mistral-7b-instruct:free', // Better rate limits than llama free tier
+            model:'llama-3.3-70b-versatile:free', // Better rate limits than llama free tier
             max_tokens:800,
             messages:[
               {role:'system',content:'Tu rédiges des appréciations scolaires françaises. Utilise UNIQUEMENT les observations fournies. N\'invente rien.'},
