@@ -2781,9 +2781,21 @@ async function generateAll(){
   const banner=document.getElementById('gen-progress-banner');
   const setBanner=(msg)=>{if(banner){banner.style.display='block';banner.innerHTML=msg;}};
 
-  const BATCH=4; // 70b: ~4 calls × 15s = 60s window, safe margin
   const total=cls.students.length;
   let done=0, errors=0;
+  // Track tokens used this minute
+  let tokensThisMinute=0;
+  let minuteStart=Date.now();
+  const TOKEN_LIMIT=5500; // Stay under 6000/min with margin
+  const TOKENS_PER_CALL=950; // ~650 prompt + ~300 response
+
+  const waitMs=(ms)=>new Promise(r=>setTimeout(r,ms));
+
+  const countdown=(sec, msg)=>new Promise(resolve=>{
+    let s=sec;
+    setBanner(msg(s));
+    const iv=setInterval(()=>{s--;setBanner(msg(s));if(s<=0){clearInterval(iv);resolve();}},1000);
+  });
 
   try{
     for(let i=0;i<total;i++){
@@ -2791,75 +2803,83 @@ async function generateAll(){
       const st=getSt(sid);
       if(!st){errors++;continue;}
 
-      // Pause between batches
-      if(i>0 && i%BATCH===0){
-        let countdown=65;
-        await new Promise(resolve=>{
-          const iv=setInterval(()=>{
-            countdown--;
-            setBanner(`⏳ Pause API — reprise dans <strong>${countdown}s</strong> &nbsp;·&nbsp; ${done}/${total} rédigées`);
-            if(countdown<=0){clearInterval(iv);resolve();}
-          },1000);
-          setBanner(`⏳ Pause API — reprise dans <strong>${countdown}s</strong> &nbsp;·&nbsp; ${done}/${total} rédigées`);
-        });
+      // Token rate limiting — reset counter every minute
+      const elapsed=Date.now()-minuteStart;
+      if(elapsed>=60000){tokensThisMinute=0;minuteStart=Date.now();}
+
+      // If adding this call would exceed limit, wait for the minute to reset
+      if(tokensThisMinute+TOKENS_PER_CALL>TOKEN_LIMIT){
+        const waitSec=Math.ceil((60000-elapsed)/1000)+2;
+        await countdown(waitSec, s=>`⏳ Pause rate limit — reprise dans <strong>${s}s</strong> &nbsp;·&nbsp; ${done}/${total} rédigées`);
+        tokensThisMinute=0;minuteStart=Date.now();
       }
 
       setBanner(`✏️ Génération <strong>${i+1}/${total}</strong> — ${st.name||'Élève n°'+st.num}…`);
 
       try{
         const seed=STYLE_SEEDS[Math.floor(Math.random()*STYLE_SEEDS.length)];
-        const raw=await callClaude(buildPrompt(st,cls,S.period,seed,sampMem(S.active)), 3, true);
-        let txt=fitToLimit(raw.replace(/\n+/g,' ').trim(), cls.charLimit||750);
-        if(!txt) throw new Error('empty');
-        const {checkedNeg,checkedPos}=buildPromptMeta(st,cls);
-        // Strip hallucinated sentences
-        const stripped=stripHallucinatedSentences(txt,checkedNeg,checkedPos,st.verdict);
-        if(stripped&&stripped.length>80) txt=stripped;
-        // If a checked negative is missing, add it naturally before Félicitations or at end
-        if(checkedNeg.length){
-          const tl=txt.toLowerCase();
-          const NUANCES={'bavard':'on notera néanmoins quelques bavardages','distrait':'quelques distractions sont à surveiller','concentr':'la concentration reste un point de vigilance','participe peu':'une participation plus active serait bénéfique','évite de prendre':'elle gagnerait à oser davantage prendre la parole'};
-          checkedNeg.forEach(neg=>{
-            const nl=neg.toLowerCase();
-            if(tl.includes(nl.split(' ')[0])) return; // already mentioned
-            const key=Object.keys(NUANCES).find(k=>nl.includes(k));
-            const nuance=key?NUANCES[key]:`on notera ${nl}`;
-            if(txt.includes('Félicitations')){
-              txt=txt.replace('Félicitations',`Néanmoins, ${nuance}. Félicitations`);
-            } else {
-              txt=txt.replace(/\.$/, '')+`. Néanmoins, ${nuance}.`;
-            }
-            txt=fitToLimit(txt, cls.charLimit||750);
-          });
+        // Single attempt — no retries in bulk to avoid cascading 429s
+        const r=await fetch('https://api.groq.com/openai/v1/chat/completions',{
+          method:'POST',
+          headers:{'Content-Type':'application/json','Authorization':`Bearer ${_apiKey}`},
+          body:JSON.stringify({
+            model:'llama-3.3-70b-versatile',
+            max_tokens:800,
+            messages:[
+              {role:'system',content:'Tu rédiges des appréciations scolaires françaises. Utilise UNIQUEMENT les observations fournies. N\'invente rien.'},
+              {role:'user',content:buildPrompt(st,cls,S.period,seed,sampMem(S.active))}
+            ]
+          })
+        });
+
+        if(r.status===429){
+          // Rate limited — wait 60s and retry this student
+          await countdown(62, s=>`⏳ Limite API pour élève ${i+1} — reprise dans <strong>${s}s</strong>`);
+          tokensThisMinute=0;minuteStart=Date.now();
+          i--; // retry same student
+          continue;
         }
-        // Save
+
+        if(!r.ok) throw new Error('API error '+r.status);
+        const d=await r.json();
+        let txt=(d.choices?.[0]?.message?.content||'').replace(/\n+/g,' ').trim();
+        if(!txt) throw new Error('empty response');
+        txt=fitToLimit(txt, cls.charLimit||750);
+
+        // Save immediately to state
         if(!st.comments)st.comments={};
         if(!st.commentTs)st.commentTs={};
         st.comments[S.period]=txt;
         st.commentTs[S.period]=Date.now();
         addMem(S.active,txt);
+        // Update DOM if visible
         const ta=document.getElementById('bta-'+sid);
         if(ta){ta.classList.remove('gen');ta.value=txt;}
         const bcc=document.getElementById('bcc-'+sid);
         if(bcc){bcc.textContent=`${txt.length}/${cls.charLimit||750}`;bcc.className='cchar ok';}
+
+        tokensThisMinute+=TOKENS_PER_CALL;
         done++;
         setBanner(`✅ <strong>${done}/${total}</strong> appréciations rédigées…`);
+
+        // Save to localStorage immediately (no Drive sync during generation)
+        try{localStorage.setItem('bp3',JSON.stringify(S));}catch(e){}
+
       }catch(e){
         errors++;
-        console.warn('genBulk error',sid,e.message);
+        console.warn('Bulk error student',sid,e.message);
+        setBanner(`⚠️ Erreur élève ${i+1} — on continue… (${errors} erreur(s))`);
+        await waitMs(2000);
       }
 
-      // Save state periodically (not every call to avoid re-renders)
-      if(i%4===3 || i===total-1) save();
-
-      // Pause between calls — 70b needs ~15s between calls
-      if(i<total-1) await new Promise(r=>setTimeout(r,15000));
+      // Minimum pause between calls to avoid rate limit
+      if(i<total-1) await waitMs(10000);
     }
 
-    // Final save
+    // Final save including Drive sync
     save();
-    setBanner(`🎉 Terminé — <strong>${done}/${total}</strong> générées${errors>0?` · ${errors} erreur(s)`:''}`);
-    setTimeout(()=>{if(banner)banner.style.display='none';},5000);
+    setBanner(`🎉 Terminé — <strong>${done}/${total}</strong> générées${errors>0?` · <span style="color:#f87171">${errors} erreur(s)</span>`:''}`);
+    setTimeout(()=>{if(banner)banner.style.display='none';},6000);
 
   }finally{
     _generating=false;
