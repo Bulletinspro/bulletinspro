@@ -2577,7 +2577,8 @@ RÈGLES :
 7. Félicitations : seulement si verdict excellent/très bon OU pill félicitations cochée.
 8. Discret/réservé : bienveillance — pas "doit participer davantage". Dire : "gagner en confiance pour oser s'exprimer".
 9. Variété : difficulté→lacunes/fragilités, travail→efforts/investissement, progresser→avancer/évoluer.
-10. CLICHÉS INTERDITS : "ambiance de classe qui n'est pas toujours propice", "même dans une ambiance", "ne pas répéter deux fois le même connecteur dans la même phrase" ("Cependant… cependant" interdit).
+10. CLICHÉS INTERDITS : "ambiance de classe qui n'est pas toujours propice", "même dans une ambiance", ne pas répéter deux fois le même connecteur dans une phrase.
+10b. GRAMMAIRE : "de" → "d'" devant voyelle : "d'excellents résultats", "d'une belle autonomie". JAMAIS "des excellents" (toujours "d'excellents").
 11. Répondre UNIQUEMENT avec l'appréciation, sans guillemets ni commentaire.`;
 }
 
@@ -2784,10 +2785,22 @@ async function generateAll(){
         const raw=await callClaude(buildPrompt(st,cls,S.period,seed,sampMem(S.active)), 3, true);
         let txt=fitToLimit(raw.replace(/\n+/g,' ').trim(), cls.charLimit||750);
         if(!txt) throw new Error('empty');
-        // Soft strip only — keep original if result too short
+        // Soft strip hallucinated sentences
         const {checkedNeg,checkedPos}=buildPromptMeta(st,cls);
         const stripped=stripHallucinatedSentences(txt,checkedNeg,checkedPos,st.verdict);
         if(stripped&&stripped.length>100) txt=stripped;
+        // Force any missing negatives into conclusion
+        if(checkedNeg.length){
+          const tl=txt.toLowerCase();
+          checkedNeg.forEach(neg=>{
+            const kw=neg.toLowerCase().split(' ').slice(0,2).join(' ');
+            if(!tl.includes(kw)){
+              // Append as a nuance
+              txt=txt.replace(/\.$/, '')+`, même si ${neg.toLowerCase()} est à surveiller.`;
+            }
+          });
+          txt=fitToLimit(txt, cls.charLimit||750);
+        }
         // Save
         if(!st.comments)st.comments={};
         if(!st.commentTs)st.commentTs={};
