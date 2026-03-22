@@ -1715,7 +1715,15 @@ function gdLogout(){
 // Phrase memory (session only)
 const mem = {}; // classId -> Set
 function getMem(cid){if(!mem[cid])mem[cid]=new Set();return mem[cid];}
-function addMem(cid,txt){const m=getMem(cid);const w=txt.split(' ');for(let i=0;i<w.length-3;i++)m.add(w.slice(i,i+4).join(' ').toLowerCase());}
+function addMem(cid,txt){
+  const m=getMem(cid);
+  // Strip the first word if it looks like a name (capitalized, not a verdict word)
+  const verdicts=['Excellent','Très','Bon','Trimestre','Un','Une','Cette','Cet','Il','Elle'];
+  const words=txt.split(' ');
+  const startIdx=(words[0]&&words[0]===words[0].charAt(0).toUpperCase()+words[0].slice(1)&&!verdicts.includes(words[0]))?1:0;
+  const clean=words.slice(startIdx).join(' ');
+  for(let i=0;i<clean.split(' ').length-3;i++){const w=clean.split(' ');m.add(w.slice(i,i+4).join(' ').toLowerCase());}
+}
 function sampMem(cid){const arr=[...getMem(cid)];if(!arr.length)return '';return arr.sort(()=>.5-Math.random()).slice(0,10).join(' | ');}
 
 // ── BOOT — deferred; full init runs after all PP code is defined ──────────────
@@ -2389,14 +2397,20 @@ function copyC(id){const ta=document.getElementById('cta-'+id);if(!ta?.value)ret
 // ── PROMPT BUILDERS ───────────────────────────────────────────────────────────
 function buildPromptMeta(st,cls){
   const allBoxes=getSubjectBoxes(cls.subject);
-  const checkedNeg=[];
+  const checkedNeg=[], checkedPos=[];
   Object.values(allBoxes).forEach(sec=>sec.items.forEach(item=>{
-    if(st.boxes&&st.boxes[item.id]&&item.v==='neg') checkedNeg.push(item.l);
+    if(st.boxes&&st.boxes[item.id]){
+      if(item.v==='neg') checkedNeg.push(item.l);
+      else checkedPos.push(item.l);
+    }
   }));
   Object.values(CORE_BOXES).forEach(sec=>sec.items.forEach(item=>{
-    if(st.boxes&&st.boxes[item.id]&&item.v==='neg'&&!checkedNeg.includes(item.l)) checkedNeg.push(item.l);
+    if(st.boxes&&st.boxes[item.id]){
+      if(item.v==='neg'&&!checkedNeg.includes(item.l)) checkedNeg.push(item.l);
+      else if(item.v!=='neg'&&!checkedPos.includes(item.l)) checkedPos.push(item.l);
+    }
   }));
-  return {checkedNeg};
+  return {checkedNeg, checkedPos};
 }
 
 function buildPrompt(st,cls,period,seed,memSamp){
@@ -2557,7 +2571,8 @@ CAS PARTICULIERS — PARTICIPATION ET CONFIANCE :
   → "Un peu plus d'assurance à l'oral lui permettrait de progresser encore."
   Ces formulations sont des MODÈLES de construction — s'en inspirer, ne pas les copier mot pour mot.
 
-RÈGLE DE PLACEMENT DES NUANCES :
+RÈGLES DE COHÉRENCE — CONTRADICTIONS INTERDITES :
+- Si "Discret(e) et réservé(e)" ou "s'exprime peu" est coché → INTERDIRE toute formulation de participation active : "participe activement", "participe régulièrement", "prend souvent la parole", "participe avec dynamisme". Utiliser à la place : "suit attentivement", "est attentif(ve)", "s'implique discrètement".
 Pour un profil positif ou très positif, les observations légèrement négatives (bavarde parfois, manque de concentration occasionnel) ne s'placent PAS juste après l'introduction. Elles s'intègrent discrètement dans la phrase de conclusion, comme un conseil léger :
 → "Excellent trimestre. Victoire est sérieuse, investie et participe activement. Il lui faudra néanmoins veiller à limiter les bavardages pour rester concentrée. Félicitations."
 → PAS : "Victoire est sérieuse... mais elle bavarde parfois." (la nuance casse brutalement l'élan positif)
@@ -2608,8 +2623,12 @@ PRINCIPE FONDAMENTAL — SYNTHÈSE PROPORTIONNELLE :
 Le nombre d'observations cochées doit guider la richesse de l'appréciation.
 - 1 à 3 observations → appréciation courte, 2-3 phrases
 - 4 à 7 observations → appréciation moyenne, 3-4 phrases bien construites
-- 8 observations ou plus → appréciation complète, 4-5 phrases qui couvrent tous les aspects cochés
-Ne pas "sur-synthétiser" un profil riche en 2 phrases — ce serait gâcher l'information fournie par l'enseignant. Si beaucoup de choses positives sont cochées, l'appréciation doit le refléter par sa richesse.
+- 8 observations ou plus → appréciation complète, 4-5 phrases qui couvrent TOUS les aspects cochés
+
+COUVERTURE OBLIGATOIRE : Avant de terminer, vérifie que chaque domaine coché est présent :
+${checked.length>=4?`Tu as ${checked.length} observations à couvrir. Chaque groupe thématique doit apparaître au moins une fois.`:'Couvre toutes les observations listées.'}
+
+Ne pas "sur-synthétiser" un profil riche en 2-3 phrases — ce serait gâcher l'information fournie. Utilise TOUTE la longueur disponible pour rendre justice au profil complet.
 Les observations ci-dessus sont un portrait de l'élève. Ton rôle est de SYNTHÉTISER les éléments proches et de couvrir tous les aspects importants. Ne réduis pas un profil riche à 2 phrases — utilise la longueur disponible pour rendre justice à l'ensemble du profil. Groupe les observations liées en formulations naturelles mais assure-toi que chaque domaine coché (travail, participation, qualités, comportement) est présent dans l'appréciation.
 
 RÈGLE ABSOLUE — TOUTES LES OBSERVATIONS COCHÉES DOIVENT APPARAÎTRE :
@@ -2643,6 +2662,7 @@ STRUCTURE (guide souple, pas un plan rigide) :
 ① Ouvre par le bilan global choisi — 2 à 5 mots, suivi d'un point. Ce mot résume le trimestre. Ne jamais le contredire dans la conclusion (si on ouvre par "Bon trimestre", on ne peut pas finir par "c'est un excellent trimestre").
 ② En 1 ou 2 phrases : ce qui caractérise cet élève ce trimestre (travail, attitude, compétences — fondu ensemble si possible).
 ③ Conclus par une phrase prospective courte : encouragement précis ou conseil actionnable. Pas de second bilan global.
+${checkedPos.includes('Félicitations')?'④ Termine par "Félicitations." — ce mot a été explicitement choisi par l\'enseignant.':'④ NE PAS écrire "Félicitations" — ce mot n\'a pas été coché par l\'enseignant.'}
 
 RÈGLE DE PROPORTIONNALITÉ — FONDAMENTALE :
 Le poids accordé à chaque observation doit être proportionnel à son importance dans le profil global.
@@ -2755,20 +2775,38 @@ async function callClaude(prompt, retries=3, bulkMode=false){
 
 // Keywords that signal hallucinated negatives
 const HALLUCINATION_KEYWORDS = [
-  'bavarage','bavardage','bavarde','bavard',
+  'bavarag','bavardage','bavarde','bavarder','bavard',
   'distrait','distraite','distraction',
   'manque de concentration','peu concentr',
   'perturbat','perturbe'
 ];
 
-function hasHallucination(txt, checkedNeg){
+const HALLUCINATION_POSITIVE = ['félicitations','félicitati'];
+
+function hasHallucination(txt, checkedNeg, checkedPos, verdictId){
   const t=txt.toLowerCase();
-  // Only flag if keyword present AND not in checkedNeg
-  return HALLUCINATION_KEYWORDS.some(kw=>{
+  const checkedAll=[...checkedNeg,...checkedPos].map(s=>s.toLowerCase());
+
+  // Check negative hallucinations
+  const negHallucination = HALLUCINATION_KEYWORDS.some(kw=>{
     if(!t.includes(kw)) return false;
-    // Check if this keyword corresponds to a checked negative
-    return !checkedNeg.some(neg=>neg.toLowerCase().includes(kw));
+    return !checkedNeg.some(neg=>neg.toLowerCase().includes(kw.substring(0,5)));
   });
+  if(negHallucination) return true;
+
+  // Check félicitations — only allowed if ticked OR verdict is excellent/très bon
+  const excellentVerdict=['vd1','vd2'].includes(verdictId||'');
+  const felicitationsTicked=checkedPos.some(pos=>pos.toLowerCase().includes('félicit'));
+  if(t.includes('félicit')&&!felicitationsTicked&&!excellentVerdict) return true;
+
+  // Check contradictions — active participation language when student is discreet
+  const isDiscreet=checkedAll.some(s=>s.includes('discret')||s.includes('réservé')||s.includes('exprime peu'));
+  if(isDiscreet){
+    const activeParticipationKw=['participe activement','participe régulièrement','participation active','participation régulière','participe avec dynamisme','prend souvent la parole'];
+    if(activeParticipationKw.some(kw=>t.includes(kw))) return true;
+  }
+
+  return false;
 }
 
 async function genOne(sid){
@@ -2778,12 +2816,16 @@ async function genOne(sid){
   try{
     const seed=STYLE_SEEDS[Math.floor(Math.random()*STYLE_SEEDS.length)];
     const prompt=buildPrompt(st,cls,S.period,seed,sampMem(S.active));
-    const {checkedNeg}=buildPromptMeta(st,cls);
+    const {checkedNeg, checkedPos}=buildPromptMeta(st,cls);
+    const minLen=Math.max(Math.round((cls.charLimit||750)*0.70),(cls.charLimit||750)-200);
     let txt='';
     for(let attempt=0;attempt<3;attempt++){
       txt=fitToLimit((await callClaude(prompt)).replace(/\n+/g,' ').trim(), cls.charLimit||750);
-      if(!hasHallucination(txt,checkedNeg)) break;
-      console.warn('Hallucination detected, retrying...',attempt+1);
+      const tooShort=txt.length<minLen;
+      const hallucinated=hasHallucination(txt,checkedNeg,checkedPos,st.verdict);
+      if(!tooShort&&!hallucinated) break;
+      if(tooShort) console.warn(`Too short (${txt.length}<${minLen}), retrying...`);
+      if(hallucinated) console.warn('Hallucination detected, retrying...');
     }
     ta.classList.remove('gen'); ta.value=txt;
     addMem(S.active,txt); saveCmt(sid,txt); updCC(sid,txt);
@@ -2834,11 +2876,14 @@ async function generateAll(){
           await new Promise(r=>setTimeout(r,10000*attempt+5000));
         }
         try{
-          // Generate directly — save to state
           const seed=STYLE_SEEDS[Math.floor(Math.random()*STYLE_SEEDS.length)];
           const raw=await callClaude(buildPrompt(st,cls,S.period,seed,sampMem(S.active)), 3, true);
           const txt=fitToLimit(raw.replace(/\n+/g,' ').trim(), cls.charLimit||750);
+          const minLen=Math.max(Math.round((cls.charLimit||750)*0.70),(cls.charLimit||750)-200);
+          const {checkedNeg,checkedPos}=buildPromptMeta(st,cls);
           if(!txt) throw new Error('empty');
+          if(txt.length<minLen) throw new Error(`too short: ${txt.length}<${minLen}`);
+          if(hasHallucination(txt,checkedNeg,checkedPos,st.verdict)) throw new Error('hallucination detected');
           // Save to correct student with timestamp
           if(!st.comments)st.comments={};
           if(!st.commentTs)st.commentTs={};
