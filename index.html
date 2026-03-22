@@ -2573,21 +2573,37 @@ CAS PARTICULIERS — PARTICIPATION ET CONFIANCE :
 
 RÈGLES DE COHÉRENCE — CONTRADICTIONS INTERDITES :
 - Si "Discret(e) et réservé(e)" ou "s'exprime peu" est coché → INTERDIRE toute formulation de participation active : "participe activement", "participe régulièrement", "prend souvent la parole", "participe avec dynamisme". Utiliser à la place : "suit attentivement", "est attentif(ve)", "s'implique discrètement".
-Pour un profil positif ou très positif, les observations légèrement négatives (bavarde parfois, manque de concentration occasionnel) ne s'placent PAS juste après l'introduction. Elles s'intègrent discrètement dans la phrase de conclusion, comme un conseil léger :
-→ "Excellent trimestre. Victoire est sérieuse, investie et participe activement. Il lui faudra néanmoins veiller à limiter les bavardages pour rester concentrée. Félicitations."
-→ PAS : "Victoire est sérieuse... mais elle bavarde parfois." (la nuance casse brutalement l'élan positif)
-Pour un profil mitigé ou difficile, les points négatifs peuvent apparaître au cœur de l'appréciation.
-- Si "travail régulier" ET "travail satisfaisant sans pleinement investie" sont tous deux cochés : l'élève FAIT son travail régulièrement mais de façon trop superficielle. NE PAS écrire "travailler régulièrement" comme conseil — c'est déjà le cas. Écrire plutôt : "poursuivre ce travail régulier en l'approfondissant", "continuer sur cette lancée en allant plus loin dans les révisions".
+
+RÈGLE ANTI-LISTE — TEXTE FLUIDE OBLIGATOIRE :
+L'appréciation doit lire comme un paragraphe naturel, PAS comme une liste de qualités juxtaposées.
+INTERDIT : "Elle est sérieuse. Elle participe. Elle travaille bien. Son engagement est remarquable. Elle fait preuve de motivation." (énumération plate)
+CORRECT : Fondre 2-3 observations en une seule phrase fluide : "Sérieuse et régulière, elle s'investit dans les cours et apporte un soin particulier à son travail, témoignant d'une motivation constante."
+Chaque phrase doit faire avancer le portrait globalement, pas juste ajouter une qualité de plus.
 
 PROFIL COMPLET DE L'ÉLÈVE — LISTE EXHAUSTIVE ET DÉFINITIVE :
 Voici TOUT ce que l'enseignant a observé. Rien d'autre n'existe sur cet élève.
 ${checked.length ? checked.map(i => '• ' + i).join('\n') : '• Profil standard — aucune observation particulière'}
 
-RÈGLE ABSOLUE : Tu ne peux utiliser QUE ces observations. Toute information absente de cette liste est INCONNUE et doit être traitée comme inexistante. En particulier :
 ${checkedNeg.length
-  ? `Ces points négatifs ont été cochés et DOIVENT apparaître : ${checkedNeg.map(i=>'"'+i+'"').join(', ')}.`
-  : `Aucun point négatif n'a été coché. L'appréciation ne mentionne AUCUN défaut, AUCUN bavardage, AUCUN manque de concentration, AUCUNE difficulté — sauf si explicitement listé ci-dessus.`
+  ? `POINTS NÉGATIFS COCHÉS — DOIVENT TOUS APPARAÎTRE :\n${checkedNeg.map(i=>'⚠️ '+i).join('\n')}`
+  : `⛔ AUCUN POINT NÉGATIF N'A ÉTÉ COCHÉ.
+⛔ NE PAS ÉCRIRE : bavardages, bavarde, distraction, manque de concentration, difficultés, lacunes, ni aucun autre défaut.
+⛔ CES MOTS SONT INTERDITS DANS CETTE APPRÉCIATION.
+⛔ L'appréciation parle uniquement des qualités listées ci-dessus.`
 }
+
+STYLE — TEXTE FLUIDE OBLIGATOIRE, MÊME LONG :
+L'appréciation doit lire comme un paragraphe écrit par un humain, PAS comme une liste déguisée.
+INTERDIT même dans une appréciation longue :
+- Enchaîner plus de 2 phrases commençant par le même sujet ("Elle…, Elle…, Elle…")
+- Enchaîner des phrases de même longueur et même structure
+- Lister les qualités les unes après les autres sans les connecter
+
+OBLIGATOIRE :
+- Fondre plusieurs observations dans une seule phrase fluide : "Son sérieux et sa régularité lui permettent d'avancer, même si elle gagnerait à s'impliquer davantage."
+- Varier les constructions : groupes nominaux ("Son investissement…"), relatives ("Élève qui se distingue par…"), sujets différents ("Le travail fourni reflète…", "Les résultats témoignent…")
+- Connecter les idées avec des nuances : "Cependant,", "Tout en reconnaissant…", "Si X, il reste que Y"
+- Une appréciation de 5 phrases doit avoir 5 structures grammaticales DIFFÉRENTES
 ${aeshCtx}${orientCtx}${memCtx}
 
 EXEMPLES DE STYLE À IMITER — appréciations réelles d'enseignants français :
@@ -2783,6 +2799,30 @@ const HALLUCINATION_KEYWORDS = [
 
 const HALLUCINATION_POSITIVE = ['félicitations','félicitati'];
 
+function stripHallucinatedSentences(txt, checkedNeg, checkedPos, verdictId){
+  const excellentVerdict=['vd1','vd2'].includes(verdictId||'');
+  const felicitationsTicked=checkedPos.some(p=>p.toLowerCase().includes('félicit'));
+  const isDiscreet=([...checkedNeg,...checkedPos]).some(s=>s.toLowerCase().includes('discret')||s.toLowerCase().includes('réservé')||s.toLowerCase().includes('exprime peu'));
+
+  // Split into sentences
+  const sentences=txt.split(/(?<=[.!?])\s+/);
+  const filtered=sentences.filter(s=>{
+    const sl=s.toLowerCase();
+    // Remove hallucinated bavardages if not ticked
+    const hasBavard=HALLUCINATION_KEYWORDS.some(kw=>sl.includes(kw));
+    if(hasBavard && !checkedNeg.some(n=>n.toLowerCase().includes('bavard'))) return false;
+    // Remove félicitations if not appropriate
+    if(sl.includes('félicit') && !felicitationsTicked && !excellentVerdict) return false;
+    // Remove active participation if discreet
+    if(isDiscreet){
+      const activeKw=['participe activement','participe régulièrement','participation active','participation régulière','participe avec dynamisme','prend souvent la parole'];
+      if(activeKw.some(kw=>sl.includes(kw))) return false;
+    }
+    return true;
+  });
+  return filtered.join(' ').trim();
+}
+
 function hasHallucination(txt, checkedNeg, checkedPos, verdictId){
   const t=txt.toLowerCase();
   const checkedAll=[...checkedNeg,...checkedPos].map(s=>s.toLowerCase());
@@ -2819,7 +2859,7 @@ async function genOne(sid){
     const {checkedNeg, checkedPos}=buildPromptMeta(st,cls);
     const minLen=Math.max(Math.round((cls.charLimit||750)*0.70),(cls.charLimit||750)-200);
     let txt='';
-    for(let attempt=0;attempt<3;attempt++){
+    for(let attempt=0;attempt<5;attempt++){
       txt=fitToLimit((await callClaude(prompt)).replace(/\n+/g,' ').trim(), cls.charLimit||750);
       const tooShort=txt.length<minLen;
       const hallucinated=hasHallucination(txt,checkedNeg,checkedPos,st.verdict);
@@ -2827,8 +2867,11 @@ async function genOne(sid){
       if(tooShort) console.warn(`Too short (${txt.length}<${minLen}), retrying...`);
       if(hallucinated) console.warn('Hallucination detected, retrying...');
     }
-    ta.classList.remove('gen'); ta.value=txt;
-    addMem(S.active,txt); saveCmt(sid,txt); updCC(sid,txt);
+    ta.classList.remove('gen');
+    // Final safety strip even after retries
+    const cleanTxt=stripHallucinatedSentences(txt,checkedNeg,checkedPos,st.verdict);
+    ta.value=cleanTxt;
+    addMem(S.active,cleanTxt); saveCmt(sid,cleanTxt); updCC(sid,cleanTxt);
     renderStudentList();
   }catch(e){ta.classList.remove('gen');ta.value='';toast('Erreur de génération');}
 }
@@ -2878,12 +2921,13 @@ async function generateAll(){
         try{
           const seed=STYLE_SEEDS[Math.floor(Math.random()*STYLE_SEEDS.length)];
           const raw=await callClaude(buildPrompt(st,cls,S.period,seed,sampMem(S.active)), 3, true);
-          const txt=fitToLimit(raw.replace(/\n+/g,' ').trim(), cls.charLimit||750);
+          let txt=fitToLimit(raw.replace(/\n+/g,' ').trim(), cls.charLimit||750);
           const minLen=Math.max(Math.round((cls.charLimit||750)*0.70),(cls.charLimit||750)-200);
           const {checkedNeg,checkedPos}=buildPromptMeta(st,cls);
           if(!txt) throw new Error('empty');
           if(txt.length<minLen) throw new Error(`too short: ${txt.length}<${minLen}`);
-          if(hasHallucination(txt,checkedNeg,checkedPos,st.verdict)) throw new Error('hallucination detected');
+          // In bulk mode: strip hallucinated sentences instead of retrying
+          txt=stripHallucinatedSentences(txt,checkedNeg,checkedPos,st.verdict);
           // Save to correct student with timestamp
           if(!st.comments)st.comments={};
           if(!st.commentTs)st.commentTs={};
