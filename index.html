@@ -1093,7 +1093,9 @@ const VERDICT_PILLS = [
   {id:'vd12',l:'Trimestre fragile',                weight:-1},
   {id:'vd7', l:'Trimestre insuffisant',            weight:-2},
   {id:'vd8', l:'Trimestre inquiétant',             weight:-3},
-  {id:'vd9', l:'Trimestre très insuffisant',       weight:-4},
+  {id:'vd13',l:'Situation alarmante',               weight:-4},
+  {id:'vd14',l:'Trimestre préoccupant — réaction urgente requise', weight:-4},
+  {id:'vd9', l:'Trimestre très insuffisant',        weight:-5},
 ];
 
 // ── CORE BOXES — shared across all subjects, in display order ────────────────
@@ -2539,6 +2541,22 @@ function buildPrompt(st,cls,period,seed,memSamp){
 
   const memCtx=memSamp?`\nEXPRESSIONS DÉJÀ UTILISÉES POUR CETTE CLASSE (à éviter absolument pour garantir la variété) :\n${memSamp}`:'';
 
+  // Previous appreciation context for continuity between terms
+  let prevCtx='';
+  if(period>1 && st.comments){
+    const prevComment=st.comments[period-1];
+    if(prevComment && prevComment.trim()){
+      const isPositiveProfile=checkedNeg.length<=1 && checkedPos.length>=4;
+      const isDifficultProfile=checkedNeg.length>=3;
+      prevCtx=`\nAPPRÉCIATION DU TRIMESTRE PRÉCÉDENT (T${period-1}) :\n"${prevComment.trim()}"
+→ ${isPositiveProfile
+  ? 'Profil positif stable : une courte mention de continuité suffit ("Encore un excellent trimestre", "La dynamique positive se confirme"). Pas besoin de développer.'
+  : isDifficultProfile
+  ? 'Profil difficile : si la situation est identique, mentionner clairement que les conseils du trimestre précédent n\'ont pas été suivis d\'effet. Si dégradation, le souligner. Si amélioration même légère, la valoriser — c\'est important pour motiver.'
+  : 'Profil intermédiaire : noter l\'évolution (positive, stable ou négative) en une phrase naturelle. Valoriser les progrès, signaler la stagnation avec bienveillance.'
+} Ne pas reproduire les mêmes formulations que le trimestre précédent.`;
+    }
+  }
   // Verdict context
   const verdictObj = st.verdict ? VERDICT_PILLS.find(v=>v.id===st.verdict) : null;
   const verdictCtx = verdictObj
@@ -2596,7 +2614,7 @@ ${checkedNeg.length
   : '\n⛔ AUCUN défaut coché → INTERDITS : bavardage, distraction, difficulté, lacune.'}
 ${isDiscreet ? '\n⛔ Discret/réservé → INTERDIRE : "participe activement", "participe régulièrement". Dire : "suit attentivement", "s\'implique discrètement".' : ''}
 ${checked.some(c=>c.toLowerCase().includes('régress')&&(isDiscreet||checkedNeg.length>=2)) ? '\n⚠️ RÉGRESSION + profil fragile : ne pas mentionner la régression brutalement. Dire plutôt : "des efforts supplémentaires permettront de retrouver une dynamique positive" ou "il lui faudra redoubler d\'efforts pour inverser la tendance". L\'objectif est d\'encourager, pas de décourager.' : ''}
-${aeshCtx}${orientCtx}${memCtx}
+${aeshCtx}${orientCtx}${prevCtx}${memCtx}
 
 RÈGLES DE SYNTHÈSE — OBLIGATOIRES :
 0. Longueur : maximum ${targetMax} caractères. Synthétise — 4-5 observations liées = 1 phrase fluide.
