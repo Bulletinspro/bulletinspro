@@ -2549,169 +2549,34 @@ ATTENTION : si le niveau est "fragile" ou "insuffisant", ou si une régression e
   const citetEleve = st.gender==='F' ? 'cette élève' : 'cet élève';
   const unEleve = st.gender==='F' ? 'une élève' : 'un élève';
 
-  return `Tu es un professeur français expérimenté rédigeant une appréciation de bulletin scolaire. Niveau : ${schoolLevelCtx}
+  const isDiscreet=[...checkedNeg,...checkedNeutral].some(s=>s.toLowerCase().includes('discret')||s.toLowerCase().includes('réservé')||s.toLowerCase().includes('exprime peu'));
 
-CONTEXTE TEMPOREL : ${pLabel} — ${periodCtx}
+  return `Tu es un professeur français rédigeant une appréciation de bulletin scolaire.
+Niveau : ${schoolLevelCtx} | ${pLabel} — ${periodCtx}
 
-CONTEXTE : Cette appréciation est une parmi environ 12 que l'élève recevra ce trimestre. Elle doit être concise, lisible, utile. Les parents et l'élève doivent en retenir l'essentiel en quelques secondes.
-
-ÉLÈVE : ${gender}, tous les accords au ${accord} SANS EXCEPTION. Article démonstratif : "${citetEleve}" (JAMAIS "${st.gender==='F'?'cet élève':'cette élève'}"). Article indéfini : "${unEleve}" (JAMAIS "${st.gender==='F'?'une élève':'un élève'}"). Période : ${pLabel}${subLabel ? ' — ' + subLabel : ''}.
-${studentRef}
-${evalCtx}
+ÉLÈVE : ${gender}. Articles : "${citetEleve}" / "${unEleve}". Accords au ${accord} PARTOUT.${subLabel?' Matière : '+subLabel+'.':''}
+${studentRef}${evalCtx?'\n'+evalCtx:''}
 ${verdictCtx}
 
-GRAMMAIRE OBLIGATOIRE :
-- "faire preuve de" exige UN SEUL NOM ABSTRAIT après "de" : "faire preuve de sérieux", "faire preuve d'application", "faire preuve de persévérance". JAMAIS plusieurs éléments : "fait preuve de sérieux, régulier et investi" est incorrect. Pour plusieurs qualités, abandonner "faire preuve de" et écrire directement : "Victoire est sérieuse, régulière et investie."
-- Le bilan d'ouverture s'écrit en minuscules après le premier mot : "Bon trimestre." PAS "BON TRIMESTRE."
-
-CAS PARTICULIERS — PARTICIPATION ET CONFIANCE :
-- Si "discret(e) et réservé(e)" ou "manque de confiance" est coché : NE PAS écrire "il faut participer davantage" comme s'il s'agissait d'un manque de volonté. La timidité n'est pas un défaut de travail. Utiliser des formulations naturelles et bienveillantes, par exemple :
-  → "Il lui faudra gagner en confiance pour oser davantage s'exprimer en classe."
-  → "Elle gagnera à oser prendre la parole plus souvent — les erreurs font partie de l'apprentissage."
-  → "Un peu plus d'assurance à l'oral lui permettrait de progresser encore."
-  Ces formulations sont des MODÈLES de construction — s'en inspirer, ne pas les copier mot pour mot.
-
-RÈGLES DE COHÉRENCE — CONTRADICTIONS INTERDITES :
-- Si "Discret(e) et réservé(e)" ou "s'exprime peu" est coché → INTERDIRE toute formulation de participation active : "participe activement", "participe régulièrement", "prend souvent la parole", "participe avec dynamisme". Utiliser à la place : "suit attentivement", "est attentif(ve)", "s'implique discrètement".
-
-RÈGLE ANTI-LISTE — TEXTE FLUIDE OBLIGATOIRE :
-L'appréciation doit lire comme un paragraphe naturel, PAS comme une liste de qualités juxtaposées.
-INTERDIT : "Elle est sérieuse. Elle participe. Elle travaille bien. Son engagement est remarquable. Elle fait preuve de motivation." (énumération plate)
-CORRECT : Fondre 2-3 observations en une seule phrase fluide : "Sérieuse et régulière, elle s'investit dans les cours et apporte un soin particulier à son travail, témoignant d'une motivation constante."
-Chaque phrase doit faire avancer le portrait globalement, pas juste ajouter une qualité de plus.
-
-PROFIL COMPLET DE L'ÉLÈVE — LISTE EXHAUSTIVE ET DÉFINITIVE :
-Voici TOUT ce que l'enseignant a observé. Rien d'autre n'existe sur cet élève.
-${checked.length ? checked.map(i => '• ' + i).join('\n') : '• Profil standard — aucune observation particulière'}
-
+PROFIL COMPLET (exhaustif — rien d'autre n'existe sur cet élève) :
+${checked.length ? checked.map(i => '• ' + i).join('\n') : '• Profil standard'}
 ${checkedNeg.length
-  ? `POINTS NÉGATIFS COCHÉS — DOIVENT TOUS APPARAÎTRE :\n${checkedNeg.map(i=>'⚠️ '+i).join('\n')}`
-  : `⛔ AUCUN POINT NÉGATIF N'A ÉTÉ COCHÉ.
-⛔ NE PAS ÉCRIRE : bavardages, bavarde, distraction, manque de concentration, difficultés, lacunes, ni aucun autre défaut.
-⛔ CES MOTS SONT INTERDITS DANS CETTE APPRÉCIATION.
-⛔ L'appréciation parle uniquement des qualités listées ci-dessus.`
-}
-
-STYLE — TEXTE FLUIDE OBLIGATOIRE, MÊME LONG :
-L'appréciation doit lire comme un paragraphe écrit par un humain, PAS comme une liste déguisée.
-INTERDIT même dans une appréciation longue :
-- Enchaîner plus de 2 phrases commençant par le même sujet ("Elle…, Elle…, Elle…")
-- Enchaîner des phrases de même longueur et même structure
-- Lister les qualités les unes après les autres sans les connecter
-
-OBLIGATOIRE :
-- Fondre plusieurs observations dans une seule phrase fluide : "Son sérieux et sa régularité lui permettent d'avancer, même si elle gagnerait à s'impliquer davantage."
-- Varier les constructions : groupes nominaux ("Son investissement…"), relatives ("Élève qui se distingue par…"), sujets différents ("Le travail fourni reflète…", "Les résultats témoignent…")
-- Connecter les idées avec des nuances : "Cependant,", "Tout en reconnaissant…", "Si X, il reste que Y"
-- Une appréciation de 5 phrases doit avoir 5 structures grammaticales DIFFÉRENTES
+  ? '\n⚠️ POINTS NÉGATIFS — DOIVENT TOUS APPARAÎTRE : '+checkedNeg.join(' | ')
+  : '\n⛔ AUCUN défaut coché → INTERDITS dans cette appréciation : bavardage, distraction, difficulté, lacune — sauf si listés ci-dessus.'}
+${isDiscreet ? '\n⛔ Discret/réservé coché → INTERDIRE : participe activement, participe régulièrement, prend la parole. Dire à la place : suit attentivement, s\'implique discrètement.' : ''}
 ${aeshCtx}${orientCtx}${memCtx}
 
-EXEMPLES DE STYLE À IMITER — appréciations réelles d'enseignants français :
-
-Exemple 1 (anglais, élève positive) : "Excellent trimestre. L'élève est sérieuse, motivée et déterminée à réussir, elle se distingue par sa persévérance et son engagement, même dans une ambiance de classe qui n'est pas toujours propice aux apprentissages. Sa participation, réfléchie et pertinente, témoigne de sa maturité et de ses réelles capacités. Elle peut être un exemple pour ses camarades par son sérieux et son investissement. Félicitations."
-
-Exemple 2 (EPS, tutoiement) : "L'élève réalise un très bon premier trimestre. Tu es sérieuse, investie, concentrée et soucieuse de bien faire. Tu as gagné en confiance et en assurance, il faut poursuivre ainsi."
-
-Exemple 3 (anglais, élève intermédiaire) : "Bon trimestre. L'élève se montre sérieux, régulier et investi, et il participe avec dynamisme en classe. Il manque toutefois parfois de méthode et d'organisation, ce qui peut le ralentir et lui faire manquer de temps, notamment lors des activités évaluées. Il rencontre également certaines difficultés, en particulier en compréhension, difficultés renforcées par un manque de confiance. Cependant, son travail sérieux et constant constitue un véritable atout : en poursuivant ses efforts et en développant davantage sa méthodologie, il/elle pourra progresser significativement et gagner en assurance."
-
-Exemple 4 (anglais, accompagnement AESH) : "Trimestre fragile. L'élève tire un réel profit de son accompagnement, elle est capable de réaliser de très bonnes choses lorsqu'elle est en présence de l'AESH qui l'accompagne. Cependant, lorsqu'elle n'est pas accompagnée, elle n'ose pas demander de l'aide et poser des questions. De plus, elle ne participe pas assez à l'oral qui pourrait pourtant l'aider à progresser plus efficacement."
-
-Exemple 5 (français, élève fragile, 9/20) : "L'ensemble demeure très fragile ; il faut lire des romans en langue française pour améliorer la rédaction et la graphie qui n'est pas toujours très claire. Le travail à la maison doit être approfondi pour progresser."
-
-Exemple 6 (français, élève très difficile, nombreuses absences) : "Trimestre très fragile. Vos absences très fréquentes, rarement rattrapées, ainsi que les oublis ou pertes régulières de vos affaires, vous placent en grande difficulté. Les bavardages, vos interventions orales insistantes sans lien avec le cours et certains comportements inadaptés perturbent fortement le déroulement des séances. Le travail à la maison est inexistant et la lecture n'est pas faite, ce qui vous empêche d'avancer. Vous vous mettez vous-même dans une situation compliquée, malgré parfois une réelle bonne volonté. Il est indispensable de modifier votre attitude, avant tout pour votre propre avenir."
-
-Exemple 7 (musique, 14.5/20, fluctuant) : "Il est dommage que le résultat écrit fasse baisser la moyenne. Le travail personnel n'est pas fait assez sérieusement et le résultat écrit s'en ressent. La concentration de l'élève en classe a été très fluctuante ce trimestre mais l'élève semble plus sérieux sur cette fin de trimestre. Je l'encourage vivement à garder cette attitude au deuxième trimestre s'il veut améliorer ses résultats."
-
-Exemple 8 (technologie, 6.9/20, perturbatrice) : "Un manque d'implication et de sérieux dans la scolarité. L'élève ne voit pas encore l'intérêt de développer ses compétences. Néanmoins elle peut faire du bon travail de créativité lorsqu'elle montre de la volonté et du sérieux dans son travail."
-
-Exemple 9 (histoire-géo, 1.8/20, tutoiement) : "La moyenne est à la mesure du travail fourni et est inquiétante. De plus, les nombreuses absences t'empêchent de progresser. Il est temps de réagir car tu es capable de faire mieux."
-
-Ce que ces exemples illustrent :
-- Ouverture directe : 2 à 5 mots suivis d'un point, ou entrée directe dans le vif du sujet
-- Le prénom est utilisé naturellement dès qu'il est connu
-- Certains professeurs tututoient leurs élèves ("tu", "tes") — respecter ce registre si le ton "encourageant" est choisi
-- Ton humain, précis, concret — les détails sont vrais (bavardages, lecture non faite, AESH, graphie)
-- Les appréciations courtes (2-3 phrases) sont aussi valides que les longues
-- Les défauts graves sont nommés clairement et directement, surtout pour les élèves en grande difficulté
-- On peut terminer par un mot d'encouragement seul : "Félicitations." ou "Il est temps de réagir."
-
-PRINCIPE FONDAMENTAL — SYNTHÈSE PROPORTIONNELLE :
-Le nombre d'observations cochées doit guider la richesse de l'appréciation.
-- 1 à 3 observations → appréciation courte, 2-3 phrases
-- 4 à 7 observations → appréciation moyenne, 3-4 phrases bien construites
-- 8 observations ou plus → appréciation complète, 4-5 phrases qui couvrent TOUS les aspects cochés
-
-COUVERTURE OBLIGATOIRE : Avant de terminer, vérifie que chaque domaine coché est présent :
-${checked.length>=4?`Tu as ${checked.length} observations à couvrir. Chaque groupe thématique doit apparaître au moins une fois.`:'Couvre toutes les observations listées.'}
-
-Ne pas "sur-synthétiser" un profil riche en 2-3 phrases — ce serait gâcher l'information fournie. Utilise TOUTE la longueur disponible pour rendre justice au profil complet.
-Les observations ci-dessus sont un portrait de l'élève. Ton rôle est de SYNTHÉTISER les éléments proches et de couvrir tous les aspects importants. Ne réduis pas un profil riche à 2 phrases — utilise la longueur disponible pour rendre justice à l'ensemble du profil. Groupe les observations liées en formulations naturelles mais assure-toi que chaque domaine coché (travail, participation, qualités, comportement) est présent dans l'appréciation.
-
-RÈGLE ABSOLUE — TOUTES LES OBSERVATIONS COCHÉES DOIVENT APPARAÎTRE :
-Chaque observation cochée DOIT être couverte. Pas d'exception, même sur un profil excellent.
-EXEMPLE CONCRET : si "bavarde parfois" est coché sur un profil positif, la phrase de conclusion DOIT contenir une mention des bavardages. Sans cela, l'appréciation est incomplète.
-Formulations pour intégrer "bavarde parfois" en fin d'appréciation positive :
-→ "…même si quelques bavardages viennent parfois perturber sa concentration."
-→ "…on notera cependant une tendance aux bavardages à surveiller."
-→ "Il lui faudra veiller à limiter les bavardages pour rester pleinement concentrée."
-Ces observations mineures se placent EN CONCLUSION, jamais au milieu d'un profil positif.
-Exemples de fusion :
-- "discret(e)" + "manque de confiance" + "participation faible" → une seule phrase : "Un peu plus d'assurance à l'oral lui permettrait de s'exprimer davantage."
-- "travail régulier" + "résultats satisfaisants" + "persévérance" → une seule phrase : "Son travail régulier et sa persévérance portent leurs fruits."
-- "bavarde parfois" + "manque de concentration" → une seule mention : "quelques bavardages qui nuisent parfois à sa concentration."
-L'objectif est que TOUTES les idées soient présentes, pas que chaque observation soit une phrase distincte.
-
-RÈGLE ABSOLUE — FIDÉLITÉ AUX OBSERVATIONS COCHÉES :
-1. Tout ce qui est coché DOIT apparaître (même brièvement).
-2. Rien qui n'est PAS coché ne doit apparaître — ni positif ni négatif.
-C'est la règle la plus importante du prompt. Violation dans les deux sens :
-- "bavarde parfois" NON coché → INTERDIT d'écrire qu'elle bavarde.
-- "difficultés de compréhension" NON coché → INTERDIT de l'écrire.
-- "persévérante" NON coché → INTERDIT de l'écrire.
-Le professeur a choisi PRÉCISÉMENT ses observations. Ajouter quelque chose qu'il n'a pas coché, c'est lui faire dire ce qu'il n'a pas dit.
-- Si "difficultés de compréhension" n'est PAS dans la liste → ne pas l'écrire.
-- Si "manque de méthode" n'est PAS dans la liste → ne pas l'écrire.
-- Si "résultats insuffisants" n'est PAS dans la liste → ne pas l'écrire.
-Inventer une observation non cochée est une erreur grave. INTENSITÉ EXACTE OBLIGATOIRE : "Bavarde parfois" = écrire "parfois" — JAMAIS "souvent", "fréquemment", "régulièrement". Changer l'intensité d'une observation est interdit au même titre qu'en inventer une nouvelle. Le mot exact de l'observation s'utilise tel quel.
-
-STRUCTURE (guide souple, pas un plan rigide) :
-① Ouvre par le bilan global choisi — 2 à 5 mots, suivi d'un point. Ce mot résume le trimestre. Ne jamais le contredire dans la conclusion (si on ouvre par "Bon trimestre", on ne peut pas finir par "c'est un excellent trimestre").
-② En 1 ou 2 phrases : ce qui caractérise cet élève ce trimestre (travail, attitude, compétences — fondu ensemble si possible).
-③ Conclus par une phrase prospective courte : encouragement précis ou conseil actionnable. Pas de second bilan global.
-${checkedPos.includes('Félicitations')?'④ Termine par "Félicitations." — ce mot a été explicitement choisi par l\'enseignant.':'④ NE PAS écrire "Félicitations" — ce mot n\'a pas été coché par l\'enseignant.'}
-
-RÈGLE DE PROPORTIONNALITÉ — FONDAMENTALE :
-Le poids accordé à chaque observation doit être proportionnel à son importance dans le profil global.
-- Si 8+ observations positives et 1 seule négative mineure (ex: "bavarde parfois") → le bilan reste EXCELLENT. Cette unique observation ne change pas le ton général. Elle s'intègre en une courte nuance : "même si elle peut parfois bavarder". C'est tout. La conclusion reste entièrement positive et valorisante.
-- Un seul point négatif mineur ne justifie PAS : changer le bilan de "Excellent" à "Bon", ni écrire "il est apparu que", ni transformer "parfois" en "souvent", ni faire de ce point le sujet principal de la conclusion.
-- Si profil quasi-entièrement positif → conclusion = "Continuer sur cette lancée", "Félicitations". JAMAIS un conseil de travail ou une mise en garde.
-- INTERDIT dans la conclusion d'un profil positif : "il est important que", "il est essentiel que", "elle doit veiller à".
-
-CAS PARTICULIERS :
-- Si "Dossier incomplet" ou "Aucune note" est coché ET que c'est la seule (ou quasi seule) observation : l'appréciation doit être TRÈS COURTE (2 phrases max), purement factuelle. NE RIEN INVENTER sur l'attitude, le sérieux, les capacités ou le comportement — ces informations ne sont pas disponibles. Ne pas écrire "fait preuve de sérieux", "élève agréable" ou quoi que ce soit sur le profil. Exemple : "Le dossier de ${citetEleve} est incomplet ce trimestre, ce qui ne permet pas d'évaluer son niveau. Il sera nécessaire de régulariser sa situation pour que le travail puisse être évalué."
-- Si les observations indiquent des absences ciblées sur les évaluations importantes : le signaler clairement et professionnellement, sans agressivité mais sans édulcorer.
-- Si les observations indiquent une fragilité émotionnelle ou une période personnelle difficile : l'appréciation doit être bienveillante et encourageante avant tout. Ne pas insister sur les manquements. Trouver ce qui va, valoriser l'attitude, terminer sur un message d'espoir discret. Le bulletin peut être lu par un adolescent fragile — une phrase bien formulée peut faire beaucoup de bien, une phrase maladroite peut faire du mal.
-- Si l'élève est agréable malgré de mauvais résultats : le souligner explicitement — c'est une qualité réelle qui mérite d'être reconnue. L'appréciation ne doit pas être uniquement négative.
-
-RÈGLES TECHNIQUES ABSOLUES :
-1. Longueur STRICTE : entre ${targetMin} et ${targetMax} caractères espaces inclus. Objectif idéal : ${Math.round((targetMin+targetMax)/2)} caractères. JAMAIS au-dessus de ${targetMax}.${richProfile?' Profil riche (8+ observations) : vise le haut de la fourchette, l\'appréciation doit être complète.':charLimit<=400?' Format court imposé : 2-3 phrases maximum.':' Si le profil est simple, 3 phrases suffisent.'}
-2. TEXTE BLOC CONTINU — UN SEUL PARAGRAPHE. Absolument aucun saut de ligne, aucun \\n, aucune séparation entre phrases. Tout doit tenir en un bloc de texte unique comme dans Pronote.
-3. Texte FLUIDE — aucune liste, aucun tiret. Connecteurs variés : "Cependant,", "Néanmoins,", "Par ailleurs,", "Tout en saluant… on notera que", "C'est pourquoi", "Ainsi,", etc.
-4. Ne mentionne pas chaque observation séparément. Si 3 éléments vont dans le même sens, une seule formulation synthétique suffit.
-5. Accord au ${accord} PARTOUT sans exception. Pour une FILLE : elle, sa, ses, sérieuse, appliquée, investie, motivée, régulière, curieuse — JAMAIS "il", "son" (sauf si suivi d'un nom masculin), "sérieux". Pour un GARÇON : il, son, ses, sérieux, appliqué, investi, motivé, régulier, curieux — JAMAIS "elle".
-6. Ton : ${toneDesc}.
-7. VOCABULAIRE FRANÇAIS SCOLAIRE UNIQUEMENT — contexte : établissement scolaire français, élèves de collège ou lycée. Interdit : "stagiaire", "étudiant(e)", "élève du secondaire" (canadianisme), "évaluation" pour désigner le bulletin ou le trimestre. Utiliser : "élève", "ce trimestre/semestre", "en classe", "ce bulletin". L'appréciation parle d'un trimestre scolaire, pas d'une "évaluation".
-8. LANGUE : UNIQUEMENT en français. Aucun mot anglais même pour un cours d'anglais.
-9. MOTS INVENTÉS ET ANGLICISMES INTERDITS : pas de "bavardise", pas de "sérieuse attitude" (ordre anglais — dire "attitude sérieuse"), pas de néologismes.
-9b. COHÉRENCE INTERNE — ne jamais contredire l'ouverture dans la conclusion. Si on commence par "Bon trimestre" on ne peut pas finir par "c'est un excellent trimestre". Le bilan d'ouverture est unique et ne se répète pas.
-9c. PHRASES COHÉRENTES — chaque phrase doit avoir un sens complet et logique. Interdit : "elle peine à comprendre certains concepts, essentielle pour se confronter au travail" (incohérent). Si une phrase ne se tient pas logiquement, la supprimer.
-10. SI LE PRÉNOM EST FOURNI : utilise-le naturellement. Ne jamais écrire "(nom)" ou "(prénom)". N'utilise JAMAIS un prénom des exemples (Zoé, Mathéo, Léonie, Quincy, Kelly) — utilise UNIQUEMENT le prénom fourni dans ÉLÈVE.
-11. FORMULATIONS NATURELLES — comme un vrai enseignant français parlerait. Chaque appréciation doit sonner humain, pas algorithmique.
-12. PAS DE DOUBLONS D'INJONCTION — ne jamais enchaîner "Il est essentiel" + "Il faut" + "Il est important". Une seule conclusion directe suffit.
-13. CONSEILS PRÉCIS — pas de formulations creuses comme "se structurer". "Approfondir le travail" est acceptable.. Préférer : "revoir le cours chaque soir", "oser poser des questions", "rendre les devoirs régulièrement".
-14. INTERDIT D\'UTILISER "JE" — rédige entièrement à la 3e personne. Parle de l\'élève : "Cet élève", "Il/Elle", son prénom. Jamais "Je note que", "J\'observe", "Je suis satisfait(e)". L\'appréciation décrit l\'élève, elle ne parle pas du professeur.':'12. Le "je" est autorisé mais doit rester rare et naturel.'}
-14. VARIÉTÉ LEXICALE — ne jamais répéter le même mot clé plus d'une fois. Synonymes : "difficulté(s)" → lacunes, fragilités, points à consolider, situation compliquée ; "travail" → efforts, investissement, implication, application ; "progresser" → s'améliorer, avancer, évoluer, gagner en maîtrise ; "en classe" → en cours, lors des séances.
-15. Répondre UNIQUEMENT avec l'appréciation rédigée, sans guillemets, sans titre, sans commentaire.`;
+RÈGLES :
+1. Longueur : ${targetMin}–${targetMax} caractères.${richProfile?' Profil riche (${checked.length} obs.) : vise le haut.':''}
+2. UN seul paragraphe continu — aucun saut de ligne.
+3. FLUIDE : fondre 2-3 observations en une phrase. Jamais 3 phrases consécutives avec le même sujet (Elle…Elle…Elle… interdit).
+4. Bilan d'ouverture minuscules ("Bon trimestre." pas "BON TRIMESTRE.") — ne pas répéter en conclusion.
+5. "faire preuve de" + UN NOM uniquement. Plusieurs qualités : "sérieuse, régulière et investie" (pas "fait preuve de sérieux, régulière et investie").
+6. Ton : ${toneDesc}. Langue : français uniquement.
+7. Félicitations : seulement si verdict excellent/très bon OU pill félicitations cochée.
+8. Discret/réservé : bienveillance — pas "doit participer davantage". Dire : "gagner en confiance pour oser s'exprimer".
+9. Variété : difficulté→lacunes/fragilités, travail→efforts/investissement, progresser→avancer/évoluer.
+10. Répondre UNIQUEMENT avec l'appréciation, sans guillemets ni commentaire.`;
 }
 
 function buildClassPrompt(cls,period){
@@ -2752,7 +2617,7 @@ const _k='Z3NrX2t2eGx0UTVuWm50d0FKdGREUTgzV0dkeWIzRlllR1g1aUNyejNkak1TekRBUU9wd0
 let _apiKey=atob(_k);
 
 async function callClaude(prompt, retries=3, bulkMode=false){
-  const model = bulkMode ? 'llama-3.1-8b-instant' : 'llama-3.3-70b-versatile';
+  const model = 'llama-3.3-70b-versatile'; // Always use 70b — 8b can't handle the prompt complexity
   for(let attempt=0; attempt<retries; attempt++){
     try{
       const r=await fetch('https://api.groq.com/openai/v1/chat/completions',{
@@ -2887,7 +2752,7 @@ async function generateAll(){
   const banner=document.getElementById('gen-progress-banner');
   const setBanner=(msg)=>{if(banner){banner.style.display='block';banner.innerHTML=msg;}};
 
-  const BATCH=8;
+  const BATCH=5; // 70b model — 5 calls × 12s = 60s window
   const total=cls.students.length;
   let done=0, errors=0;
 
@@ -2912,46 +2777,37 @@ async function generateAll(){
 
       setBanner(`✏️ Génération <strong>${i+1}/${total}</strong> — ${st.name||'Élève n°'+st.num}…`);
 
-      let success=false;
-      for(let attempt=0;attempt<3&&!success;attempt++){
-        if(attempt>0){
-          setBanner(`⚠️ Nouvelle tentative (${attempt}/2) pour élève ${i+1}…`);
-          await new Promise(r=>setTimeout(r,8000));
-        }
-        try{
-          const seed=STYLE_SEEDS[Math.floor(Math.random()*STYLE_SEEDS.length)];
-          const raw=await callClaude(buildPrompt(st,cls,S.period,seed,sampMem(S.active)), 3, true);
-          let txt=fitToLimit(raw.replace(/\n+/g,' ').trim(), cls.charLimit||750);
-          if(!txt) throw new Error('empty');
-          const {checkedNeg,checkedPos}=buildPromptMeta(st,cls);
-          // Try to strip hallucinated sentences — but keep original if stripping leaves too little
-          const stripped=stripHallucinatedSentences(txt,checkedNeg,checkedPos,st.verdict);
-          if(stripped && stripped.length>100) txt=stripped;
-          // Save to correct student with timestamp
-          if(!st.comments)st.comments={};
-          if(!st.commentTs)st.commentTs={};
-          st.comments[S.period]=txt;
-          st.commentTs[S.period]=Date.now();
-          addMem(S.active,txt);
-          // Update textarea if visible
-          const ta=document.getElementById('bta-'+sid);
-          if(ta){ta.classList.remove('gen');ta.value=txt;}
-          const bcc=document.getElementById('bcc-'+sid);
-          if(bcc){bcc.textContent=`${txt.length}/${cls.charLimit||750}`;bcc.className='cchar ok';}
-          success=true;
-          done++;
-          setBanner(`✅ <strong>${done}/${total}</strong> appréciations rédigées…`);
-        }catch(e){
-          console.warn(`Attempt ${attempt+1} failed for ${sid}:`,e.message);
-        }
+      try{
+        const seed=STYLE_SEEDS[Math.floor(Math.random()*STYLE_SEEDS.length)];
+        const raw=await callClaude(buildPrompt(st,cls,S.period,seed,sampMem(S.active)), 3, true);
+        let txt=fitToLimit(raw.replace(/\n+/g,' ').trim(), cls.charLimit||750);
+        if(!txt) throw new Error('empty');
+        // Soft strip only — keep original if result too short
+        const {checkedNeg,checkedPos}=buildPromptMeta(st,cls);
+        const stripped=stripHallucinatedSentences(txt,checkedNeg,checkedPos,st.verdict);
+        if(stripped&&stripped.length>100) txt=stripped;
+        // Save
+        if(!st.comments)st.comments={};
+        if(!st.commentTs)st.commentTs={};
+        st.comments[S.period]=txt;
+        st.commentTs[S.period]=Date.now();
+        addMem(S.active,txt);
+        const ta=document.getElementById('bta-'+sid);
+        if(ta){ta.classList.remove('gen');ta.value=txt;}
+        const bcc=document.getElementById('bcc-'+sid);
+        if(bcc){bcc.textContent=`${txt.length}/${cls.charLimit||750}`;bcc.className='cchar ok';}
+        done++;
+        setBanner(`✅ <strong>${done}/${total}</strong> appréciations rédigées…`);
+      }catch(e){
+        errors++;
+        console.warn('genBulk error',sid,e.message);
       }
-      if(!success) errors++;
 
       // Save state periodically (not every call to avoid re-renders)
       if(i%4===3 || i===total-1) save();
 
-      // Pause between calls
-      if(i<total-1) await new Promise(r=>setTimeout(r,6000));
+      // Pause between calls — 70b needs more time (6000 tokens/min limit)
+      if(i<total-1) await new Promise(r=>setTimeout(r,12000));
     }
 
     // Final save
