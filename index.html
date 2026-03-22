@@ -2568,7 +2568,7 @@ ${isDiscreet ? '\n⛔ Discret/réservé coché → INTERDIRE : participe activem
 ${aeshCtx}${orientCtx}${memCtx}
 
 RÈGLES :
-1. Longueur : ${targetMin}–${targetMax} caractères.${richProfile?' Profil riche (${checked.length} obs.) : vise le haut.':''}
+1. Longueur : entre ${Math.round(targetMax*0.4)+(checked.length*25)} et ${targetMax} caractères. ${checked.length} observations → minimum ${Math.round(targetMax*0.4)+(checked.length*25)} caractères obligatoire. Les phrases doivent être complètes et naturelles, pas télégraphiques.
 2. UN seul paragraphe continu — aucun saut de ligne.
 3. FLUIDE : fondre 2-3 observations en une phrase. Jamais 3 phrases consécutives avec le même sujet (Elle…Elle…Elle… interdit).
 4. Bilan d'ouverture minuscules ("Bon trimestre." pas "BON TRIMESTRE.") — ne pas répéter en conclusion.
@@ -2578,7 +2578,9 @@ RÈGLES :
 8. Discret/réservé : bienveillance — pas "doit participer davantage". Dire : "gagner en confiance pour oser s'exprimer".
 9. Variété : difficulté→lacunes/fragilités, travail→efforts/investissement, progresser→avancer/évoluer.
 10. CLICHÉS INTERDITS : "ambiance de classe qui n'est pas toujours propice", "même dans une ambiance", ne pas répéter deux fois le même connecteur dans une phrase.
-10b. GRAMMAIRE : "de" → "d'" devant voyelle : "d'excellents résultats", "d'une belle autonomie". JAMAIS "des excellents" (toujours "d'excellents").
+10b. GRAMMAIRE : "de"→"d'" devant voyelle : "d'excellents résultats", "d'une belle autonomie". JAMAIS "des excellents" ni "Avec d'une" — toujours "Avec une".
+10c. PHRASES SENSÉES : pas d'expressions inventées ("élévation d'esprit", etc.). Vocabulaire scolaire attesté uniquement.
+10d. RÉPÉTITIONS INTERDITES : ne jamais utiliser "avec" plus d'une fois. Ne jamais répéter le même mot clé à moins de 2 phrases d'écart. Varier : "avec"→ "grâce à", "dont", "témoignant de", "qui fait preuve de".
 11. Répondre UNIQUEMENT avec l'appréciation, sans guillemets ni commentaire.`;
 }
 
@@ -2729,11 +2731,9 @@ async function genOne(sid){
     let txt='';
     for(let attempt=0;attempt<5;attempt++){
       txt=fitToLimit((await callClaude(prompt)).replace(/\n+/g,' ').trim(), cls.charLimit||750);
-      const tooShort=txt.length<minLen;
       const hallucinated=hasHallucination(txt,checkedNeg,checkedPos,st.verdict);
-      if(!tooShort&&!hallucinated) break;
-      if(tooShort) console.warn(`Too short (${txt.length}<${minLen}), retrying...`);
-      if(hallucinated) console.warn('Hallucination detected, retrying...');
+      if(!hallucinated) break;
+      console.warn('Hallucination detected, retrying...');
     }
     ta.classList.remove('gen');
     // Final safety strip even after retries
@@ -2788,19 +2788,7 @@ async function generateAll(){
         // Soft strip hallucinated sentences
         const {checkedNeg,checkedPos}=buildPromptMeta(st,cls);
         const stripped=stripHallucinatedSentences(txt,checkedNeg,checkedPos,st.verdict);
-        if(stripped&&stripped.length>100) txt=stripped;
-        // Force any missing negatives into conclusion
-        if(checkedNeg.length){
-          const tl=txt.toLowerCase();
-          checkedNeg.forEach(neg=>{
-            const kw=neg.toLowerCase().split(' ').slice(0,2).join(' ');
-            if(!tl.includes(kw)){
-              // Append as a nuance
-              txt=txt.replace(/\.$/, '')+`, même si ${neg.toLowerCase()} est à surveiller.`;
-            }
-          });
-          txt=fitToLimit(txt, cls.charLimit||750);
-        }
+        if(stripped&&stripped.length>80) txt=stripped;
         // Save
         if(!st.comments)st.comments={};
         if(!st.commentTs)st.commentTs={};
