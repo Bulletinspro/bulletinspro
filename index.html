@@ -4046,6 +4046,7 @@ ATTENTION : si le niveau est "fragile" ou "insuffisant", ou si une régression e
   const philoCtx=cls.subject==='philo'?'\nMATIÈRE : Philosophie — Terminale uniquement. Dissertation, explication de texte, Grand Oral. Niveau de langue et de pensée critique exigeant.':'';
   const sesCtx=cls.subject==='ses'&&(isPremiere||isTerminale)?`\nNIVEAU ${isPremiere?'1ère':'Terminale'} SES : Dissertation économique et analyse de document. ${isTerminale?'Bac en fin d\'année.':''}`:'';
   const unEleve = st.gender==='F' ? 'une élève' : 'un élève';
+  const citetEleve = st.gender==='F' ? 'cette élève' : 'cet élève';
 
   const isDiscreet=[...checkedNeg,...checkedNeutral].some(s=>s.toLowerCase().includes('discret')||s.toLowerCase().includes('réservé')||s.toLowerCase().includes('exprime peu'));
 
