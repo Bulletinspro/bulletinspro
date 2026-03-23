@@ -4460,7 +4460,10 @@ async function generateAll(){
           continue; // retry same student
         }
 
-        if(!r.ok) throw new Error('API error '+r.status);
+        if(!r.ok){
+          const errBody=await r.text().catch(()=>'');
+          throw new Error('API '+r.status+' — '+errBody.slice(0,150));
+        }
         const d=await r.json();
         let txt=(d.choices?.[0]?.message?.content||'').replace(/\n+/g,' ').trim();
         if(!txt) throw new Error('empty response');
@@ -4492,8 +4495,8 @@ async function generateAll(){
         errors++;
         studentDone=true;
         console.warn('Bulk error student',sid,e.message);
-        setBanner(`⚠️ Erreur élève ${i+1} — on continue… (${errors} erreur(s))`);
-        await waitMs(2000);
+        setBanner(`⚠️ Erreur élève ${i+1} : ${e.message} — on continue… (${errors} erreur(s))`);
+        await waitMs(3000);
       }
       } // end while
 
