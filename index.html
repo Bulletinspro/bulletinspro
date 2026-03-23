@@ -750,7 +750,7 @@ body{font-family:'DM Sans',sans-serif;font-weight:300;background:var(--bg);color
     <button class="sb-fbtn" onclick="importAll()">⬆ Import</button>
     <button class="sb-fbtn" onclick="showStats()">📊 Stats</button>
     <button class="sb-fbtn" onclick="showCodeAccess()">🔑 Code</button>
-    <button class="sb-fbtn" onclick="showFeedback()">💬 Avis</button>
+    <button class="sb-fbtn" onclick="showFeedback()" style="position:relative">💬 Avis<span id="avis-dot" style="position:absolute;top:3px;right:3px;width:6px;height:6px;background:#f87171;border-radius:50%;animation:pulse 1.5s infinite"></span></button>
     <button class="sb-fbtn" onclick="showOnboarding(true)" title="Aide">❓ Aide</button>
     <input type="file" id="imp-inp" accept=".json" style="display:none" onchange="doImport(event)">
   </div>
@@ -829,6 +829,12 @@ body{font-family:'DM Sans',sans-serif;font-weight:300;background:var(--bg);color
     </button>
     <button class="mob-tab" id="mobt-gen" onclick="goGenAll()">
       <span class="mob-icon">⚡</span>Générer
+    </button>
+    <button class="mob-tab" onclick="showCodeAccess()">
+      <span class="mob-icon">🔑</span>Code
+    </button>
+    <button class="mob-tab" onclick="showFeedback()">
+      <span class="mob-icon">💬</span>Avis
     </button>
     <button class="mob-tab" id="mobt-menu" onclick="openMobSidebar()">
       <span class="mob-icon">☰</span>Classes
@@ -1122,15 +1128,15 @@ const SUBJECTS = {
   allemand:   {label:'Allemand',    type:'lang'},
   italien:    {label:'Italien',     type:'lang'},
   portugais:  {label:'Portugais',   type:'lang'},
-  arabe:      {label:'Arabe',       type:'lang'},
-  chinois:    {label:'Chinois',     type:'lang'},
-  russe:      {label:'Russe',       type:'lang'},
+  arabe:      {label:'Arabe',       type:'lang_script'},
+  chinois:    {label:'Chinois',     type:'lang_script'},
+  russe:      {label:'Russe',       type:'lang_script'},
   latin:      {label:'Latin',       type:'latin'},
   grec:       {label:'Grec ancien', type:'grec'},
   breton:     {label:'Breton',      type:'lang'},
   basque:     {label:'Basque',      type:'lang'},
   occitan:    {label:'Occitan',     type:'lang'},
-  autrelangue:{label:'Autre langue',   type:'lang'},
+  autrelangue:{label:'Autre langue',   type:'lang_lv3'},
   francais:   {label:'Français',       type:'francais'},
   maths:      {label:'Mathématiques',  type:'maths'},
   mathsExp:   {label:'Maths Expertes', type:'mathsExp'},
@@ -1375,26 +1381,6 @@ const SUBJECT_BOXES = {
         {id:"ec7",l:"Erreurs grammaticales fréquentes",v:"neg"},
         {id:"ec8",l:"Vocabulaire limité",v:"neg"},
         {id:"ec9",l:"Expression écrite à développer",v:"neg"},
-      ]
-    },
-    script: {
-      label:'Système d\'écriture & Script',
-      items:[
-        {id:'sc1',l:'Maîtrise du système d\'écriture — progrès remarquables',v:'pos'},
-        {id:'sc2',l:'Script/alphabet en bonne voie d\'acquisition',v:'neutral'},
-        {id:'sc3',l:'Système d\'écriture en cours d\'apprentissage — des efforts',v:'neutral'},
-        {id:'sc4',l:'Difficultés persistantes avec le système d\'écriture',v:'neg'},
-        {id:'sc5',l:'Script à consolider en priorité',v:'neg'},
-      ]
-    },
-    lv3: {
-      label:'Engagement & Prise de risque (LV3)',
-      items:[
-        {id:'lv1',l:'Excellent engagement pour une langue optionnelle',v:'pos'},
-        {id:'lv2',l:'Curiosité et motivation remarquables pour la langue',v:'pos'},
-        {id:'lv3',l:'Bonne prise de risque à l\'oral malgré les difficultés',v:'pos'},
-        {id:'lv4',l:'Investissement encourageant pour une LV3',v:'neutral'},
-        {id:'lv5',l:'Manque d\'investissement pour une matière optionnelle choisie',v:'neg'},
       ]
     },
     bilingue: {
@@ -2110,6 +2096,7 @@ const SUBJECT_BOXES = {
       ]
     },
   },
+  lang_script: null, // will be built below
   grec: {
     traduction: {
       label:'Traduction & Version',
@@ -2992,6 +2979,14 @@ function buildSubjectDropdown(sel, year){
 // ── SIDEBAR ───────────────────────────────────────────────────────────────────
 function toast(msg,dur=2800){const t=document.getElementById('toast');if(!t)return;t.textContent=msg;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),dur);}
 
+// Hide feedback dot if already given
+if(localStorage.getItem('bp3_feedback_given')){
+  document.addEventListener('DOMContentLoaded',()=>{
+    const dot=document.getElementById('avis-dot');
+    if(dot)dot.style.display='none';
+  });
+}
+
 function renderSidebar(){
   const el=document.getElementById('cls-list');
   const ids=Object.keys(S.classes);
@@ -3374,9 +3369,54 @@ function renderStudentList(){
 function selectStudent(id){S.student=id;save();renderStudentList();renderEditor(id);mobUpdateStudentNav();const es=document.getElementById('ed-scroll');if(es)es.scrollTop=0;}
 
 // ── EDITOR ────────────────────────────────────────────────────────────────────
-function getSubjectBoxes(subject){
+function getSubjectBoxes(subject, langLevel){
   const type=SUBJECTS[subject]?.type||'academic';
-  const subjectSections=SUBJECT_BOXES[type]||SUBJECT_BOXES.academic;
+
+  // Build lang_script lazily — same as lang but with script section added
+  if(!SUBJECT_BOXES.lang_script){
+    SUBJECT_BOXES.lang_script = Object.assign({}, SUBJECT_BOXES.lang, {
+      script: {
+        label:'Système d\'écriture & Script',
+        items:[
+          {id:'sc1',l:'Maîtrise du système d\'écriture — progrès remarquables',v:'pos'},
+          {id:'sc2',l:'Script/alphabet en bonne voie d\'acquisition',v:'neutral'},
+          {id:'sc3',l:'Système d\'écriture en cours d\'apprentissage — des efforts',v:'neutral'},
+          {id:'sc4',l:'Difficultés persistantes avec le système d\'écriture',v:'neg'},
+          {id:'sc5',l:'Script à consolider en priorité',v:'neg'},
+        ]
+      }
+    });
+  }
+
+  // Build lang_lv3 lazily — same as lang but with LV3 engagement section
+  if(!SUBJECT_BOXES.lang_lv3){
+    SUBJECT_BOXES.lang_lv3 = Object.assign({}, SUBJECT_BOXES.lang, {
+      lv3: {
+        label:'Engagement & Prise de risque (LV3/option)',
+        items:[
+          {id:'lv1',l:'Excellent engagement pour une langue optionnelle',v:'pos'},
+          {id:'lv2',l:'Curiosité et motivation remarquables pour la langue',v:'pos'},
+          {id:'lv3',l:'Bonne prise de risque à l\'oral malgré les difficultés',v:'pos'},
+          {id:'lv4',l:'Investissement encourageant pour une LV3',v:'neutral'},
+          {id:'lv5',l:'Manque d\'investissement pour une matière optionnelle choisie',v:'neg'},
+        ]
+      }
+    });
+  }
+
+  // Determine effective type based on langLevel
+  let effectiveType = type;
+  if((type==='lang'||type==='lang_script') && langLevel==='LV3'){
+    effectiveType = type==='lang_script' ? 'lang_script' : 'lang_lv3';
+    // Add lv3 section to lang_script too if needed
+    if(type==='lang_script' && !SUBJECT_BOXES.lang_script.lv3){
+      SUBJECT_BOXES.lang_script = Object.assign({}, SUBJECT_BOXES.lang_script, {
+        lv3: SUBJECT_BOXES.lang_lv3.lv3
+      });
+    }
+  }
+
+  const subjectSections=SUBJECT_BOXES[effectiveType]||SUBJECT_BOXES.academic;
   const ordered={};
   ordered.progression = CORE_BOXES.progression;
   ordered.travail      = CORE_BOXES.travail;
@@ -3517,7 +3557,7 @@ function renderEditor(id){
 
 
   // SUBJECT-SPECIFIC + CORE BOXES
-  const allBoxes=getSubjectBoxes(cls.subject);
+  const allBoxes=getSubjectBoxes(cls.subject, cls.langLevel);
   Object.entries(allBoxes).forEach(([key,sec])=>{
     const itemIds=sec.items.map(i=>i.id);
     const customPills=getCustomPills(S.active,key);
@@ -3739,7 +3779,7 @@ function submitQuickRate(id, rating, btn){
 
 // ── PROMPT BUILDERS ───────────────────────────────────────────────────────────
 function buildPromptMeta(st,cls){
-  const allBoxes=getSubjectBoxes(cls.subject);
+  const allBoxes=getSubjectBoxes(cls.subject, cls.langLevel);
   const checkedNeg=[], checkedPos=[];
   Object.values(allBoxes).forEach(sec=>sec.items.forEach(item=>{
     if(st.boxes&&st.boxes[item.id]){
@@ -3757,7 +3797,7 @@ function buildPromptMeta(st,cls){
 }
 
 function buildPrompt(st,cls,period,seed,memSamp){
-  const allBoxes=getSubjectBoxes(cls.subject);
+  const allBoxes=getSubjectBoxes(cls.subject, cls.langLevel);
   const checkedPos=[], checkedNeg=[], checkedNeutral=[];
   const allNegLabels=[];
   // Collect from subject-specific boxes
@@ -4113,6 +4153,17 @@ function incrementGenCount(n=1){
   localStorage.setItem(GEN_COUNT_KEY,String(c));
   localStorage.setItem(GEN_YEAR_KEY,String(getSchoolYear()));
   updateGenCounter();
+  // Invite feedback after 5 and 20 generations
+  if((c===5||c===20)&&!localStorage.getItem('bp3_feedback_given')){
+    setTimeout(()=>{
+      const t=document.getElementById('toast');
+      if(!t)return;
+      t.innerHTML=`Vous avez généré ${c} appréciations ! 🎉 <span onclick="showFeedback();document.getElementById('toast').classList.remove('show')" style="text-decoration:underline;cursor:pointer;margin-left:6px">Donner mon avis →</span>`;
+      t.classList.add('show');
+      clearTimeout(t._t);
+      t._t=setTimeout(()=>{t.classList.remove('show');t.textContent='';},6000);
+    },1500);
+  }
   return c;
 }
 
@@ -4386,7 +4437,7 @@ async function generateAll(){
           method:'POST',
           headers:{'Content-Type':'application/json','Authorization':`Bearer ${_apiKey}`,'HTTP-Referer':'https://bulletinspro.github.io','X-Title':'BulletinsPro'},
           body:JSON.stringify({
-            model:'llama-3.3-70b-versatile:free', // Better rate limits than llama free tier
+            model:'anthropic/claude-3.5-sonnet',
             max_tokens:800,
             messages:[
               {role:'system',content:'Tu rédiges des appréciations scolaires françaises. Utilise UNIQUEMENT les observations fournies. N\'invente rien.'},
@@ -4446,8 +4497,8 @@ async function generateAll(){
       }
       } // end while
 
-      // Minimum pause between calls — 8b-instant can handle fast calls
-      if(i<total-1) await waitMs(2000);
+      // Pause between calls — Claude Sonnet needs a little breathing room
+      if(i<total-1) await waitMs(3000);
     }
 
     // Final save including Drive sync
@@ -5401,6 +5452,10 @@ function showFeedback(){
   [1,2,3,4,5].forEach(n=>{document.getElementById('star-'+n).textContent='☆';document.getElementById('star-'+n).style.color='';});
   document.querySelectorAll('.role-btn').forEach(b=>{b.style.background='var(--bg)';b.style.borderColor='var(--border)';b.style.color='var(--muted)';});
   document.getElementById('mo-feedback').style.display='flex';
+  // Hide pulse dot once user opens feedback
+  localStorage.setItem('bp3_feedback_given','true');
+  const dot=document.getElementById('avis-dot');
+  if(dot)dot.style.display='none';
 }
 
 function setRating(n){
