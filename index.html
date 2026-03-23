@@ -774,6 +774,7 @@ body{font-family:'DM Sans',sans-serif;font-weight:300;background:var(--bg);color
       <span id="offline-badge" style="display:none;font-family:'DM Mono',monospace;font-size:.55rem;background:#fef4e0;border:1px solid #e8cc80;color:#8a5e00;padding:3px 8px;border-radius:5px;text-transform:uppercase;letter-spacing:.05em">📵 Hors-ligne</span>
       <button class="dark-toggle" onclick="toggleDarkMode()" id="dark-toggle-btn" title="Mode sombre / clair">🌙</button>
       <button class="btn btn-b btn-sm" onclick="goGenAll()">⚡ Générer tout</button>
+      <span id="gen-counter-badge" style="font-size:.72rem;color:var(--muted);margin-left:4px"></span>
     </div>
   </div>
   <div id="view-tabs" style="display:none">
@@ -853,12 +854,35 @@ body{font-family:'DM Sans',sans-serif;font-weight:300;background:var(--bg);color
     <div class="mo-lbl">Nom de la classe</div>
     <input class="mo-inp" id="nc-name" placeholder="ex: 3ème A, Terminale B..." onkeydown="if(event.key==='Enter')createClass()">
     <div class="mo-lbl">Matière</div>
-    <select class="mo-sel" id="nc-subj"></select>
-    <div class="mo-lbl">Niveau scolaire</div>
-    <div class="mo-radio">
-      <label><input type="radio" name="nc-level" value="college" checked> Collège (6e → 3e)</label>
-      <label><input type="radio" name="nc-level" value="lycee"> Lycée (2nde → Term.)</label>
+    <select class="mo-sel" id="nc-subj" onchange="toggleLV('nc')"></select>
+    <div id="nc-lv-wrap" style="display:none">
+      <div class="mo-lbl">Niveau de langue</div>
+      <div class="mo-radio">
+        <label><input type="radio" name="nc-lv" value="LV1" checked> LV1</label>
+        <label><input type="radio" name="nc-lv" value="LV2"> LV2</label>
+        <label><input type="radio" name="nc-lv" value="LV3"> LV3</label>
+      </div>
     </div>
+    <div id="nc-customlang-wrap" style="display:none">
+      <div class="mo-lbl">Nom de la langue</div>
+      <input class="mo-inp" id="nc-customlang" placeholder="ex: Breton, Alsacien, Créole...">
+    </div>
+    <div class="mo-lbl">Niveau scolaire</div>
+    <select class="mo-sel" id="nc-year" onchange="updateLevelFromYear('nc')">
+      <option value="">— Sélectionner —</option>
+      <optgroup label="Collège">
+        <option value="6e">6e</option>
+        <option value="5e">5e</option>
+        <option value="4e">4e</option>
+        <option value="3e">3e — Brevet</option>
+      </optgroup>
+      <optgroup label="Lycée">
+        <option value="2nde">2nde</option>
+        <option value="1ere">1ère — EAF</option>
+        <option value="tle">Terminale — Grand Oral</option>
+      </optgroup>
+    </select>
+    <input type="hidden" name="nc-level" id="nc-level-hidden" value="college">
     <div class="mo-lbl">Périodes</div>
     <div class="mo-radio">
       <label><input type="radio" name="nc-period" value="trimestre" checked> Trimestres (3)</label>
@@ -943,6 +967,13 @@ body{font-family:'DM Sans',sans-serif;font-weight:300;background:var(--bg);color
         Envoyer mon avis ✨
       </button>
       <p style="font-size:.7rem;color:var(--muted);text-align:center;margin-top:10px;font-family:'DM Mono',monospace">Votre avis aide à améliorer BulletinsPro pour tous les enseignants</p>
+      <div style="text-align:center;margin-top:16px;padding-top:16px;border-top:1px solid var(--border)">
+        <p style="font-size:.8rem;color:var(--muted);margin-bottom:10px">Rejoignez la communauté des bêta-testeurs :</p>
+        <a href="https://discord.gg/bulletinspro" target="_blank" style="display:inline-flex;align-items:center;gap:8px;padding:10px 20px;background:#5865F2;color:#fff;border-radius:10px;text-decoration:none;font-size:.85rem;font-weight:600;font-family:'DM Sans',sans-serif">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057c.002.022.015.043.03.054a19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/></svg>
+          Rejoindre le Discord BulletinsPro
+        </a>
+      </div>
     </div>
   </div>
 </div>
@@ -954,12 +985,35 @@ body{font-family:'DM Sans',sans-serif;font-weight:300;background:var(--bg);color
     <div class="mo-lbl">Nom de la classe</div>
     <input class="mo-inp" id="ec-name" placeholder="ex: 3ème A, Terminale B...">
     <div class="mo-lbl">Matière</div>
-    <select class="mo-sel" id="ec-subj"></select>
-    <div class="mo-lbl">Niveau scolaire</div>
-    <div class="mo-radio">
-      <label><input type="radio" name="ec-level" value="college"> Collège (6e → 3e)</label>
-      <label><input type="radio" name="ec-level" value="lycee"> Lycée (2nde → Term.)</label>
+    <select class="mo-sel" id="ec-subj" onchange="toggleLV('ec')"></select>
+    <div id="ec-lv-wrap" style="display:none">
+      <div class="mo-lbl">Niveau de langue</div>
+      <div class="mo-radio">
+        <label><input type="radio" name="ec-lv" value="LV1" checked> LV1</label>
+        <label><input type="radio" name="ec-lv" value="LV2"> LV2</label>
+        <label><input type="radio" name="ec-lv" value="LV3"> LV3</label>
+      </div>
     </div>
+    <div id="ec-customlang-wrap" style="display:none">
+      <div class="mo-lbl">Nom de la langue</div>
+      <input class="mo-inp" id="ec-customlang" placeholder="ex: Breton, Alsacien, Créole...">
+    </div>
+    <div class="mo-lbl">Niveau scolaire</div>
+    <select class="mo-sel" id="ec-year" onchange="updateLevelFromYear('ec')">
+      <option value="">— Sélectionner —</option>
+      <optgroup label="Collège">
+        <option value="6e">6e</option>
+        <option value="5e">5e</option>
+        <option value="4e">4e</option>
+        <option value="3e">3e — Brevet</option>
+      </optgroup>
+      <optgroup label="Lycée">
+        <option value="2nde">2nde</option>
+        <option value="1ere">1ère — EAF</option>
+        <option value="tle">Terminale — Grand Oral</option>
+      </optgroup>
+    </select>
+    <input type="hidden" id="ec-level-hidden" value="college">
     <div class="mo-lbl">Périodes</div>
     <div class="mo-radio">
       <label><input type="radio" name="ec-period" value="trimestre"> Trimestres (3)</label>
@@ -1063,20 +1117,47 @@ body{font-family:'DM Sans',sans-serif;font-weight:300;background:var(--bg);color
 // ── SUBJECT DEFINITIONS ───────────────────────────────────────────────────────
 const SUBJECTS = {
   anglais:    {label:'Anglais',     type:'lang'},
-  francais:   {label:'Français',    type:'lang'},
   espagnol:   {label:'Espagnol',    type:'lang'},
   allemand:   {label:'Allemand',    type:'lang'},
-  maths:      {label:'Mathématiques', type:'academic'},
-  histoire:   {label:'Histoire-Géo',  type:'academic'},
-  sciences:   {label:'SVT',           type:'academic'},
-  physique:   {label:'Physique-Chimie',type:'academic'},
-  philo:      {label:'Philosophie',   type:'academic'},
-  ses:        {label:'SES',           type:'academic'},
-  eps:        {label:'EPS',           type:'pratique'},
-  arts:       {label:'Arts plastiques',type:'pratique'},
-  musique:    {label:'Musique',       type:'pratique'},
-  techno:     {label:'Technologie',   type:'pratique'},
-  general:    {label:'Général',       type:'academic'},
+  italien:    {label:'Italien',     type:'lang'},
+  portugais:  {label:'Portugais',   type:'lang'},
+  arabe:      {label:'Arabe',       type:'lang'},
+  chinois:    {label:'Chinois',     type:'lang'},
+  russe:      {label:'Russe',       type:'lang'},
+  latin:      {label:'Latin',       type:'latin'},
+  grec:       {label:'Grec ancien', type:'grec'},
+  breton:     {label:'Breton',      type:'lang'},
+  basque:     {label:'Basque',      type:'lang'},
+  occitan:    {label:'Occitan',     type:'lang'},
+  autrelangue:{label:'Autre langue',   type:'lang'},
+  francais:   {label:'Français',       type:'francais'},
+  maths:      {label:'Mathématiques',  type:'maths'},
+  mathsExp:   {label:'Maths Expertes', type:'mathsExp'},
+  mathsComp:  {label:'Maths Complémentaires', type:'mathsComp'},
+  histoire:   {label:'Histoire-Géo',   type:'histoire'},
+  hggsp:      {label:'HGGSP — Histoire-Géo, Géopolitique & Sciences Po',          type:'hggsp'},
+  emc:        {label:'EMC — Enseignement Moral et Civique',            type:'emc'},
+  sciences:   {label:'SVT',            type:'svt'},
+  svtSpe:     {label:'SVT — spécialité',type:'svtSpe'},
+  physique:   {label:'Physique-Chimie',type:'physique'},
+  physiqueSpe:{label:'Physique-Chimie — spécialité',type:'physiqueSpe'},
+  philo:      {label:'Philosophie',    type:'philo'},
+  ses:        {label:'SES',            type:'ses'},
+  nsi:        {label:'NSI — Numérique et Sciences Informatiques',            type:'nsi'},
+  snt:        {label:'SNT — Sciences Numériques et Technologie',            type:'snt'},
+  llcer:      {label:'LLCER — Langues, Littératures et Cultures Étrangères',          type:'llcer'},
+  lce:        {label:'LCE — Langues et Cultures Étrangères (option)',   type:'lce'},
+  hlp:        {label:'HLP — Humanités, Littérature et Philosophie',            type:'hlp'},
+  dnl:        {label:'DNL — Discipline Non Linguistique',            type:'dnl'},
+  eps:        {label:'EPS — Éducation Physique et Sportive',            type:'eps'},
+  arts:       {label:'Arts plastiques',type:'arts'},
+  artsLycee:  {label:'Arts — spécialité lycée',type:'artsLycee'},
+  musique:    {label:'Éducation musicale',        type:'musique'},
+  techno:     {label:'Technologie',    type:'techno'},
+  vieClasse:  {label:'Vie de classe / Heure de vie de classe', type:'vieClasse'},
+  vieScolaire:{label:'Vie scolaire (CPE)', type:'vieScolaire'},
+  pfmp:       {label:'PFMP — Période de Formation en Milieu Professionnel', type:'pfmp'},
+  general:    {label:'Général',        type:'academic'},
 };
 
 // ── CHECKBOX DEFINITIONS PER SUBJECT TYPE ────────────────────────────────────
@@ -1295,6 +1376,26 @@ const SUBJECT_BOXES = {
         {id:"ec9",l:"Expression écrite à développer",v:"neg"},
       ]
     },
+    script: {
+      label:'Système d\'écriture & Script',
+      items:[
+        {id:'sc1',l:'Maîtrise du système d\'écriture — progrès remarquables',v:'pos'},
+        {id:'sc2',l:'Script/alphabet en bonne voie d\'acquisition',v:'neutral'},
+        {id:'sc3',l:'Système d\'écriture en cours d\'apprentissage — des efforts',v:'neutral'},
+        {id:'sc4',l:'Difficultés persistantes avec le système d\'écriture',v:'neg'},
+        {id:'sc5',l:'Script à consolider en priorité',v:'neg'},
+      ]
+    },
+    lv3: {
+      label:'Engagement & Prise de risque (LV3)',
+      items:[
+        {id:'lv1',l:'Excellent engagement pour une langue optionnelle',v:'pos'},
+        {id:'lv2',l:'Curiosité et motivation remarquables pour la langue',v:'pos'},
+        {id:'lv3',l:'Bonne prise de risque à l\'oral malgré les difficultés',v:'pos'},
+        {id:'lv4',l:'Investissement encourageant pour une LV3',v:'neutral'},
+        {id:'lv5',l:'Manque d\'investissement pour une matière optionnelle choisie',v:'neg'},
+      ]
+    },
     bilingue: {
       label:'Profil bilingue',
       items:[
@@ -1308,6 +1409,1111 @@ const SUBJECT_BOXES = {
         {id:'bi8',l:'Niveau linguistique élevé non exploité pleinement',v:'neg'},
       ]
     }
+  },
+  francais: {
+    lecture: {
+      label:'Lecture & Littérature',
+      items:[
+        {id:'fl1',l:'Lecture personnelle riche et régulière',v:'pos'},
+        {id:'fl2',l:'Excellente compréhension des textes littéraires',v:'pos'},
+        {id:'fl3',l:'Bonne culture littéraire',v:'pos'},
+        {id:'fl4',l:'Analyse fine des textes — va au-delà du sens littéral',v:'pos'},
+        {id:'fl5',l:'Lecture en cours de développement',v:'neutral'},
+        {id:'fl6',l:'Compréhension correcte mais analyse à approfondir',v:'neutral'},
+        {id:'fl7',l:'Lecture insuffisante — freine la progression',v:'neg'},
+        {id:'fl8',l:'Difficultés à analyser et interpréter les textes',v:'neg'},
+        {id:'fl9',l:'Peu de lecture personnelle — lacunes culturelles perceptibles',v:'neg'},
+      ]
+    },
+    ecrit: {
+      label:'Expression écrite',
+      items:[
+        {id:'fe1',l:'Expression écrite fluide et maîtrisée',v:'pos'},
+        {id:'fe2',l:'Rédaction soignée et structurée',v:'pos'},
+        {id:'fe3',l:'Style personnel et vocabulaire riche',v:'pos'},
+        {id:'fe4',l:'Bonne maîtrise des différents types d\'écrits',v:'pos'},
+        {id:'fe5',l:'Expression écrite en progression',v:'neutral'},
+        {id:'fe6',l:'Rédaction correcte mais manque de personnalité',v:'neutral'},
+        {id:'fe7',l:'Structure à améliorer — manque de cohérence',v:'neutral'},
+        {id:'fe8',l:'Difficultés à développer ses idées à l\'écrit',v:'neg'},
+        {id:'fe9',l:'Expression écrite très fragile',v:'neg'},
+        {id:'fe10',l:'Travail de rédaction insuffisant',v:'neg'},
+      ]
+    },
+    argumentation: {
+      label:'Argumentation & Pensée critique',
+      items:[
+        {id:'fa1',l:'Argumentation construite et convaincante',v:'pos'},
+        {id:'fa2',l:'Capacité à défendre un point de vue avec justesse',v:'pos'},
+        {id:'fa3',l:'Pensée nuancée — sait prendre en compte les contre-arguments',v:'pos'},
+        {id:'fa4',l:'Bonne structure du raisonnement',v:'pos'},
+        {id:'fa5',l:'Argumentation en cours de construction',v:'neutral'},
+        {id:'fa6',l:'Les idées sont là mais manquent de développement',v:'neutral'},
+        {id:'fa7',l:'Difficultés à structurer et justifier ses arguments',v:'neg'},
+        {id:'fa8',l:'Raisonnement peu développé — manque de profondeur',v:'neg'},
+      ]
+    },
+    langue: {
+      label:'Langue — Orthographe, Grammaire & Vocabulaire',
+      items:[
+        {id:'fla1',l:'Excellente maîtrise de l\'orthographe',v:'pos'},
+        {id:'fla2',l:'Grammaire et syntaxe maîtrisées',v:'pos'},
+        {id:'fla3',l:'Vocabulaire riche et précis',v:'pos'},
+        {id:'fla4',l:'Orthographe satisfaisante',v:'neutral'},
+        {id:'fla5',l:'Des progrès en orthographe — effort à poursuivre',v:'neutral'},
+        {id:'fla6',l:'Erreurs d\'orthographe fréquentes',v:'neg'},
+        {id:'fla7',l:'Fautes de grammaire récurrentes',v:'neg'},
+        {id:'fla8',l:'Vocabulaire pauvre — freine l\'expression',v:'neg'},
+        {id:'fla9',l:'Syntaxe à travailler — phrases peu construites',v:'neg'},
+      ]
+    },
+    oral: {
+      label:'Oral & Prise de parole',
+      items:[
+        {id:'fo1',l:'Très bonne aisance à l\'oral',v:'pos'},
+        {id:'fo2',l:'Prise de parole claire, structurée et convaincante',v:'pos'},
+        {id:'fo3',l:'Lecture à voix haute expressive',v:'pos'},
+        {id:'fo4',l:'Participation active et qualitative',v:'pos'},
+        {id:'fo5',l:'Participation correcte à l\'oral',v:'neutral'},
+        {id:'fo6',l:'S\'exprime avec hésitations mais fait des efforts',v:'neutral'},
+        {id:'fo7',l:'Timidité freine la prise de parole',v:'neg'},
+        {id:'fo8',l:'Participation orale insuffisante',v:'neg'},
+        {id:'fo9',l:'Difficultés à structurer sa pensée à l\'oral',v:'neg'},
+      ]
+    },
+    examen: {
+      label:'Examens & Échéances',
+      items:[
+        {id:'fex1',l:'Brevet — bon niveau de préparation',v:'pos'},
+        {id:'fex2',l:'Brevet — préparation encourageante',v:'neutral'},
+        {id:'fex3',l:'Brevet — niveau insuffisant, efforts indispensables',v:'neg'},
+        {id:'fex4',l:'EAF — excellent niveau pour l\'épreuve écrite',v:'pos'},
+        {id:'fex5',l:'EAF — très bon niveau pour l\'oral de français',v:'pos'},
+        {id:'fex6',l:'EAF — préparation en bonne voie',v:'neutral'},
+        {id:'fex7',l:'EAF — niveau fragile, travail intensif nécessaire',v:'neg'},
+        {id:'fex8',l:'Grand Oral — excellente maîtrise du discours',v:'pos'},
+        {id:'fex9',l:'Grand Oral — prise de parole convaincante',v:'pos'},
+        {id:'fex10',l:'Grand Oral — construction du discours à travailler',v:'neutral'},
+        {id:'fex11',l:'Grand Oral — gestion du stress à préparer',v:'neutral'},
+        {id:'fex12',l:'Grand Oral — niveau insuffisant pour l\'échéance',v:'neg'},
+      ]
+    },
+  },
+  maths: {
+    calcul: {
+      label:'Calcul & Automatismes',
+      items:[
+        {id:'mc1',l:'Excellente maîtrise du calcul',v:'pos'},
+        {id:'mc2',l:'Calcul rapide et fiable',v:'pos'},
+        {id:'mc3',l:'Bons automatismes bien acquis',v:'pos'},
+        {id:'mc4',l:'Calcul satisfaisant',v:'neutral'},
+        {id:'mc5',l:'Des erreurs de calcul à surveiller',v:'neutral'},
+        {id:'mc6',l:'Calcul insuffisant — freine la progression',v:'neg'},
+        {id:'mc7',l:'Erreurs fréquentes dans les opérations de base',v:'neg'},
+        {id:'mc8',l:'Automatismes non acquis',v:'neg'},
+      ]
+    },
+    raisonnement: {
+      label:'Raisonnement & Logique',
+      items:[
+        {id:'mr1',l:'Raisonnement rigoureux et bien structuré',v:'pos'},
+        {id:'mr2',l:'Excellente capacité de déduction',v:'pos'},
+        {id:'mr3',l:'Très bonne logique mathématique',v:'pos'},
+        {id:'mr4',l:'Raisonnement en cours de construction',v:'neutral'},
+        {id:'mr5',l:'La démarche est là mais manque de rigueur',v:'neutral'},
+        {id:'mr6',l:'Difficultés à structurer un raisonnement',v:'neg'},
+        {id:'mr7',l:'Manque de logique dans les démonstrations',v:'neg'},
+        {id:'mr8',l:'Ne justifie pas suffisamment ses réponses',v:'neg'},
+      ]
+    },
+    resolution: {
+      label:'Résolution de problèmes',
+      items:[
+        {id:'mp1',l:'Excellente approche des problèmes complexes',v:'pos'},
+        {id:'mp2',l:'Sait analyser et modéliser une situation',v:'pos'},
+        {id:'mp3',l:'Initiative et créativité dans la résolution',v:'pos'},
+        {id:'mp4',l:'Résolution de problèmes satisfaisante',v:'neutral'},
+        {id:'mp5',l:'Sait résoudre les exercices types mais peine sur les problèmes',v:'neutral'},
+        {id:'mp6',l:'Difficultés dès que le problème sort du cadre habituel',v:'neg'},
+        {id:'mp7',l:'Peine à s\'approprier les énoncés',v:'neg'},
+        {id:'mp8',l:'Abandonne face aux problèmes complexes',v:'neg'},
+      ]
+    },
+    notions: {
+      label:'Maîtrise des notions',
+      items:[
+        {id:'mn1',l:'Très bonne maîtrise des notions du programme',v:'pos'},
+        {id:'mn2',l:'Notions bien comprises et bien appliquées',v:'pos'},
+        {id:'mn3',l:'Bonne assimilation des nouvelles notions',v:'pos'},
+        {id:'mn4',l:'Notions globalement acquises',v:'neutral'},
+        {id:'mn5',l:'Quelques notions à consolider',v:'neutral'},
+        {id:'mn6',l:'Des lacunes importantes dans les notions de base',v:'neg'},
+        {id:'mn7',l:'Notions mal assimilées malgré les explications',v:'neg'},
+        {id:'mn8',l:'Difficultés persistantes sur des notions fondamentales',v:'neg'},
+      ]
+    },
+    redaction: {
+      label:'Rédaction & Présentation',
+      items:[
+        {id:'mrd1',l:'Rédaction mathématique soignée et rigoureuse',v:'pos'},
+        {id:'mrd2',l:'Présentation claire et structurée',v:'pos'},
+        {id:'mrd3',l:'Rédaction correcte',v:'neutral'},
+        {id:'mrd4',l:'Présentation à améliorer',v:'neutral'},
+        {id:'mrd5',l:'Rédaction insuffisante — manque de clarté',v:'neg'},
+        {id:'mrd6',l:'Les étapes du raisonnement ne sont pas explicitées',v:'neg'},
+      ]
+    },
+    examen: {
+      label:'Examens & Échéances',
+      items:[
+        {id:'mex1',l:'Brevet — très bon niveau en mathématiques',v:'pos'},
+        {id:'mex2',l:'Brevet — préparation sérieuse et régulière',v:'pos'},
+        {id:'mex3',l:'Brevet — préparation encourageante',v:'neutral'},
+        {id:'mex4',l:'Brevet — niveau insuffisant, révisions indispensables',v:'neg'},
+        {id:'mex5',l:'Bac — excellent niveau pour l\'épreuve',v:'pos'},
+        {id:'mex6',l:'Bac — préparation sérieuse',v:'pos'},
+        {id:'mex7',l:'Bac — préparation à intensifier',v:'neutral'},
+        {id:'mex8',l:'Bac — niveau fragile pour l\'échéance',v:'neg'},
+      ]
+    },
+  },
+  histoire: {
+    connaissances: {
+      label:'Connaissances & Repères',
+      items:[
+        {id:'hk1',l:'Très bonnes connaissances historiques et géographiques',v:'pos'},
+        {id:'hk2',l:'Solides repères chronologiques et spatiaux',v:'pos'},
+        {id:'hk3',l:'Culture générale remarquable',v:'pos'},
+        {id:'hk4',l:'Bonne maîtrise du vocabulaire disciplinaire',v:'pos'},
+        {id:'hk5',l:'Connaissances satisfaisantes',v:'neutral'},
+        {id:'hk6',l:'Repères en cours de consolidation',v:'neutral'},
+        {id:'hk7',l:'Des lacunes dans les connaissances de base',v:'neg'},
+        {id:'hk8',l:'Repères chronologiques et géographiques insuffisants',v:'neg'},
+        {id:'hk9',l:'Vocabulaire disciplinaire à acquérir',v:'neg'},
+      ]
+    },
+    documents: {
+      label:'Analyse de documents',
+      items:[
+        {id:'hd1',l:'Excellente analyse de documents — va au-delà du sens littéral',v:'pos'},
+        {id:'hd2',l:'Bonne capacité à contextualiser et interpréter',v:'pos'},
+        {id:'hd3',l:'Analyse de documents satisfaisante',v:'neutral'},
+        {id:'hd4',l:'Compréhension des documents correcte mais analyse superficielle',v:'neutral'},
+        {id:'hd5',l:'Difficultés à analyser et interpréter les documents',v:'neg'},
+        {id:'hd6',l:'Reste au premier degré des documents — manque de recul',v:'neg'},
+      ]
+    },
+    redaction: {
+      label:'Rédaction & Argumentation',
+      items:[
+        {id:'hr1',l:'Rédaction structurée et argumentée',v:'pos'},
+        {id:'hr2',l:'Très bonne maîtrise de la composition',v:'pos'},
+        {id:'hr3',l:'Paragraphes bien construits — idée, argument, exemple',v:'pos'},
+        {id:'hr4',l:'Rédaction correcte mais manque de développement',v:'neutral'},
+        {id:'hr5',l:'Des efforts à la rédaction — en progrès',v:'neutral'},
+        {id:'hr6',l:'Difficultés à rédiger une réponse organisée',v:'neg'},
+        {id:'hr7',l:'Réponses trop courtes ou non développées',v:'neg'},
+        {id:'hr8',l:'Expression écrite très fragile',v:'neg'},
+      ]
+    },
+    cartes: {
+      label:'Cartes, Croquis & Schémas',
+      items:[
+        {id:'hc1',l:'Excellente maîtrise de la cartographie',v:'pos'},
+        {id:'hc2',l:'Croquis soignés et bien légendés',v:'pos'},
+        {id:'hc3',l:'Lecture de carte satisfaisante',v:'neutral'},
+        {id:'hc4',l:'Croquis en cours de maîtrise',v:'neutral'},
+        {id:'hc5',l:'Difficultés avec les cartes et croquis',v:'neg'},
+        {id:'hc6',l:'Légendes insuffisantes ou incorrectes',v:'neg'},
+      ]
+    },
+    oral: {
+      label:'Oral & Participation',
+      items:[
+        {id:'ho1',l:'Participation orale riche et pertinente',v:'pos'},
+        {id:'ho2',l:'S\'exprime avec clarté et précision',v:'pos'},
+        {id:'ho3',l:'Prend des initiatives à l\'oral',v:'pos'},
+        {id:'ho4',l:'Participation correcte',v:'neutral'},
+        {id:'ho5',l:'S\'exprime mais avec hésitations',v:'neutral'},
+        {id:'ho6',l:'Participation insuffisante',v:'neg'},
+        {id:'ho7',l:'Ne prend pas la parole spontanément',v:'neg'},
+      ]
+    },
+    hexamen: {
+      label:'Examens & Échéances',
+      items:[
+        {id:'hex1',l:'Brevet — très bon niveau en histoire-géo',v:'pos'},
+        {id:'hex2',l:'Brevet — préparation encourageante',v:'neutral'},
+        {id:'hex3',l:'Brevet — niveau insuffisant, révisions indispensables',v:'neg'},
+        {id:'hex4',l:'Bac — excellent niveau pour l\'épreuve',v:'pos'},
+        {id:'hex5',l:'Bac — préparation sérieuse et régulière',v:'pos'},
+        {id:'hex6',l:'Bac — préparation à intensifier',v:'neutral'},
+        {id:'hex7',l:'Bac — niveau fragile pour l\'échéance',v:'neg'},
+      ]
+    },
+  },
+  emc: {
+    engagement: {
+      label:'Engagement & Citoyenneté',
+      items:[
+        {id:'em1',l:'Engagement citoyen exemplaire',v:'pos'},
+        {id:'em2',l:'Réflexion approfondie sur les valeurs républicaines',v:'pos'},
+        {id:'em3',l:'Très impliqué(e) dans les débats citoyens',v:'pos'},
+        {id:'em4',l:'Bonne compréhension des enjeux civiques',v:'pos'},
+        {id:'em5',l:'Participation correcte aux activités EMC',v:'neutral'},
+        {id:'em6',l:'Réflexion citoyenne en construction',v:'neutral'},
+        {id:'em7',l:'Peu impliqué(e) dans les débats et réflexions',v:'neg'},
+        {id:'em8',l:'Difficultés à comprendre les enjeux civiques',v:'neg'},
+      ]
+    },
+    debat: {
+      label:'Débat & Argumentation citoyenne',
+      items:[
+        {id:'ed1',l:'Participe activement et respectueusement aux débats',v:'pos'},
+        {id:'ed2',l:'Argumente avec nuance et respect de l\'autre',v:'pos'},
+        {id:'ed3',l:'Écoute et prend en compte les autres points de vue',v:'pos'},
+        {id:'ed4',l:'Participe aux débats de manière correcte',v:'neutral'},
+        {id:'ed5',l:'Participation aux débats à développer',v:'neutral'},
+        {id:'ed6',l:'Peine à respecter les règles du débat démocratique',v:'neg'},
+        {id:'ed7',l:'N\'écoute pas suffisamment les autres points de vue',v:'neg'},
+        {id:'ed8',l:'Interventions parfois inappropriées dans les débats',v:'neg'},
+      ]
+    },
+    valeurs: {
+      label:'Valeurs & Comportement citoyen',
+      items:[
+        {id:'ev1',l:'Comportement exemplaire — modèle de civisme',v:'pos'},
+        {id:'ev2',l:'Respect des règles de vie collective irréprochable',v:'pos'},
+        {id:'ev3',l:'Solidarité et empathie remarquables',v:'pos'},
+        {id:'ev4',l:'Comportement citoyen satisfaisant',v:'neutral'},
+        {id:'ev5',l:'Des progrès dans le respect des règles collectives',v:'neutral'},
+        {id:'ev6',l:'Comportement citoyen à améliorer',v:'neg'},
+        {id:'ev7',l:'Difficultés à respecter les règles de vie collective',v:'neg'},
+      ]
+    },
+  },
+  svt: {
+    demarche: {
+      label:'Démarche scientifique',
+      items:[
+        {id:'sv1',l:'Excellente démarche d\'investigation — rigueur scientifique remarquable',v:'pos'},
+        {id:'sv2',l:'Sait formuler des hypothèses et les tester',v:'pos'},
+        {id:'sv3',l:'Bonne maîtrise de la démarche expérimentale',v:'pos'},
+        {id:'sv4',l:'Démarche scientifique en cours d\'acquisition',v:'neutral'},
+        {id:'sv5',l:'Des efforts dans la démarche — en progrès',v:'neutral'},
+        {id:'sv6',l:'Difficultés à structurer une démarche scientifique',v:'neg'},
+        {id:'sv7',l:'Ne distingue pas hypothèse, expérience et conclusion',v:'neg'},
+      ]
+    },
+    connaissances: {
+      label:'Connaissances & Notions',
+      items:[
+        {id:'sk1',l:'Très bonnes connaissances scientifiques',v:'pos'},
+        {id:'sk2',l:'Vocabulaire scientifique maîtrisé',v:'pos'},
+        {id:'sk3',l:'Bonne assimilation des notions du programme',v:'pos'},
+        {id:'sk4',l:'Connaissances satisfaisantes',v:'neutral'},
+        {id:'sk5',l:'Quelques notions à consolider',v:'neutral'},
+        {id:'sk6',l:'Lacunes dans les connaissances de base',v:'neg'},
+        {id:'sk7',l:'Vocabulaire scientifique insuffisant',v:'neg'},
+        {id:'sk8',l:'Notions fondamentales mal assimilées',v:'neg'},
+      ]
+    },
+    pratique: {
+      label:'Travaux pratiques & Expérimentation',
+      items:[
+        {id:'sp1',l:'Excellent investissement en TP — gestes précis et rigoureux',v:'pos'},
+        {id:'sp2',l:'Très bonne manipulation — soin et méthode',v:'pos'},
+        {id:'sp3',l:'Bonne participation aux TP',v:'pos'},
+        {id:'sp4',l:'Participation aux TP satisfaisante',v:'neutral'},
+        {id:'sp5',l:'Manipulation à améliorer',v:'neutral'},
+        {id:'sp6',l:'Peu investi(e) en TP',v:'neg'},
+        {id:'sp7',l:'Manque de soin dans les manipulations',v:'neg'},
+        {id:'sp8',l:'Sécurité et protocoles non respectés',v:'neg'},
+      ]
+    },
+    redaction: {
+      label:'Rédaction scientifique & Schémas',
+      items:[
+        {id:'sr1',l:'Rédaction scientifique claire et structurée',v:'pos'},
+        {id:'sr2',l:'Schémas soignés et bien légendés',v:'pos'},
+        {id:'sr3',l:'Bilan de TP bien rédigés',v:'pos'},
+        {id:'sr4',l:'Rédaction correcte',v:'neutral'},
+        {id:'sr5',l:'Schémas à soigner davantage',v:'neutral'},
+        {id:'sr6',l:'Rédaction scientifique insuffisante',v:'neg'},
+        {id:'sr7',l:'Schémas incomplets ou mal légendés',v:'neg'},
+      ]
+    },
+  },
+  physique: {
+    demarche: {
+      label:'Démarche scientifique & Expérimentation',
+      items:[
+        {id:'ph1',l:'Excellente rigueur scientifique — démarche irréprochable',v:'pos'},
+        {id:'ph2',l:'Très bonne maîtrise du protocole expérimental',v:'pos'},
+        {id:'ph3',l:'Sait analyser et interpréter les résultats d\'expérience',v:'pos'},
+        {id:'ph4',l:'Démarche expérimentale satisfaisante',v:'neutral'},
+        {id:'ph5',l:'Démarche en cours d\'acquisition',v:'neutral'},
+        {id:'ph6',l:'Difficultés à mettre en œuvre un protocole',v:'neg'},
+        {id:'ph7',l:'Analyse des résultats insuffisante',v:'neg'},
+      ]
+    },
+    calcul: {
+      label:'Calcul & Application des lois',
+      items:[
+        {id:'pc1',l:'Excellente maîtrise du calcul et des formules',v:'pos'},
+        {id:'pc2',l:'Applique les lois avec rigueur',v:'pos'},
+        {id:'pc3',l:'Bon sens de l\'analyse dimensionnelle',v:'pos'},
+        {id:'pc4',l:'Calcul satisfaisant',v:'neutral'},
+        {id:'pc5',l:'Des erreurs de calcul à surveiller',v:'neutral'},
+        {id:'pc6',l:'Difficultés à appliquer les formules',v:'neg'},
+        {id:'pc7',l:'Erreurs fréquentes — unités et calculs mal maîtrisés',v:'neg'},
+        {id:'pc8',l:'Confusion entre les grandeurs physiques',v:'neg'},
+      ]
+    },
+    connaissances: {
+      label:'Connaissances & Notions',
+      items:[
+        {id:'pck1',l:'Très bonnes connaissances du cours',v:'pos'},
+        {id:'pck2',l:'Notions et lois bien mémorisées',v:'pos'},
+        {id:'pck3',l:'Connaissances satisfaisantes',v:'neutral'},
+        {id:'pck4',l:'Des lacunes dans les notions fondamentales',v:'neg'},
+        {id:'pck5',l:'Cours insuffisamment appris',v:'neg'},
+      ]
+    },
+    redaction: {
+      label:'Rédaction & Présentation',
+      items:[
+        {id:'pr1',l:'Rédaction scientifique rigoureuse et claire',v:'pos'},
+        {id:'pr2',l:'Présentation soignée — schémas bien réalisés',v:'pos'},
+        {id:'pr3',l:'Rédaction correcte',v:'neutral'},
+        {id:'pr4',l:'Présentation à améliorer — manque de rigueur',v:'neutral'},
+        {id:'pr5',l:'Rédaction insuffisante',v:'neg'},
+        {id:'pr6',l:'Schémas et graphiques négligés',v:'neg'},
+      ]
+    },
+  },
+  eps: {
+    motricite: {
+      label:'Motricité & Compétences techniques',
+      items:[
+        {id:'ep1',l:'Excellentes qualités motrices et techniques',v:'pos'},
+        {id:'ep2',l:'Très bonne maîtrise technique dans les activités',v:'pos'},
+        {id:'ep3',l:'Bonne coordination et aisance corporelle',v:'pos'},
+        {id:'ep4',l:'Niveau technique satisfaisant',v:'neutral'},
+        {id:'ep5',l:'Progrès techniques encourageants',v:'neutral'},
+        {id:'ep6',l:'Difficultés techniques dans certaines activités',v:'neg'},
+        {id:'ep7',l:'Motricité à développer',v:'neg'},
+      ]
+    },
+    investissement: {
+      label:'Investissement & Attitude',
+      items:[
+        {id:'ei1',l:'Investissement exemplaire — toujours à fond',v:'pos'},
+        {id:'ei2',l:'Très bonne énergie et volonté de progresser',v:'pos'},
+        {id:'ei3',l:'S\'implique avec enthousiasme',v:'pos'},
+        {id:'ei4',l:'Investissement correct',v:'neutral'},
+        {id:'ei5',l:'S\'implique davantage selon les activités',v:'neutral'},
+        {id:'ei6',l:'Manque d\'investissement dans certaines activités',v:'neg'},
+        {id:'ei7',l:'Peu investi(e) — ne se donne pas les moyens de progresser',v:'neg'},
+        {id:'ei8',l:'Refuse de participer à certaines activités',v:'neg'},
+      ]
+    },
+    collectif: {
+      label:'Comportement collectif & Fair-play',
+      items:[
+        {id:'ec1',l:'Excellent esprit d\'équipe — fair-play irréprochable',v:'pos'},
+        {id:'ec2',l:'Encourage ses camarades — leadership positif',v:'pos'},
+        {id:'ec3',l:'Respecte les règles et les adversaires',v:'pos'},
+        {id:'ec4',l:'Comportement collectif satisfaisant',v:'neutral'},
+        {id:'ec5',l:'Doit mieux accepter les décisions arbitrales',v:'neutral'},
+        {id:'ec6',l:'Difficultés à travailler en équipe',v:'neg'},
+        {id:'ec7',l:'Fair-play à améliorer',v:'neg'},
+        {id:'ec8',l:'Comportement parfois problématique en situation de compétition',v:'neg'},
+      ]
+    },
+    theorie: {
+      label:'Partie théorique & Connaissances',
+      items:[
+        {id:'et1',l:'Très bonne maîtrise des connaissances théoriques',v:'pos'},
+        {id:'et2',l:'Connaissances théoriques satisfaisantes',v:'neutral'},
+        {id:'et3',l:'Partie théorique à renforcer',v:'neg'},
+        {id:'et4',l:'Lacunes importantes en partie théorique',v:'neg'},
+      ]
+    },
+  },
+  arts: {
+    pratique: {
+      label:'Pratique plastique & Créativité',
+      items:[
+        {id:'ar1',l:'Créativité et sens artistique remarquables',v:'pos'},
+        {id:'ar2',l:'Très bonne maîtrise des techniques plastiques',v:'pos'},
+        {id:'ar3',l:'Réalisations soignées et originales',v:'pos'},
+        {id:'ar4',l:'Bonne investissement dans les projets artistiques',v:'pos'},
+        {id:'ar5',l:'Pratique satisfaisante',v:'neutral'},
+        {id:'ar6',l:'Des progrès dans la maîtrise technique',v:'neutral'},
+        {id:'ar7',l:'Manque de soin dans les réalisations',v:'neg'},
+        {id:'ar8',l:'Peu investi(e) dans les projets artistiques',v:'neg'},
+        {id:'ar9',l:'Créativité à développer',v:'neg'},
+      ]
+    },
+    analyse: {
+      label:'Analyse d\'œuvres & Culture artistique',
+      items:[
+        {id:'aa1',l:'Excellente culture artistique — analyse fine des œuvres',v:'pos'},
+        {id:'aa2',l:'Bonne capacité à contextualiser une œuvre',v:'pos'},
+        {id:'aa3',l:'Analyse d\'œuvres satisfaisante',v:'neutral'},
+        {id:'aa4',l:'Culture artistique à développer',v:'neg'},
+        {id:'aa5',l:'Difficultés à analyser et commenter les œuvres',v:'neg'},
+      ]
+    },
+    oral: {
+      label:'Oral & Verbalisation',
+      items:[
+        {id:'ao1',l:'Très bonne capacité à verbaliser sa démarche artistique',v:'pos'},
+        {id:'ao2',l:'S\'exprime avec précision sur ses choix plastiques',v:'pos'},
+        {id:'ao3',l:'Verbalisation en cours de développement',v:'neutral'},
+        {id:'ao4',l:'Difficultés à expliquer ses choix artistiques',v:'neg'},
+      ]
+    },
+  },
+  musique: {
+    pratique: {
+      label:'Pratique musicale',
+      items:[
+        {id:'mu1',l:'Excellent sens musical — écoute et précision remarquables',v:'pos'},
+        {id:'mu2',l:'Très bonne maîtrise vocale / instrumentale',v:'pos'},
+        {id:'mu3',l:'Bonne justesse et sens du rythme',v:'pos'},
+        {id:'mu4',l:'S\'implique avec plaisir dans les activités musicales',v:'pos'},
+        {id:'mu5',l:'Pratique musicale satisfaisante',v:'neutral'},
+        {id:'mu6',l:'Des progrès à la pratique — encourage à persévérer',v:'neutral'},
+        {id:'mu7',l:'Difficultés de justesse ou de rythme',v:'neg'},
+        {id:'mu8',l:'Peu investi(e) dans les activités pratiques',v:'neg'},
+        {id:'mu9',l:'Gêne à chanter devant les autres — à surmonter',v:'neg'},
+      ]
+    },
+    culture: {
+      label:'Culture musicale & Écoute',
+      items:[
+        {id:'mc1',l:'Excellente culture musicale — oreille fine et analytique',v:'pos'},
+        {id:'mc2',l:'Très bonne écoute — identifie les éléments musicaux',v:'pos'},
+        {id:'mc3',l:'Bonne compréhension des œuvres étudiées',v:'pos'},
+        {id:'mc4',l:'Culture musicale en développement',v:'neutral'},
+        {id:'mc5',l:'Écoute musicale à approfondir',v:'neg'},
+        {id:'mc6',l:'Difficultés à analyser et commenter les œuvres',v:'neg'},
+      ]
+    },
+    theorie: {
+      label:'Théorie musicale',
+      items:[
+        {id:'mt1',l:'Très bonne maîtrise du solfège et de la théorie',v:'pos'},
+        {id:'mt2',l:'Notions théoriques en cours d\'acquisition',v:'neutral'},
+        {id:'mt3',l:'Lacunes en solfège et théorie musicale',v:'neg'},
+      ]
+    },
+  },
+  techno: {
+    conception: {
+      label:'Conception & Réalisation',
+      items:[
+        {id:'tc1',l:'Excellente maîtrise des outils de conception',v:'pos'},
+        {id:'tc2',l:'Très bon sens de la conception technique',v:'pos'},
+        {id:'tc3',l:'Réalisations soignées et fonctionnelles',v:'pos'},
+        {id:'tc4',l:'Bonne compréhension des contraintes techniques',v:'pos'},
+        {id:'tc5',l:'Conception et réalisation satisfaisantes',v:'neutral'},
+        {id:'tc6',l:'Des progrès dans la maîtrise des outils',v:'neutral'},
+        {id:'tc7',l:'Difficultés en conception — manque de méthode',v:'neg'},
+        {id:'tc8',l:'Réalisations insuffisantes',v:'neg'},
+      ]
+    },
+    numerique: {
+      label:'Outils numériques & Informatique',
+      items:[
+        {id:'tn1',l:'Très bonne maîtrise des outils numériques',v:'pos'},
+        {id:'tn2',l:'À l\'aise avec les logiciels et outils de simulation',v:'pos'},
+        {id:'tn3',l:'Utilisation correcte des outils numériques',v:'neutral'},
+        {id:'tn4',l:'Difficultés avec certains outils numériques',v:'neg'},
+        {id:'tn5',l:'Maîtrise des outils numériques à développer',v:'neg'},
+      ]
+    },
+    demarche: {
+      label:'Démarche de projet',
+      items:[
+        {id:'td1',l:'Excellent sens du projet — organisation et créativité',v:'pos'},
+        {id:'td2',l:'Très bonne gestion des étapes du projet',v:'pos'},
+        {id:'td3',l:'Démarche de projet satisfaisante',v:'neutral'},
+        {id:'td4',l:'Difficultés à planifier et respecter les étapes',v:'neg'},
+        {id:'td5',l:'Ne finalise pas les projets',v:'neg'},
+      ]
+    },
+  },
+  ses: {
+    connaissances: {
+      label:'Connaissances économiques & Sociales',
+      items:[
+        {id:'se1',l:'Très bonnes connaissances en économie et sociologie',v:'pos'},
+        {id:'se2',l:'Maîtrise des concepts et mécanismes économiques',v:'pos'},
+        {id:'se3',l:'Bonne culture économique et sociale',v:'pos'},
+        {id:'se4',l:'Connaissances satisfaisantes',v:'neutral'},
+        {id:'se5',l:'Des notions à consolider',v:'neutral'},
+        {id:'se6',l:'Lacunes dans les concepts fondamentaux',v:'neg'},
+        {id:'se7',l:'Cours insuffisamment acquis',v:'neg'},
+      ]
+    },
+    analyse: {
+      label:'Analyse de documents & Données',
+      items:[
+        {id:'sa1',l:'Excellente analyse de documents statistiques et textes',v:'pos'},
+        {id:'sa2',l:'Bonne lecture et interprétation des données',v:'pos'},
+        {id:'sa3',l:'Analyse satisfaisante',v:'neutral'},
+        {id:'sa4',l:'Difficultés à interpréter graphiques et données chiffrées',v:'neg'},
+        {id:'sa5',l:'Reste au premier degré des documents',v:'neg'},
+      ]
+    },
+    redaction: {
+      label:'Rédaction & Argumentation',
+      items:[
+        {id:'sr1',l:'Très bonne maîtrise de la dissertation et du raisonnement',v:'pos'},
+        {id:'sr2',l:'Argumentation économique construite et nuancée',v:'pos'},
+        {id:'sr3',l:'Rédaction satisfaisante',v:'neutral'},
+        {id:'sr4',l:'Difficultés à structurer un raisonnement économique',v:'neg'},
+        {id:'sr5',l:'Rédaction trop superficielle — manque de développement',v:'neg'},
+      ]
+    },
+    actualite: {
+      label:'Actualité & Ouverture',
+      items:[
+        {id:'sac1',l:'Très bonne ouverture sur l\'actualité économique',v:'pos'},
+        {id:'sac2',l:'Fait des liens pertinents avec l\'actualité',v:'pos'},
+        {id:'sac3',l:'Intérêt pour l\'actualité à développer',v:'neg'},
+      ]
+    },
+  },
+  nsi: {
+    programmation: {
+      label:'Programmation & Algorithmique',
+      items:[
+        {id:'ni1',l:'Excellente maîtrise de la programmation — code propre et efficace',v:'pos'},
+        {id:'ni2',l:'Très bon sens algorithmique',v:'pos'},
+        {id:'ni3',l:'Bonne capacité à déboguer et optimiser',v:'pos'},
+        {id:'ni4',l:'Programmation satisfaisante',v:'neutral'},
+        {id:'ni5',l:'Des progrès en programmation — en bonne voie',v:'neutral'},
+        {id:'ni6',l:'Difficultés à écrire des algorithmes corrects',v:'neg'},
+        {id:'ni7',l:'Code difficile à lire — manque de structure',v:'neg'},
+        {id:'ni8',l:'Lacunes en programmation',v:'neg'},
+      ]
+    },
+    systemes: {
+      label:'Systèmes & Réseaux',
+      items:[
+        {id:'ns1',l:'Très bonne compréhension des systèmes informatiques',v:'pos'},
+        {id:'ns2',l:'Bonnes notions de réseaux et architecture',v:'pos'},
+        {id:'ns3',l:'Compréhension satisfaisante des systèmes',v:'neutral'},
+        {id:'ns4',l:'Notions de systèmes et réseaux à consolider',v:'neg'},
+      ]
+    },
+    projet: {
+      label:'Projets & Autonomie',
+      items:[
+        {id:'np1',l:'Excellent investissement dans les projets — grande autonomie',v:'pos'},
+        {id:'np2',l:'Force de proposition dans les projets',v:'pos'},
+        {id:'np3',l:'Participation correcte aux projets',v:'neutral'},
+        {id:'np4',l:'Manque d\'autonomie dans les projets',v:'neg'},
+        {id:'np5',l:'Ne finalise pas les projets',v:'neg'},
+      ]
+    },
+  },
+  philo: {
+    dissertation: {
+      label:'Dissertation & Argumentation',
+      items:[
+        {id:'pl1',l:'Excellente maîtrise de la dissertation philosophique',v:'pos'},
+        {id:'pl2',l:'Problématisation rigoureuse et originale',v:'pos'},
+        {id:'pl3',l:'Argumentation construite, nuancée et illustrée',v:'pos'},
+        {id:'pl4',l:'Bonne structure de dissertation',v:'pos'},
+        {id:'pl5',l:'Dissertation en cours de maîtrise',v:'neutral'},
+        {id:'pl6',l:'Plan correct mais développement insuffisant',v:'neutral'},
+        {id:'pl7',l:'Difficultés à problématiser',v:'neg'},
+        {id:'pl8',l:'Argumentation trop superficielle',v:'neg'},
+        {id:'pl9',l:'Hors-sujet récurrents',v:'neg'},
+      ]
+    },
+    explication: {
+      label:'Explication de textes',
+      items:[
+        {id:'pe1',l:'Excellente explication de texte — va au cœur de la pensée',v:'pos'},
+        {id:'pe2',l:'Bonne compréhension des textes philosophiques',v:'pos'},
+        {id:'pe3',l:'Explication de texte satisfaisante',v:'neutral'},
+        {id:'pe4',l:'Difficultés à dégager la thèse et les arguments',v:'neg'},
+        {id:'pe5',l:'Reste à la surface des textes — manque de profondeur',v:'neg'},
+      ]
+    },
+    culture: {
+      label:'Culture philosophique & Auteurs',
+      items:[
+        {id:'pk1',l:'Très bonne culture philosophique — maîtrise des auteurs',v:'pos'},
+        {id:'pk2',l:'Utilise les références avec pertinence',v:'pos'},
+        {id:'pk3',l:'Culture philosophique en construction',v:'neutral'},
+        {id:'pk4',l:'Peu de références mobilisées',v:'neg'},
+        {id:'pk5',l:'Cours insuffisamment acquis',v:'neg'},
+      ]
+    },
+    oral: {
+      label:'Participation & Pensée critique',
+      items:[
+        {id:'po1',l:'Participe activement — pensée critique remarquable',v:'pos'},
+        {id:'po2',l:'Pose des questions profondes et pertinentes',v:'pos'},
+        {id:'po3',l:'Participation correcte',v:'neutral'},
+        {id:'po4',l:'Participation insuffisante',v:'neg'},
+        {id:'po5',l:'Peine à s\'engager dans la réflexion philosophique',v:'neg'},
+      ]
+    },
+  },
+  latin: {
+    traduction: {
+      label:'Traduction & Version',
+      items:[
+        {id:'lat1',l:'Excellente maîtrise de la traduction — fidèle et élégante',v:'pos'},
+        {id:'lat2',l:'Très bonne compréhension des textes latins',v:'pos'},
+        {id:'lat3',l:'Traduction satisfaisante',v:'neutral'},
+        {id:'lat4',l:'Des erreurs de traduction mais la démarche est là',v:'neutral'},
+        {id:'lat5',l:'Difficultés à traduire avec précision',v:'neg'},
+        {id:'lat6',l:'Nombreuses erreurs de traduction',v:'neg'},
+      ]
+    },
+    grammaire: {
+      label:'Grammaire & Morphologie',
+      items:[
+        {id:'lag1',l:'Excellente maîtrise de la grammaire latine',v:'pos'},
+        {id:'lag2',l:'Déclinaisons et conjugaisons bien acquises',v:'pos'},
+        {id:'lag3',l:'Grammaire satisfaisante',v:'neutral'},
+        {id:'lag4',l:'Des lacunes grammaticales à combler',v:'neg'},
+        {id:'lag5',l:'Grammaire insuffisamment maîtrisée — freine la traduction',v:'neg'},
+      ]
+    },
+    civilisation: {
+      label:'Civilisation & Culture antique',
+      items:[
+        {id:'lac1',l:'Très bonne culture de l\'Antiquité — curiosité remarquable',v:'pos'},
+        {id:'lac2',l:'S\'investit avec enthousiasme dans la culture romaine',v:'pos'},
+        {id:'lac3',l:'Bonne compréhension du monde romain',v:'neutral'},
+        {id:'lac4',l:'Culture antique à approfondir',v:'neg'},
+      ]
+    },
+    engagement: {
+      label:'Engagement & Motivation',
+      items:[
+        {id:'lae1',l:'Très investi(e) dans cette option — travail sérieux',v:'pos'},
+        {id:'lae2',l:'Curiosité intellectuelle remarquable pour les langues anciennes',v:'pos'},
+        {id:'lae3',l:'Participation correcte',v:'neutral'},
+        {id:'lae4',l:'Doit s\'investir davantage dans cette option',v:'neg'},
+      ]
+    },
+  },
+  grec: {
+    traduction: {
+      label:'Traduction & Version',
+      items:[
+        {id:'gr1',l:'Excellente maîtrise de la traduction grecque',v:'pos'},
+        {id:'gr2',l:'Très bonne compréhension des textes grecs',v:'pos'},
+        {id:'gr3',l:'Traduction satisfaisante',v:'neutral'},
+        {id:'gr4',l:'Des erreurs de traduction mais la démarche est là',v:'neutral'},
+        {id:'gr5',l:'Difficultés à traduire avec précision',v:'neg'},
+        {id:'gr6',l:'Nombreuses erreurs de traduction',v:'neg'},
+      ]
+    },
+    grammaire: {
+      label:'Grammaire, Morphologie & Alphabet',
+      items:[
+        {id:'grg1',l:'Excellente maîtrise de la grammaire grecque et de l\'alphabet',v:'pos'},
+        {id:'grg2',l:'Déclinaisons et alphabet bien acquis',v:'pos'},
+        {id:'grg3',l:'Grammaire satisfaisante',v:'neutral'},
+        {id:'grg4',l:'Alphabet et morphologie à consolider',v:'neg'},
+        {id:'grg5',l:'Grammaire insuffisamment maîtrisée',v:'neg'},
+      ]
+    },
+    civilisation: {
+      label:'Civilisation & Culture grecque',
+      items:[
+        {id:'grc1',l:'Très bonne culture de la Grèce antique',v:'pos'},
+        {id:'grc2',l:'S\'investit avec passion dans la civilisation grecque',v:'pos'},
+        {id:'grc3',l:'Bonne compréhension du monde grec',v:'neutral'},
+        {id:'grc4',l:'Culture hellénique à approfondir',v:'neg'},
+      ]
+    },
+    engagement: {
+      label:'Engagement & Motivation',
+      items:[
+        {id:'gre1',l:'Très investi(e) dans cette option exigeante',v:'pos'},
+        {id:'gre2',l:'Curiosité intellectuelle remarquable pour le grec',v:'pos'},
+        {id:'gre3',l:'Participation correcte',v:'neutral'},
+        {id:'gre4',l:'Doit s\'investir davantage dans cette option',v:'neg'},
+      ]
+    },
+  },
+  llcer: {
+    culture: {
+      label:'Langue, Littérature & Culture',
+      items:[
+        {id:'ll1',l:'Excellente maîtrise linguistique et culturelle',v:'pos'},
+        {id:'ll2',l:'Très bonne connaissance de la culture étrangère',v:'pos'},
+        {id:'ll3',l:'Analyse littéraire approfondie en langue étrangère',v:'pos'},
+        {id:'ll4',l:'Fait des liens pertinents entre cultures',v:'pos'},
+        {id:'ll5',l:'Bonne compréhension culturelle',v:'neutral'},
+        {id:'ll6',l:'Culture étrangère à approfondir',v:'neg'},
+        {id:'ll7',l:'Difficultés à analyser les textes littéraires en langue',v:'neg'},
+      ]
+    },
+    oral: {
+      label:'Expression orale & Débat',
+      items:[
+        {id:'lo1',l:'Expression orale remarquable — aisance et précision',v:'pos'},
+        {id:'lo2',l:'Excellent niveau de débat en langue étrangère',v:'pos'},
+        {id:'lo3',l:'Prise de parole spontanée et de qualité',v:'pos'},
+        {id:'lo4',l:'Expression orale satisfaisante',v:'neutral'},
+        {id:'lo5',l:'Doit oser davantage s\'exprimer en langue',v:'neg'},
+        {id:'lo6',l:'Expression orale trop hésitante pour ce niveau',v:'neg'},
+      ]
+    },
+    ecrit: {
+      label:'Expression écrite & Analyse',
+      items:[
+        {id:'le1',l:'Très bonne expression écrite en langue étrangère',v:'pos'},
+        {id:'le2',l:'Commentaire et analyse de texte maîtrisés',v:'pos'},
+        {id:'le3',l:'Expression écrite satisfaisante',v:'neutral'},
+        {id:'le4',l:'Expression écrite insuffisante pour ce niveau de spécialité',v:'neg'},
+      ]
+    },
+  },
+  lce: {
+    culture: {
+      label:'Langue & Culture étrangère',
+      items:[
+        {id:'lc1',l:'Excellente sensibilité culturelle pour son âge',v:'pos'},
+        {id:'lc2',l:'Très bonne ouverture sur la culture étrangère',v:'pos'},
+        {id:'lc3',l:'S\'implique avec enthousiasme dans l\'option',v:'pos'},
+        {id:'lc4',l:'Participation satisfaisante à l\'option',v:'neutral'},
+        {id:'lc5',l:'Investissement dans l\'option à renforcer',v:'neg'},
+      ]
+    },
+    pratique: {
+      label:'Pratique de la langue',
+      items:[
+        {id:'lp1',l:'Niveau linguistique remarquable pour une option',v:'pos'},
+        {id:'lp2',l:'Ose s\'exprimer avec naturel et confiance',v:'pos'},
+        {id:'lp3',l:'Niveau correct pour l\'option',v:'neutral'},
+        {id:'lp4',l:'Doit davantage s\'impliquer dans la pratique orale',v:'neg'},
+      ]
+    },
+  },
+  hlp: {
+    dissertation: {
+      label:'Dissertation & Argumentation',
+      items:[
+        {id:'hp1',l:'Excellente maîtrise de la dissertation — pensée rigoureuse',v:'pos'},
+        {id:'hp2',l:'Argumentation littéraire et philosophique construite',v:'pos'},
+        {id:'hp3',l:'Fait des liens pertinents entre littérature et philosophie',v:'pos'},
+        {id:'hp4',l:'Dissertation satisfaisante',v:'neutral'},
+        {id:'hp5',l:'Difficultés à articuler littérature et philosophie',v:'neg'},
+        {id:'hp6',l:'Raisonnement trop superficiel',v:'neg'},
+      ]
+    },
+    textes: {
+      label:'Analyse de textes littéraires & philosophiques',
+      items:[
+        {id:'ht1',l:'Lecture fine et sensible des textes',v:'pos'},
+        {id:'ht2',l:'Très bonne compréhension des œuvres au programme',v:'pos'},
+        {id:'ht3',l:'Analyse satisfaisante',v:'neutral'},
+        {id:'ht4',l:'Difficultés à interpréter les textes en profondeur',v:'neg'},
+      ]
+    },
+    oral: {
+      label:'Oral & Pensée critique',
+      items:[
+        {id:'ho1',l:'Participe activement — pensée originale et nuancée',v:'pos'},
+        {id:'ho2',l:'S\'exprime avec précision et élégance',v:'pos'},
+        {id:'ho3',l:'Participation correcte',v:'neutral'},
+        {id:'ho4',l:'Participe peu — doit s\'engager dans les débats',v:'neg'},
+      ]
+    },
+  },
+  hggsp: {
+    connaissances: {
+      label:'Connaissances géopolitiques & Sciences politiques',
+      items:[
+        {id:'hg1',l:'Excellente culture géopolitique et politique',v:'pos'},
+        {id:'hg2',l:'Maîtrise des grands enjeux contemporains',v:'pos'},
+        {id:'hg3',l:'Bonne connaissance des acteurs et des conflits',v:'pos'},
+        {id:'hg4',l:'Connaissances satisfaisantes',v:'neutral'},
+        {id:'hg5',l:'Culture géopolitique à développer',v:'neg'},
+        {id:'hg6',l:'Lacunes dans les connaissances du programme',v:'neg'},
+      ]
+    },
+    analyse: {
+      label:'Analyse & Argumentation',
+      items:[
+        {id:'ha1',l:'Analyse géopolitique rigoureuse et nuancée',v:'pos'},
+        {id:'ha2',l:'Sait mobiliser des exemples précis et pertinents',v:'pos'},
+        {id:'ha3',l:'Analyse satisfaisante',v:'neutral'},
+        {id:'ha4',l:'Difficultés à construire un raisonnement géopolitique',v:'neg'},
+        {id:'ha5',l:'Exemples trop généraux — manque de précision',v:'neg'},
+      ]
+    },
+    sources: {
+      label:'Travail sur documents & Actualité',
+      items:[
+        {id:'hs1',l:'Excellente maîtrise des sources — esprit critique affûté',v:'pos'},
+        {id:'hs2',l:'Suit l\'actualité géopolitique avec intérêt',v:'pos'},
+        {id:'hs3',l:'Travail sur documents satisfaisant',v:'neutral'},
+        {id:'hs4',l:'Doit développer son regard critique sur les sources',v:'neg'},
+      ]
+    },
+  },
+  mathsExp: {
+    raisonnement: {
+      label:'Raisonnement & Démonstration avancée',
+      items:[
+        {id:'me1',l:'Raisonnement mathématique d\'un très haut niveau',v:'pos'},
+        {id:'me2',l:'Démonstrations rigoureuses et élégantes',v:'pos'},
+        {id:'me3',l:'Sens de l\'abstraction remarquable',v:'pos'},
+        {id:'me4',l:'Raisonnement solide',v:'neutral'},
+        {id:'me5',l:'Rigueur dans les démonstrations à renforcer',v:'neg'},
+        {id:'me6',l:'Difficultés avec l\'abstraction avancée',v:'neg'},
+      ]
+    },
+    notions: {
+      label:'Notions avancées',
+      items:[
+        {id:'mn1',l:'Excellente maîtrise des notions de spécialité avancée',v:'pos'},
+        {id:'mn2',l:'Très bonne assimilation des concepts complexes',v:'pos'},
+        {id:'mn3',l:'Assimilation satisfaisante',v:'neutral'},
+        {id:'mn4',l:'Difficultés sur certaines notions avancées',v:'neg'},
+        {id:'mn5',l:'Lacunes importantes pour ce niveau d\'option',v:'neg'},
+      ]
+    },
+  },
+  mathsComp: {
+    consolidation: {
+      label:'Consolidation & Approfondissement',
+      items:[
+        {id:'mc1',l:'Excellent investissement dans cette option de consolidation',v:'pos'},
+        {id:'mc2',l:'Progresse significativement grâce à l\'option',v:'pos'},
+        {id:'mc3',l:'Participation satisfaisante',v:'neutral'},
+        {id:'mc4',l:'L\'option ne suffit pas à combler les lacunes — travail personnel nécessaire',v:'neg'},
+      ]
+    },
+  },
+  snt: {
+    numerique: {
+      label:'Culture numérique',
+      items:[
+        {id:'sn1',l:'Excellente compréhension des enjeux du numérique',v:'pos'},
+        {id:'sn2',l:'Très bonne culture numérique et informatique',v:'pos'},
+        {id:'sn3',l:'S\'adapte facilement aux outils numériques',v:'pos'},
+        {id:'sn4',l:'Bonne compréhension des bases du numérique',v:'neutral'},
+        {id:'sn5',l:'Compréhension en cours de développement',v:'neutral'},
+        {id:'sn6',l:'Difficultés à comprendre les concepts numériques',v:'neg'},
+      ]
+    },
+    programmation: {
+      label:'Programmation & Algorithmique de base',
+      items:[
+        {id:'sp1',l:'Très bonne introduction à la programmation',v:'pos'},
+        {id:'sp2',l:'Comprend rapidement la logique algorithmique',v:'pos'},
+        {id:'sp3',l:'Premiers pas en programmation satisfaisants',v:'neutral'},
+        {id:'sp4',l:'Difficultés avec la logique de programmation',v:'neg'},
+      ]
+    },
+  },
+  dnl: {
+    langue: {
+      label:'Maîtrise de la langue d\'enseignement',
+      items:[
+        {id:'dn1',l:'Excellente aisance dans la langue d\'enseignement',v:'pos'},
+        {id:'dn2',l:'Très bon niveau linguistique pour suivre la DNL',v:'pos'},
+        {id:'dn3',l:'Niveau linguistique suffisant pour la DNL',v:'neutral'},
+        {id:'dn4',l:'Des difficultés linguistiques qui freinent la compréhension',v:'neg'},
+        {id:'dn5',l:'Niveau linguistique insuffisant pour ce dispositif',v:'neg'},
+      ]
+    },
+    discipline: {
+      label:'Contenu disciplinaire',
+      items:[
+        {id:'dd1',l:'Excellente maîtrise du contenu disciplinaire en langue',v:'pos'},
+        {id:'dd2',l:'S\'exprime avec précision sur les notions disciplinaires',v:'pos'},
+        {id:'dd3',l:'Bonne compréhension du contenu',v:'neutral'},
+        {id:'dd4',l:'Difficultés à maîtriser le contenu disciplinaire en langue étrangère',v:'neg'},
+      ]
+    },
+  },
+  svtSpe: {
+    demarche: {
+      label:'Démarche scientifique avancée',
+      items:[
+        {id:'ss1',l:'Démarche scientifique rigoureuse et autonome',v:'pos'},
+        {id:'ss2',l:'Excellente capacité à concevoir et analyser des expériences',v:'pos'},
+        {id:'ss3',l:'Très bonne maîtrise des outils scientifiques de spécialité',v:'pos'},
+        {id:'ss4',l:'Démarche satisfaisante pour ce niveau',v:'neutral'},
+        {id:'ss5',l:'Manque de rigueur pour une spécialité',v:'neg'},
+        {id:'ss6',l:'Niveau insuffisant pour ce niveau de spécialité',v:'neg'},
+      ]
+    },
+    connaissances: {
+      label:'Connaissances approfondies',
+      items:[
+        {id:'sk1',l:'Connaissances approfondies et maîtrisées',v:'pos'},
+        {id:'sk2',l:'Très bonne assimilation des notions avancées',v:'pos'},
+        {id:'sk3',l:'Connaissances satisfaisantes',v:'neutral'},
+        {id:'sk4',l:'Des lacunes pour ce niveau de spécialité',v:'neg'},
+      ]
+    },
+  },
+  physiqueSpe: {
+    demarche: {
+      label:'Démarche scientifique & Expérimentation avancée',
+      items:[
+        {id:'ps1',l:'Excellente rigueur expérimentale pour ce niveau de spécialité',v:'pos'},
+        {id:'ps2',l:'Très bonne maîtrise des protocoles avancés',v:'pos'},
+        {id:'ps3',l:'Démarche satisfaisante',v:'neutral'},
+        {id:'ps4',l:'Rigueur insuffisante pour une spécialité',v:'neg'},
+      ]
+    },
+    calcul: {
+      label:'Calcul & Formalisme',
+      items:[
+        {id:'pf1',l:'Excellente maîtrise du formalisme mathématique appliqué',v:'pos'},
+        {id:'pf2',l:'Très bonne articulation maths/physique',v:'pos'},
+        {id:'pf3',l:'Calcul satisfaisant',v:'neutral'},
+        {id:'pf4',l:'Difficultés avec le formalisme mathématique avancé',v:'neg'},
+      ]
+    },
+  },
+  artsLycee: {
+    pratique: {
+      label:'Pratique artistique',
+      items:[
+        {id:'al1',l:'Pratique artistique remarquable — démarche personnelle affirmée',v:'pos'},
+        {id:'al2',l:'Très bonne maîtrise technique au service du propos',v:'pos'},
+        {id:'al3',l:'Recherche artistique sérieuse et investie',v:'pos'},
+        {id:'al4',l:'Pratique satisfaisante',v:'neutral'},
+        {id:'al5',l:'Démarche artistique à approfondir',v:'neg'},
+        {id:'al6',l:'Investissement insuffisant pour ce niveau de spécialité',v:'neg'},
+      ]
+    },
+    theorie: {
+      label:'Histoire de l\'art & Analyse d\'œuvres',
+      items:[
+        {id:'at1',l:'Excellente culture artistique — analyse fine et contextualisée',v:'pos'},
+        {id:'at2',l:'Très bonne maîtrise de l\'histoire de l\'art',v:'pos'},
+        {id:'at3',l:'Analyse d\'œuvres satisfaisante',v:'neutral'},
+        {id:'at4',l:'Culture artistique à développer pour ce niveau',v:'neg'},
+      ]
+    },
+    oral: {
+      label:'Soutenance & Verbalisation',
+      items:[
+        {id:'ao1',l:'Soutenance de dossier remarquable — discours clair et argumenté',v:'pos'},
+        {id:'ao2',l:'Très bonne capacité à expliquer et défendre sa démarche',v:'pos'},
+        {id:'ao3',l:'Verbalisation satisfaisante',v:'neutral'},
+        {id:'ao4',l:'Doit travailler la verbalisation de sa démarche artistique',v:'neg'},
+      ]
+    },
+  },
+  vieClasse: {
+    engagement: {
+      label:'Engagement & Vie collective',
+      items:[
+        {id:'vc1',l:'Participe activement à la vie de la classe',v:'pos'},
+        {id:'vc2',l:'Prise d\'initiatives remarquable — force de proposition',v:'pos'},
+        {id:'vc3',l:'Très bon esprit collectif',v:'pos'},
+        {id:'vc4',l:'Participation satisfaisante',v:'neutral'},
+        {id:'vc5',l:'Pourrait s\'impliquer davantage dans la vie de classe',v:'neg'},
+        {id:'vc6',l:'Peu impliqué(e) dans la vie collective',v:'neg'},
+      ]
+    },
+    orientation: {
+      label:'Projet & Orientation',
+      items:[
+        {id:'vo1',l:'Projet d\'orientation clair et réfléchi',v:'pos'},
+        {id:'vo2',l:'Très bonne réflexion sur son avenir',v:'pos'},
+        {id:'vo3',l:'Projet en cours de construction',v:'neutral'},
+        {id:'vo4',l:'Doit approfondir sa réflexion sur l\'orientation',v:'neg'},
+      ]
+    },
+  },
+  vieScolaire: {
+    assiduite: {
+      label:'Assiduité & Ponctualité',
+      items:[
+        {id:'cpe1',l:'Assiduité et ponctualité irréprochables',v:'pos'},
+        {id:'cpe2',l:'Très bonne assiduité',v:'pos'},
+        {id:'cpe3',l:'Quelques retards ponctuels',v:'neutral'},
+        {id:'cpe4',l:'Assiduité globalement satisfaisante',v:'neutral'},
+        {id:'cpe5',l:'Retards fréquents à régulariser',v:'neg'},
+        {id:'cpe6',l:'Absences répétées — situation préoccupante',v:'neg'},
+        {id:'cpe7',l:'Absences injustifiées — famille contactée',v:'neg'},
+        {id:'cpe8',l:'Décrochage scolaire à surveiller',v:'neg'},
+      ]
+    },
+    comportement: {
+      label:'Comportement & Intégration',
+      items:[
+        {id:'cpb1',l:'Comportement exemplaire — élève respectueux(se)',v:'pos'},
+        {id:'cpb2',l:'Très bonne intégration dans l\'établissement',v:'pos'},
+        {id:'cpb3',l:'Comportement satisfaisant',v:'neutral'},
+        {id:'cpb4',l:'Quelques incidents mineurs signalés',v:'neutral'},
+        {id:'cpb5',l:'Comportement à améliorer',v:'neg'},
+        {id:'cpb6',l:'Incidents disciplinaires répétés',v:'neg'},
+        {id:'cpb7',l:'Difficultés relationnelles avec les camarades',v:'neg'},
+        {id:'cpb8',l:'Irrespect envers les adultes — inacceptable',v:'neg'},
+      ]
+    },
+    suivi: {
+      label:'Suivi & Accompagnement',
+      items:[
+        {id:'cps1',l:'Aucun signalement ce trimestre',v:'pos'},
+        {id:'cps2',l:'Bonne évolution depuis le début de l\'année',v:'pos'},
+        {id:'cps3',l:'Suivi en cours — des progrès notables',v:'neutral'},
+        {id:'cps4',l:'Suivi mis en place ce trimestre',v:'neutral'},
+        {id:'cps5',l:'Suivi renforcé nécessaire',v:'neg'},
+        {id:'cps6',l:'Famille contactée',v:'neg'},
+        {id:'cps7',l:'Équipe éducative mobilisée',v:'neg'},
+      ]
+    },
+  },
+  pfmp: {
+    competences: {
+      label:'Compétences professionnelles',
+      items:[
+        {id:'pf1',l:'Excellente maîtrise des compétences professionnelles',v:'pos'},
+        {id:'pf2',l:'Très bon investissement en entreprise',v:'pos'},
+        {id:'pf3',l:'Retour de stage très positif',v:'pos'},
+        {id:'pf4',l:'Compétences professionnelles satisfaisantes',v:'neutral'},
+        {id:'pf5',l:'Stage correct mais des points à améliorer',v:'neutral'},
+        {id:'pf6',l:'Bilan de stage décevant',v:'neg'},
+        {id:'pf7',l:'Difficultés à s\'adapter au milieu professionnel',v:'neg'},
+      ]
+    },
+    comportement: {
+      label:'Comportement professionnel',
+      items:[
+        {id:'pb1',l:'Comportement professionnel exemplaire',v:'pos'},
+        {id:'pb2',l:'Très bonne intégration dans l\'équipe professionnelle',v:'pos'},
+        {id:'pb3',l:'Ponctualité et sérieux irréprochables',v:'pos'},
+        {id:'pb4',l:'Comportement professionnel satisfaisant',v:'neutral'},
+        {id:'pb5',l:'Des axes de progrès sur le comportement professionnel',v:'neutral'},
+        {id:'pb6',l:'Comportement professionnel insuffisant',v:'neg'},
+        {id:'pb7',l:'Problèmes de ponctualité ou d\'assiduité signalés',v:'neg'},
+      ]
+    },
+    rapport: {
+      label:'Rapport de stage & Bilan',
+      items:[
+        {id:'pr1',l:'Rapport de stage excellent — synthèse claire et réflexive',v:'pos'},
+        {id:'pr2',l:'Rapport de stage satisfaisant',v:'neutral'},
+        {id:'pr3',l:'Rapport de stage à améliorer',v:'neg'},
+        {id:'pr4',l:'Rapport de stage non rendu ou incomplet',v:'neg'},
+      ]
+    },
   },
   academic: {
     methode: {
@@ -1735,13 +2941,44 @@ function sampMem(cid){const arr=[...getMem(cid)];if(!arr.length)return '';return
 
 // ── BOOT — deferred; full init runs after all PP code is defined ──────────────
 load();
-buildSubjectDropdown(document.getElementById('nc-subj'));
+buildSubjectDropdown(document.getElementById('nc-subj'), '');
 
-function buildSubjectDropdown(sel){
-  sel.innerHTML='';
-  Object.entries(SUBJECTS).forEach(([k,v])=>{
-    const o=document.createElement('option');
-    o.value=k; o.textContent=v.label; sel.appendChild(o);
+// Subject availability by year
+const SUBJECTS_BY_YEAR = {
+  '6e':   ['francais','maths','histoire','emc','sciences','physique','anglais','espagnol','allemand','italien','portugais','arabe','chinois','russe','breton','basque','occitan','autrelangue','lce','eps','arts','musique','techno','vieClasse','vieScolaire','general'],
+  '5e':   ['francais','maths','histoire','emc','sciences','physique','anglais','espagnol','allemand','italien','portugais','arabe','chinois','russe','breton','basque','occitan','latin','grec','autrelangue','lce','eps','arts','musique','techno','vieClasse','vieScolaire','general'],
+  '4e':   ['francais','maths','histoire','emc','sciences','physique','anglais','espagnol','allemand','italien','portugais','arabe','chinois','russe','breton','basque','occitan','latin','grec','autrelangue','lce','eps','arts','musique','techno','vieClasse','vieScolaire','general'],
+  '3e':   ['francais','maths','histoire','emc','sciences','physique','anglais','espagnol','allemand','italien','portugais','arabe','chinois','russe','breton','basque','occitan','latin','grec','autrelangue','lce','eps','arts','musique','techno','vieClasse','vieScolaire','general'],
+  '2nde': ['francais','maths','histoire','emc','sciences','physique','anglais','espagnol','allemand','italien','portugais','arabe','chinois','russe','breton','basque','occitan','latin','grec','autrelangue','lce','llcer','ses','snt','nsi','eps','arts','artsLycee','musique','techno','dnl','vieClasse','vieScolaire','pfmp','general'],
+  '1ere': ['francais','maths','mathsExp','mathsComp','histoire','hggsp','emc','sciences','svtSpe','physique','physiqueSpe','philo','ses','nsi','snt','anglais','espagnol','allemand','italien','portugais','arabe','chinois','russe','breton','basque','occitan','latin','grec','autrelangue','lce','llcer','hlp','arts','artsLycee','musique','dnl','eps','vieClasse','vieScolaire','pfmp','general'],
+  'tle':  ['francais','maths','mathsExp','mathsComp','histoire','hggsp','emc','sciences','svtSpe','physique','physiqueSpe','philo','ses','nsi','anglais','espagnol','allemand','italien','portugais','arabe','chinois','russe','breton','basque','occitan','latin','grec','autrelangue','lce','llcer','hlp','arts','artsLycee','musique','dnl','eps','vieClasse','vieScolaire','pfmp','general'],
+};
+
+// Subject groups for display
+const SUBJECT_GROUPS = [
+  {label:'Français & Langues vivantes', keys:['francais','anglais','espagnol','allemand','italien','portugais','arabe','chinois','russe','breton','basque','occitan','autrelangue','lce','llcer','dnl']},
+  {label:'Langues anciennes', keys:['latin','grec']},
+  {label:'Mathématiques', keys:['maths','mathsExp','mathsComp']},
+  {label:'Sciences', keys:['sciences','svtSpe','physique','physiqueSpe','snt','nsi','techno']},
+  {label:'Sciences humaines & Sociales', keys:['histoire','hggsp','emc','ses','philo','hlp']},
+  {label:'Arts & EPS', keys:['arts','artsLycee','musique','eps']},
+  {label:'Autre', keys:['vieClasse','vieScolaire','pfmp','general']},
+];
+
+function buildSubjectDropdown(sel, year){
+  const allowed = year ? (SUBJECTS_BY_YEAR[year] || Object.keys(SUBJECTS)) : Object.keys(SUBJECTS);
+  sel.innerHTML = '';
+  SUBJECT_GROUPS.forEach(grp => {
+    const validKeys = grp.keys.filter(k => allowed.includes(k) && SUBJECTS[k]);
+    if(!validKeys.length) return;
+    const og = document.createElement('optgroup');
+    og.label = grp.label;
+    validKeys.forEach(k => {
+      const o = document.createElement('option');
+      o.value = k; o.textContent = SUBJECTS[k].label;
+      og.appendChild(o);
+    });
+    sel.appendChild(og);
   });
 }
 
@@ -1756,7 +2993,7 @@ function renderSidebar(){
     const d=document.createElement('div');
     d.className='cls-item'+(id===S.active?' active':'');
     d.onclick=()=>selectClass(id);
-    d.innerHTML=`<div class="cls-dot"></div><div class="cls-info"><div class="cls-name">${c.name}</div><div class="cls-meta">${SUBJECTS[c.subject]?.label||c.subject} · ${c.periodType==='semestre'?'Sem.':'Trim.'}</div></div><span class="cls-n">${c.students.length}</span><button class="sb-edit" title="Modifier la classe">✎</button><button class="sb-del" title="Supprimer">✕</button>`;
+    d.innerHTML=`<div class="cls-dot"></div><div class="cls-info"><div class="cls-name">${c.name}</div><div class="cls-meta">${SUBJECTS[c.subject]?.label||c.subject}${c.classYear?' · '+(YEAR_LABELS[c.classYear]||c.classYear):''} · ${c.periodType==='semestre'?'Sem.':'Trim.'}</div></div><span class="cls-n">${c.students.length}</span><button class="sb-edit" title="Modifier la classe">✎</button><button class="sb-del" title="Supprimer">✕</button>`;
     const btn=d.querySelector('.sb-del');
     btn.addEventListener('click',e=>{e.stopPropagation();deleteClass(id);});
     const editBtn=d.querySelector('.sb-edit');
@@ -1767,6 +3004,36 @@ function renderSidebar(){
 }
 
 // ── CLASS MANAGEMENT ──────────────────────────────────────────────────────────
+function updateLevelFromYear(prefix){
+  const year=document.getElementById(prefix+'-year').value;
+  const lyceeYears=['2nde','1ere','tle'];
+  const level=lyceeYears.includes(year)?'lycee':'college';
+  const hidden=document.getElementById(prefix+'-level-hidden');
+  if(hidden) hidden.value=level;
+  // Rebuild subject dropdown filtered by year
+  const subj=document.getElementById(prefix+'-subj');
+  if(subj){
+    const current=subj.value;
+    buildSubjectDropdown(subj, year);
+    // Try to restore previous selection if still valid
+    if(current && [...subj.options].some(o=>o.value===current)) subj.value=current;
+    toggleLV(prefix);
+  }
+}
+
+const YEAR_TO_LEVEL={'6e':'college','5e':'college','4e':'college','3e':'college','2nde':'lycee','1ere':'lycee','tle':'lycee'};
+const YEAR_LABELS={'6e':'6e','5e':'5e','4e':'4e','3e':'3e','2nde':'2nde','1ere':'1ère','tle':'Terminale'};
+
+function toggleLV(prefix){
+  const sel=document.getElementById(prefix+'-subj');
+  const wrap=document.getElementById(prefix+'-lv-wrap');
+  const customWrap=document.getElementById(prefix+'-customlang-wrap');
+  if(!wrap) return;
+  const isLang=SUBJECTS[sel.value]?.type==='lang';
+  wrap.style.display=isLang?'block':'none';
+  if(customWrap) customWrap.style.display=sel.value==='autrelangue'?'block':'none';
+}
+
 function openEditClass(id){
   const cls=S.classes[id]; if(!cls)return;
   S._editingClass=id;
@@ -1782,6 +3049,18 @@ function openEditClass(id){
     if(k===cls.subject)o.selected=true;
     sel.appendChild(o);
   });
+  const ecYear=document.getElementById('ec-year');
+  if(ecYear) ecYear.value=cls.classYear||'';
+  // Rebuild subject dropdown filtered by year
+  const ecSubj=document.getElementById('ec-subj');
+  if(ecSubj){
+    buildSubjectDropdown(ecSubj, cls.classYear||'');
+    if([...ecSubj.options].some(o=>o.value===cls.subject)) ecSubj.value=cls.subject;
+  }
+  toggleLV('ec');
+  document.querySelectorAll('input[name="ec-lv"]').forEach(r=>{r.checked=r.value===(cls.langLevel||'LV1');});
+  const ecCustom=document.getElementById('ec-customlang');
+  if(ecCustom) ecCustom.value=cls.customLangName||'';
   document.querySelectorAll('input[name="ec-level"]').forEach(r=>{r.checked=r.value===(cls.schoolLevel||'college');});
   document.querySelectorAll('input[name="ec-period"]').forEach(r=>{r.checked=r.value===cls.periodType;});
   document.getElementById('ec-eval').value=cls.evalType||'note';
@@ -1794,8 +3073,11 @@ function saveEditClass(){
   const name=document.getElementById('ec-name').value.trim(); if(!name)return;
   cls.name=name;
   cls.subject=document.getElementById('ec-subj').value;
+  cls.langLevel=SUBJECTS[cls.subject]?.type==='lang'?(document.querySelector('input[name="ec-lv"]:checked')?.value||'LV1'):null;
+  cls.customLangName=cls.subject==='autrelangue'?(document.getElementById('ec-customlang').value.trim()||''):'';
   cls.periodType=document.querySelector('input[name="ec-period"]:checked').value;
-  cls.schoolLevel=document.querySelector('input[name="ec-level"]:checked')?.value||'college';
+  cls.classYear=document.getElementById('ec-year').value||'';
+  cls.schoolLevel=YEAR_TO_LEVEL[cls.classYear]||'college';
   cls.evalType=document.getElementById('ec-eval').value;
   cls.charLimit=parseInt(document.getElementById('ec-charlimit').value)||750;
   cls.useName=document.getElementById('ec-usename').checked;
@@ -1811,15 +3093,21 @@ function openNewClass(){
   document.getElementById('nc-name').value='';
   document.getElementById('nc-usename').checked=false;
   document.getElementById('nc-noje').checked=false;
+  document.getElementById('nc-year').value='';
+  buildSubjectDropdown(document.getElementById('nc-subj'), '');
   document.getElementById('mo-cls').classList.add('open');
+  toggleLV('nc');
   setTimeout(()=>document.getElementById('nc-name').focus(),80);
 }
 function closeMo(id){document.getElementById(id).classList.remove('open');}
 function createClass(){
   const name=document.getElementById('nc-name').value.trim(); if(!name)return;
   const subject=document.getElementById('nc-subj').value;
+  const langLevel=SUBJECTS[subject]?.type==='lang'?(document.querySelector('input[name="nc-lv"]:checked')?.value||'LV1'):null;
+  const customLangName=subject==='autrelangue'?(document.getElementById('nc-customlang').value.trim()||''):'';
   const periodType=document.querySelector('input[name="nc-period"]:checked').value;
-  const schoolLevel=document.querySelector('input[name="nc-level"]:checked')?.value||'college';
+  const classYear=document.getElementById('nc-year').value||'';
+  const schoolLevel=YEAR_TO_LEVEL[classYear]||'college';
   const evalType=document.getElementById('nc-eval').value;
   const charLimit=parseInt(document.getElementById('nc-charlimit').value)||750;
   const useName=document.getElementById('nc-usename').checked;
@@ -1832,7 +3120,7 @@ function createClass(){
       students.push({id:'s'+Date.now()+i,num:i,name:'',gender:'M',boxes:{},grade:'',level:'',comps:{},tone:null,orient:{on:false,level:1,path:'',note:''},comments:{}});
     }
   }
-  S.classes[id]={name,subject,periodType,schoolLevel,evalType,charLimit,useName,noJe,students,tone:'equilibre',classBoxes:{},classComments:{}};
+  S.classes[id]={name,subject,langLevel,customLangName,classYear,periodType,schoolLevel,evalType,charLimit,useName,noJe,students,tone:'equilibre',classBoxes:{},classComments:{}};
   closeMo('mo-cls'); save(); renderSidebar(); selectClass(id); toast(`"${name}" créée — ${students.length} élève(s)`);
 }
 
@@ -2080,12 +3368,11 @@ function selectStudent(id){S.student=id;save();renderStudentList();renderEditor(
 function getSubjectBoxes(subject){
   const type=SUBJECTS[subject]?.type||'academic';
   const subjectSections=SUBJECT_BOXES[type]||SUBJECT_BOXES.academic;
-  // Strict display order: progression, travail, participation, [subject-specific], qualites, comportement, conseils
   const ordered={};
   ordered.progression = CORE_BOXES.progression;
   ordered.travail      = CORE_BOXES.travail;
   ordered.participation= CORE_BOXES.participation;
-  Object.assign(ordered, subjectSections);   // subject-specific slots in here
+  Object.assign(ordered, subjectSections);
   ordered.qualites     = CORE_BOXES.qualites;
   ordered.comportement = CORE_BOXES.comportement;
   ordered.conseils     = CORE_BOXES.conseils;
@@ -2259,6 +3546,7 @@ function renderEditor(id){
           <button class="act-btn" onclick="resetComment('${id}')" title="Effacer l'appréciation">🗑</button>
           <button class="act-btn" id="voice-btn-${id}" onclick="toggleVoice('${id}')" title="Saisie vocale">🎙️</button>
           <button class="copy-btn" id="cpb-${id}" onclick="copyC('${id}')">📋 Copier</button>
+          <button class="act-btn" id="rate-btn-${id}" onclick="rateAppreciation('${id}')" title="Donner votre avis sur cette appréciation" style="font-size:.8rem;opacity:.5">★</button>
         </div>
       </div>
       <div class="card-bd">
@@ -2400,6 +3688,45 @@ function resetComment(id){
 }
 
 function copyC(id){const ta=document.getElementById('cta-'+id);if(!ta?.value)return;navigator.clipboard.writeText(ta.value).then(()=>{const b=document.getElementById('cpb-'+id);b.textContent='✓ Copié';b.classList.add('copied');setTimeout(()=>{b.textContent='Copier';b.classList.remove('copied');},1800);});}
+
+function rateAppreciation(id){
+  const ta=document.getElementById('cta-'+id);
+  if(!ta?.value){toast('Générez d\'abord une appréciation');return;}
+  const txt=ta.value;
+  // Show quick rating popup
+  const existing=document.getElementById('quick-rate-popup');
+  if(existing) existing.remove();
+  const popup=document.createElement('div');
+  popup.id='quick-rate-popup';
+  popup.style.cssText='position:fixed;bottom:80px;right:20px;background:var(--card);border:1.5px solid var(--border);border-radius:14px;padding:16px 20px;box-shadow:0 8px 32px rgba(0,0,0,.15);z-index:9999;font-family:\'DM Sans\',sans-serif;min-width:220px';
+  popup.innerHTML=`
+    <div style="font-size:.8rem;font-weight:600;color:var(--ink);margin-bottom:10px">Cette appréciation est :</div>
+    <div style="display:flex;gap:8px;justify-content:center;margin-bottom:12px">
+      <button onclick="submitQuickRate('${id}','👍',this)" style="font-size:1.6rem;background:none;border:2px solid var(--border);border-radius:10px;padding:6px 14px;cursor:pointer">👍</button>
+      <button onclick="submitQuickRate('${id}','👌',this)" style="font-size:1.6rem;background:none;border:2px solid var(--border);border-radius:10px;padding:6px 14px;cursor:pointer">👌</button>
+      <button onclick="submitQuickRate('${id}','👎',this)" style="font-size:1.6rem;background:none;border:2px solid var(--border);border-radius:10px;padding:6px 14px;cursor:pointer">👎</button>
+    </div>
+    <button onclick="document.getElementById('quick-rate-popup').remove()" style="width:100%;padding:6px;background:none;border:none;font-size:.75rem;color:var(--muted);cursor:pointer">Annuler</button>`;
+  document.body.appendChild(popup);
+}
+
+function submitQuickRate(id, rating, btn){
+  const ta=document.getElementById('cta-'+id);
+  const cls=S.classes[S.active];
+  // Send to Google Apps Script
+  const data={rating, subject:cls?.subject||'', year:cls?.classYear||'', ts:new Date().toISOString(), preview:(ta?.value||'').slice(0,100)};
+  fetch('https://script.google.com/macros/s/AKfycbxPLACEHOLDER/exec',{method:'POST',body:JSON.stringify(data)}).catch(()=>{});
+  // Visual feedback
+  btn.style.borderColor='var(--accent)';
+  btn.style.transform='scale(1.2)';
+  setTimeout(()=>{
+    const popup=document.getElementById('quick-rate-popup');
+    if(popup){popup.innerHTML='<div style="text-align:center;padding:8px;font-size:.85rem;color:var(--accent);font-weight:600">Merci ! 🙏</div>';setTimeout(()=>popup.remove(),1500);}
+    // Update star button
+    const rateBtn=document.getElementById('rate-btn-'+id);
+    if(rateBtn){rateBtn.textContent=rating;rateBtn.style.opacity='1';}
+  },300);
+}
 
 // ── PROMPT BUILDERS ───────────────────────────────────────────────────────────
 function buildPromptMeta(st,cls){
@@ -2595,13 +3922,86 @@ ATTENTION : si le niveau est "fragile" ou "insuffisant", ou si une régression e
     ? 'Lycée (2nde à Terminale) — "études", "parcours", "projet scolaire" sont appropriés.'
     : 'Collège (6e à 3e) — MOT INTERDIT : "études" (les collégiens ne font pas d\'études, ils vont en cours). MOT INTERDIT : "parcours". Utiliser uniquement : "en classe", "ce trimestre", "son année", "son travail", "les cours".';
 
-  const citetEleve = st.gender==='F' ? 'cette élève' : 'cet élève';
+  const langLevelCtx=cls.langLevel&&SUBJECTS[cls.subject]?.type==='lang'
+    ? `\nNiveau : ${cls.langLevel}. ${cls.langLevel==='LV1'?'LV1 — langue principale, exigences élevées, maîtrise attendue.':cls.langLevel==='LV2'?'LV2 — langue secondaire, exigences adaptées, objectif de communication.':'LV3 — langue optionnelle/choisie, exigences allégées, encourager la prise de risque.'}`
+    : '';
+  const langNameCtx=cls.subject==='autrelangue'&&cls.customLangName
+    ? `\nLangue enseignée : ${cls.customLangName}.`
+    : '';
+
+  // Detect exam year from class name
+  const classYear=cls.classYear||'';
+  const isSixieme=classYear==='6e';
+  const isCinquieme=classYear==='5e';
+  const isQuatrieme=classYear==='4e';
+  const isTroisieme=classYear==='3e';
+  const isSeconde=classYear==='2nde';
+  const isPremiere=classYear==='1ere';
+  const isTerminale=classYear==='tle';
+
+  let examCtx='';
+  let frenchLevelCtx='';
+  if(cls.subject==='francais'){
+    // Exam context
+    if(isTroisieme&&cls.schoolLevel==='college') examCtx='\nANNÉE D\'EXAMEN : 3e — Brevet. Mentionner si pertinent l\'enjeu du Brevet dans la conclusion.';
+    else if(isPremiere&&cls.schoolLevel==='lycee') examCtx='\nANNÉE D\'EXAMEN : 1ère — EAF (Bac de français). Si pertinent, mentionner l\'enjeu de l\'EAF.';
+    else if(isTerminale&&cls.schoolLevel==='lycee') examCtx='\nANNÉE : Terminale — Grand Oral en fin d\'année. Si pertinent, faire référence à la préparation de l\'oral.';
+
+    // Writing expectations by year
+    if(isSixieme) frenchLevelCtx='\nNIVEAU 6e : Attentes adaptées. Compétences clés : description, narration simple, lecture à voix haute, premiers éléments de grammaire. Pas d\'argumentation. Encourager la curiosité et le goût de lire.';
+    else if(isCinquieme) frenchLevelCtx='\nNIVEAU 5e : Description et narration développées, début de la rédaction guidée, compréhension de textes variés. Vocabulaire et orthographe prioritaires.';
+    else if(isQuatrieme) frenchLevelCtx='\nNIVEAU 4e : Introduction à l\'argumentation simple, rédaction de textes plus construits, analyse de texte littéraire. Orthographe et grammaire attendues.';
+    else if(isTroisieme) frenchLevelCtx='\nNIVEAU 3e : Argumentation, commentaire de texte, rédaction structurée. Enjeu du Brevet : maîtrise de l\'écrit et de l\'oral attendue.';
+    else if(isSeconde) frenchLevelCtx='\nNIVEAU 2nde : Introduction aux genres et formes littéraires, premières approches du commentaire et de la dissertation. Transition collège/lycée.';
+    else if(isPremiere) frenchLevelCtx='\nNIVEAU 1ère : Commentaire de texte et dissertation maîtrisés, oral de français (EAF). Analyse littéraire approfondie attendue.';
+    else if(isTerminale) frenchLevelCtx='\nNIVEAU Terminale : Grand Oral, argumentation et discours construits. Maîtrise de la langue et de la pensée critique au plus haut niveau.';
+  }
+  const frenchQualityCtx=cls.subject==='francais'
+    ? '\nATTENTION : Cette appréciation sera lue par un professeur de français. Le niveau de langue doit être irréprochable — orthographe, grammaire, syntaxe, style. Aucune maladresse tolérée.'
+    : '';
+
+  let histoLevelCtx='';
+  if(cls.subject==='histoire'){
+    if(isSixieme) histoLevelCtx='\nNIVEAU 6e : Repères chronologiques de base, lecture simple de documents, description. Pas de composition ni dissertation.';
+    else if(isCinquieme) histoLevelCtx='\nNIVEAU 5e : Analyse de documents guidée, paragraphes rédigés simples, repères chronologiques et géographiques.';
+    else if(isQuatrieme) histoLevelCtx='\nNIVEAU 4e : Réponse organisée, analyse de documents plus autonome, début de la composition.';
+    else if(isTroisieme) histoLevelCtx='\nNIVEAU 3e : Composition maîtrisée, analyse de documents, croquis. Enjeu Brevet important.';
+    else if(isSeconde) histoLevelCtx='\nNIVEAU 2nde : Introduction à la composition et au commentaire de document. Transition vers le lycée.';
+    else if(isPremiere) histoLevelCtx='\nNIVEAU 1ère : Composition et analyse de document maîtrisées, raisonnement argumenté attendu.';
+    else if(isTerminale) histoLevelCtx='\nNIVEAU Terminale : Dissertation, composition, analyse de documents complexes. Bac en fin d\'année.';
+  }
+
+  let mathsLevelCtx='';
+  if(cls.subject==='maths'){
+    if(isSixieme) mathsLevelCtx='\nNIVEAU 6e : Calcul, fractions, géométrie de base. Priorité aux automatismes. Pas de démonstration formelle.';
+    else if(isCinquieme) mathsLevelCtx='\nNIVEAU 5e : Calcul littéral, proportionnalité, premières équations. Rigueur dans les calculs.';
+    else if(isQuatrieme) mathsLevelCtx='\nNIVEAU 4e : Équations, Pythagore, Thalès, calcul algébrique. Début du raisonnement structuré.';
+    else if(isTroisieme) mathsLevelCtx='\nNIVEAU 3e : Fonctions, statistiques, probabilités. Raisonnement et rédaction attendus. Enjeu Brevet.';
+    else if(isSeconde) mathsLevelCtx='\nNIVEAU 2nde : Fonctions, géométrie analytique, probabilités. Transition vers la rigueur du lycée.';
+    else if(isPremiere) mathsLevelCtx='\nNIVEAU 1ère : Dérivées, suites, probabilités avancées. Démonstrations attendues.';
+    else if(isTerminale) mathsLevelCtx='\nNIVEAU Terminale : Analyse approfondie, probabilités. Maîtrise complète du raisonnement. Bac en fin d\'année.';
+  }
+
+  let scienceLevelCtx='';
+  if(cls.subject==='sciences'||cls.subject==='physique'){
+    const sub=cls.subject==='sciences'?'SVT':'Physique-Chimie';
+    if(isSixieme) scienceLevelCtx=`\nNIVEAU 6e (${sub}) : Observation, description, premiers classements. Pas de démarche expérimentale formelle.`;
+    else if(isCinquieme) scienceLevelCtx=`\nNIVEAU 5e (${sub}) : Démarche guidée, schémas simples, vocabulaire scientifique de base.`;
+    else if(isQuatrieme) scienceLevelCtx=`\nNIVEAU 4e (${sub}) : Démarche plus autonome, premiers calculs physiques, analyse de résultats.`;
+    else if(isTroisieme) scienceLevelCtx=`\nNIVEAU 3e (${sub}) : Démarche expérimentale maîtrisée, calculs attendus, enjeu Brevet.`;
+    else if(isSeconde) scienceLevelCtx=`\nNIVEAU 2nde (${sub}) : Introduction aux sciences du lycée, rigueur expérimentale attendue.`;
+    else if(isPremiere) scienceLevelCtx=`\nNIVEAU 1ère (${sub}) : Spécialité — niveau exigeant, démarche complète attendue.`;
+    else if(isTerminale) scienceLevelCtx=`\nNIVEAU Terminale (${sub}) : Maîtrise complète, Bac en fin d'année.`;
+  }
+
+  const philoCtx=cls.subject==='philo'?'\nMATIÈRE : Philosophie — Terminale uniquement. Dissertation, explication de texte, Grand Oral. Niveau de langue et de pensée critique exigeant.':'';
+  const sesCtx=cls.subject==='ses'&&(isPremiere||isTerminale)?`\nNIVEAU ${isPremiere?'1ère':'Terminale'} SES : Dissertation économique et analyse de document. ${isTerminale?'Bac en fin d\'année.':''}`:'';
   const unEleve = st.gender==='F' ? 'une élève' : 'un élève';
 
   const isDiscreet=[...checkedNeg,...checkedNeutral].some(s=>s.toLowerCase().includes('discret')||s.toLowerCase().includes('réservé')||s.toLowerCase().includes('exprime peu'));
 
   return `Tu es un professeur français rédigeant une appréciation de bulletin scolaire.
-Niveau : ${schoolLevelCtx} | ${pLabel} — ${periodCtx}
+Niveau : ${schoolLevelCtx} | ${pLabel} — ${periodCtx}${langLevelCtx}${langNameCtx}${examCtx}${frenchLevelCtx}${histoLevelCtx}${mathsLevelCtx}${scienceLevelCtx}${philoCtx}${sesCtx}${frenchQualityCtx}
 
 ÉLÈVE : ${gender}. Articles : "${citetEleve}" / "${unEleve}". Accords au ${accord} PARTOUT.
 NE PAS mentionner la matière dans l'appréciation — le professeur et l'élève savent dans quel cours ils sont.
@@ -2674,6 +4074,121 @@ function fitToLimit(txt, limit){
 
 const _k='c2stb3ItdjEtMjVkZjQ3MDdjN2RmMmFlOTcwMGNjOTFlZjY0NGI5MjM3YzkyMzdkYzZmNjg0NTA1MjI5MDRlM2UxNDdiOGQ2OQ==';
 let _apiKey=atob(_k);
+
+// ── GENERATION COUNTER ────────────────────────────────────────────────────────
+const FREE_LIMIT = 50;        // Limite visiteurs sans code
+const ANNUAL_LIMIT = 2500;    // Limite abonnés payants par année scolaire
+const BETA_ACTIVE = true;     // 🔴 false = fin de bêta, les codes deviennent des comptes payants limités
+const BETA_KEY = 'bp3_beta_access';
+const GEN_COUNT_KEY = 'bp3_gen_count';
+const GEN_YEAR_KEY  = 'bp3_gen_year';
+
+function getSchoolYear(){
+  const now=new Date();
+  return now.getMonth()>=8?now.getFullYear():now.getFullYear()-1;
+}
+
+function getGenCount(){
+  const storedYear=localStorage.getItem(GEN_YEAR_KEY);
+  const currentYear=String(getSchoolYear());
+  if(storedYear!==currentYear){
+    localStorage.setItem(GEN_YEAR_KEY,currentYear);
+    localStorage.setItem(GEN_COUNT_KEY,'0');
+    return 0;
+  }
+  return parseInt(localStorage.getItem(GEN_COUNT_KEY)||'0');
+}
+
+function incrementGenCount(n=1){
+  const c=getGenCount()+n;
+  localStorage.setItem(GEN_COUNT_KEY,String(c));
+  localStorage.setItem(GEN_YEAR_KEY,String(getSchoolYear()));
+  updateGenCounter();
+  return c;
+}
+
+function hasBetaAccess(){ return BETA_ACTIVE && localStorage.getItem(BETA_KEY)==='true'; }
+function hasPaidAccess(){ return !BETA_ACTIVE && localStorage.getItem(BETA_KEY)==='true'; }
+
+function getRemainingGens(){
+  if(hasBetaAccess()) return Infinity;
+  if(hasPaidAccess()) return Math.max(0, ANNUAL_LIMIT - getGenCount());
+  return Math.max(0, FREE_LIMIT - getGenCount());
+}
+
+function checkGenLimit(needed=1){
+  if(hasBetaAccess()) return true;
+  const remaining = getRemainingGens();
+  if(remaining < needed){
+    showGenLimitModal();
+    return false;
+  }
+  return true;
+}
+
+function showGenLimitModal(){
+  const existing = document.getElementById('gen-limit-modal');
+  if(existing) { existing.classList.add('open'); return; }
+  const isPaid = hasPaidAccess();
+  const mo = document.createElement('div');
+  mo.id = 'gen-limit-modal';
+  mo.className = 'mo-overlay';
+  mo.innerHTML = `<div class="mo-box" style="max-width:420px;text-align:center">
+    <div style="font-size:2rem;margin-bottom:12px">${isPaid ? '📊' : '🎓'}</div>
+    <div class="mo-t" style="margin-bottom:8px">${isPaid ? 'Quota annuel atteint' : 'Limite gratuite atteinte'}</div>
+    <p style="font-size:.88rem;color:var(--muted);margin-bottom:16px">${isPaid
+      ? `Vous avez utilisé vos <strong>${ANNUAL_LIMIT} appréciations</strong> pour cette année scolaire.<br>Le compteur se remet à zéro le 1er septembre.`
+      : `Vous avez utilisé vos <strong>${FREE_LIMIT} appréciations gratuites</strong>.<br>Merci d'avoir testé BulletinsPro !`
+    }</p>
+    <p style="font-size:.88rem;color:var(--ink);margin-bottom:20px">${isPaid
+      ? 'Contactez-nous si vous pensez avoir atteint cette limite par erreur :<br><a href="mailto:bulletinspro@gmail.com" style="color:var(--accent);font-weight:600">bulletinspro@gmail.com</a>'
+      : 'Pour continuer, contactez-nous pour un accès complet :<br><a href="mailto:bulletinspro@gmail.com" style="color:var(--accent);font-weight:600">bulletinspro@gmail.com</a>'
+    }</p>
+    <div style="display:flex;gap:10px;justify-content:center">
+      <button class="btn btn-o" onclick="document.getElementById('gen-limit-modal').classList.remove('open')">Fermer</button>
+      <button class="btn btn-g" onclick="window.location.href='mailto:bulletinspro@gmail.com?subject=Accès BulletinsPro&body=Bonjour, je souhaite obtenir un accès complet à BulletinsPro.'">Nous contacter</button>
+    </div>
+    ${!isPaid ? `<div style="margin-top:16px">
+      <input id="beta-code-input" class="mo-inp" placeholder="Code d'accès bêta..." style="width:200px;display:inline-block;margin-right:8px">
+      <button class="btn btn-o" onclick="activateBetaCode()">Activer</button>
+    </div>` : ''}
+  </div>`;
+  document.body.appendChild(mo);
+  mo.classList.add('open');
+}
+
+function activateBetaCode(){
+  const input = document.getElementById('beta-code-input');
+  const VALID_CODES = ['BP-7K2M','BP-9XQR','BP-4VBN','BP-3WQT','BP-8ZLF','BP-2YNK','BP-6RJP','BP-5HCX','BP-1GTD','BP-0MWS','BP2025PRO','ALEX75'];
+  if(VALID_CODES.includes(input?.value?.toUpperCase().trim())){
+    localStorage.setItem(BETA_KEY, 'true');
+    document.getElementById('gen-limit-modal').classList.remove('open');
+    toast('✅ Accès bêta activé — générations illimitées !');
+    updateGenCounter();
+  } else {
+    toast('Code invalide');
+  }
+}
+
+function updateGenCounter(){
+  const el = document.getElementById('gen-counter-badge');
+  if(!el) return;
+  if(hasBetaAccess()){
+    el.textContent = '∞ bêta';
+    el.title = 'Accès bêta — illimité';
+    el.style.color = 'var(--accent)';
+  } else if(hasPaidAccess()){
+    const remaining = getRemainingGens();
+    el.textContent = remaining + ' / ' + ANNUAL_LIMIT;
+    el.title = `${remaining} générations restantes sur ${ANNUAL_LIMIT} cette année scolaire — reset le 1er septembre`;
+    el.style.color = remaining <= 100 ? '#f87171' : remaining <= 300 ? '#fb923c' : 'var(--muted)';
+  } else {
+    const remaining = getRemainingGens();
+    el.textContent = remaining + ' restantes';
+    el.title = `${remaining} générations gratuites restantes sur ${FREE_LIMIT}`;
+    el.style.color = remaining <= 10 ? '#f87171' : remaining <= 20 ? '#fb923c' : 'var(--muted)';
+  }
+}
 
 async function callClaude(prompt, retries=3, bulkMode=false){
   const model = 'anthropic/claude-3.5-sonnet';
@@ -2776,6 +4291,7 @@ function hasHallucination(txt, checkedNeg, checkedPos, verdictId){
 }
 
 async function genOne(sid){
+  if(!checkGenLimit(1)) return;
   const cls=S.classes[S.active]; const st=getSt(sid); if(!st)return;
   const ta=document.getElementById('cta-'+sid); if(!ta)return;
   ta.classList.add('gen'); ta.value='Rédaction en cours…';
@@ -2798,6 +4314,8 @@ async function genOne(sid){
     if(!finalTxt){toast('Erreur : génération vide');return;}
     ta.value=finalTxt;
     addMem(S.active,finalTxt); saveCmt(sid,finalTxt); updCC(sid,finalTxt);
+    incrementGenCount(1);
+    updateGenCounter();
     renderStudentList();
   }catch(e){ta.classList.remove('gen');ta.value='';console.error('genOne error:',e);toast('Erreur de génération: '+e.message);}
 }
@@ -2807,13 +4325,14 @@ let _generating=false; // Global lock
 async function generateAll(){
   if(_generating){toast('⚠️ Génération déjà en cours…');return;}
   const cls=S.classes[S.active]; if(!cls||!cls.students.length)return;
+  const total=cls.students.length;
+  if(!checkGenLimit(total)) return;
   _generating=true;
 
   document.querySelectorAll('[onclick*="goGenAll"]').forEach(b=>{b.disabled=true;b.style.opacity='.5';});
   const banner=document.getElementById('gen-progress-banner');
   const setBanner=(msg)=>{if(banner){banner.style.display='block';banner.innerHTML=msg;}};
 
-  const total=cls.students.length;
   let done=0, errors=0;
   // Track tokens used this minute
   let tokensThisMinute=0;
@@ -2902,6 +4421,8 @@ async function generateAll(){
         tokensThisMinute+=TOKENS_PER_CALL;
         done++;
         studentDone=true;
+        incrementGenCount(1);
+        updateGenCounter();
         setBanner(`✅ <strong>${done}/${total}</strong> appréciations rédigées…`);
 
         // Save to localStorage immediately
@@ -3978,33 +5499,35 @@ const PP_BOXES = {
   themes: {
     label: 'Thèmes récurrents signalés par les professeurs',
     items: [
-      // Positive recurring
-      {id:'th1',l:'Investissement salué par plusieurs profs',v:'pos'},
-      {id:'th2',l:'Sérieux et régularité reconnus',v:'pos'},
+      {id:'th1',l:'Investissement salué par plusieurs professeurs',v:'pos'},
+      {id:'th2',l:'Sérieux et régularité reconnus par l\'équipe',v:'pos'},
       {id:'th3',l:'Attitude positive relevée en général',v:'pos'},
       {id:'th4',l:'Bonne progression d\'ensemble',v:'pos'},
       {id:'th5',l:'Élève apprécié(e) de l\'équipe pédagogique',v:'pos'},
-      // Neutral/mixed
+      {id:'th14',l:'Profil littéraire marqué',v:'pos'},
+      {id:'th15',l:'Profil scientifique marqué',v:'pos'},
+      {id:'th16',l:'Polyvalent(e) — à l\'aise dans toutes les disciplines',v:'pos'},
       {id:'th6',l:'Résultats hétérogènes selon les matières',v:'neutral'},
-      {id:'th7',l:'Efforts insuffisants relevés par plusieurs profs',v:'neutral'},
+      {id:'th7',l:'Efforts insuffisants relevés par plusieurs professeurs',v:'neutral'},
       {id:'th8',l:'Implication variable selon les disciplines',v:'neutral'},
-      // Negative recurring
       {id:'th9',l:'Manque de travail signalé par l\'ensemble',v:'neg'},
       {id:'th10',l:'Comportement perturbateur noté par plusieurs',v:'neg'},
       {id:'th11',l:'Devoirs non rendus de manière répétée',v:'neg'},
-      {id:'th12',l:'Concentration insuffisante en classe',v:'neg'},
+      {id:'th12',l:'Concentration insuffisante signalée en général',v:'neg'},
       {id:'th13',l:'Bavardages signalés par plusieurs enseignants',v:'neg'},
     ]
   },
   competences: {
-    label: 'Compétences transversales observées',
+    label: 'Compétences transversales',
     items: [
       {id:'cp1',l:'Bon raisonnement logique',v:'pos'},
       {id:'cp2',l:'Bonne expression écrite',v:'pos'},
       {id:'cp3',l:'Bonne expression orale',v:'pos'},
       {id:'cp4',l:'Capacité d\'analyse développée',v:'pos'},
       {id:'cp5',l:'Bonne mémorisation',v:'pos'},
-      {id:'cp6',l:'Autonomie dans le travail',v:'pos'},
+      {id:'cp6',l:'Grande autonomie dans le travail',v:'pos'},
+      {id:'cp14',l:'Esprit critique développé',v:'pos'},
+      {id:'cp15',l:'Curiosité intellectuelle remarquable',v:'pos'},
       {id:'cp7',l:'Difficultés en raisonnement',v:'neg'},
       {id:'cp8',l:'Difficultés à l\'expression orale',v:'neg'},
       {id:'cp9',l:'Difficultés à l\'expression écrite',v:'neg'},
@@ -4027,17 +5550,30 @@ const PP_BOXES = {
       {id:'pg8',l:'Situation urgente à redresser',v:'neg'},
     ]
   },
+  orientation: {
+    label: 'Orientation & Projet',
+    items: [
+      {id:'or1',l:'Projet d\'orientation clair, réaliste et motivant',v:'pos'},
+      {id:'or2',l:'Très bonne maturité dans la réflexion sur l\'avenir',v:'pos'},
+      {id:'or3',l:'Projet en cours de construction — accompagnement en place',v:'neutral'},
+      {id:'or4',l:'Doit affiner son projet d\'orientation',v:'neutral'},
+      {id:'or5',l:'Orientation non encore définie — travail à engager',v:'neg'},
+      {id:'or6',l:'Projet d\'orientation incompatible avec les résultats actuels',v:'neg'},
+    ]
+  },
   viescolaire: {
-    label: 'Vie scolaire',
+    label: 'Vie scolaire & Assiduité',
     items: [
       {id:'vs1',l:'Ponctualité exemplaire',v:'pos'},
-      {id:'vs2',l:'Présence irréprochable',v:'pos'},
-      {id:'vs3',l:'Retards réguliers',v:'neg'},
-      {id:'vs4',l:'Absences répétées',v:'neg'},
-      {id:'vs5',l:'Absences injustifiées',v:'neg'},
-      {id:'vs6',l:'Bonne intégration dans la classe',v:'pos'},
-      {id:'vs7',l:'Difficultés relationnelles',v:'neg'},
-      {id:'vs8',l:'A fait l\'objet d\'un suivi particulier',v:'neutral'},
+      {id:'vs2',l:'Assiduité irréprochable',v:'pos'},
+      {id:'vs9',l:'Bonne intégration dans la classe',v:'pos'},
+      {id:'vs10',l:'Élève discret(e) et respectueux(se)',v:'pos'},
+      {id:'vs3',l:'Retards réguliers à surveiller',v:'neg'},
+      {id:'vs4',l:'Absences répétées — suivi nécessaire',v:'neg'},
+      {id:'vs5',l:'Absences injustifiées — situation préoccupante',v:'neg'},
+      {id:'vs7',l:'Difficultés relationnelles avec certains camarades',v:'neg'},
+      {id:'vs8',l:'A fait l\'objet d\'un suivi particulier ce trimestre',v:'neutral'},
+      {id:'vs11',l:'Incident(s) disciplinaire(s) à noter',v:'neg'},
     ]
   },
   conseils: {
@@ -4045,12 +5581,15 @@ const PP_BOXES = {
     items: [
       {id:'ca1',l:'Félicitations — résultats remarquables',v:'pos'},
       {id:'ca2',l:'Encouragements — continuer sur cette voie',v:'pos'},
+      {id:'ca9',l:'Conseil de classe très satisfait',v:'pos'},
       {id:'ca3',l:'Doit maintenir ses efforts',v:'neutral'},
       {id:'ca4',l:'Doit consolider son travail',v:'neutral'},
+      {id:'ca10',l:'Passage dans la classe supérieure accordé',v:'neutral'},
       {id:'ca5',l:'Redoubler d\'efforts est indispensable',v:'neg'},
       {id:'ca6',l:'Un sursaut est nécessaire et urgent',v:'neg'},
       {id:'ca7',l:'Entretien avec la famille souhaitable',v:'neg'},
       {id:'ca8',l:'Suivi renforcé mis en place',v:'neg'},
+      {id:'ca11',l:'Passage conditionnel — situation à surveiller',v:'neg'},
     ]
   },
 };
@@ -4527,6 +6066,7 @@ if (!S.activePP) S.activePP = null;
 activePP = S.activePP; // restore PP selection across reloads
 renderSidebar();
 renderPPSidebar();
+updateGenCounter();
 if (S.active && S.classes[S.active]) {
   selectClass(S.active);
 } else if (activePP && S.pp[activePP]) {
