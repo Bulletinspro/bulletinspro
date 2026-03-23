@@ -2680,12 +2680,19 @@ async function gdInit(){
     console.warn('gapi init warning:',e);
   }
 
-  // Restore token from localStorage
+  // Restore token from localStorage — only if recent (tokens last 1 hour)
   const saved=localStorage.getItem('bp3_gd');
   const savedUser=localStorage.getItem('bp3_user');
   if(saved){
     try{
       const t=JSON.parse(saved);
+      const age=Date.now()-(t.saved_at||0);
+      if(age > 55*60*1000){ // older than 55 min — token expired
+        localStorage.removeItem('bp3_gd');
+        gdShowLoginScreen(true);
+        gdSetStatus('','Non connecté',true,'☁ Connecter Drive','gdAuth()');
+        return;
+      }
       GD.accessToken=t.access_token;
       GD.fileId=t.file_id||null;
       if(savedUser)gdSetUserProfile(JSON.parse(savedUser));
@@ -2782,7 +2789,7 @@ async function gdLoadFromDrive(){
       else if(S.activePP&&S.pp&&S.pp[S.activePP]){activePP=S.activePP;renderPPMain();}
       else renderWelcomeScreen();
       GD.lastSync=new Date().toISOString();
-      localStorage.setItem('bp3_gd',JSON.stringify({access_token:GD.accessToken,file_id:GD.fileId}));
+      localStorage.setItem('bp3_gd',JSON.stringify({access_token:GD.accessToken,file_id:GD.fileId,saved_at:Date.now()}));
       gdSetStatus('connected','Drive connecté',false);
       toast('✓ Données chargées depuis Drive');
     } else {
@@ -2826,7 +2833,7 @@ async function gdSilentRefresh(){
         callback:(resp)=>{
           if(resp.error){reject(new Error(resp.error));return;}
           GD.accessToken=resp.access_token;
-          localStorage.setItem('bp3_gd',JSON.stringify({access_token:GD.accessToken,file_id:GD.fileId}));
+          localStorage.setItem('bp3_gd',JSON.stringify({access_token:GD.accessToken,file_id:GD.fileId,saved_at:Date.now()}));
           resolve();
         }
       });
@@ -2836,7 +2843,7 @@ async function gdSilentRefresh(){
         GD.tokenClient.callback=oldCb;
         if(resp.error){reject(new Error(resp.error));return;}
         GD.accessToken=resp.access_token;
-        localStorage.setItem('bp3_gd',JSON.stringify({access_token:GD.accessToken,file_id:GD.fileId}));
+        localStorage.setItem('bp3_gd',JSON.stringify({access_token:GD.accessToken,file_id:GD.fileId,saved_at:Date.now()}));
         resolve();
       };
     }
@@ -2872,7 +2879,7 @@ async function gdSaveToDrive(){
       });
       const data=await res.json();
       GD.fileId=data.id;
-      localStorage.setItem('bp3_gd',JSON.stringify({access_token:GD.accessToken,file_id:GD.fileId}));
+      localStorage.setItem('bp3_gd',JSON.stringify({access_token:GD.accessToken,file_id:GD.fileId,saved_at:Date.now()}));
     }
     GD.lastSync=new Date().toISOString();
     gdSetStatus('connected','Drive connecté',false);
