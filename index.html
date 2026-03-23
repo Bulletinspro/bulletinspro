@@ -749,6 +749,7 @@ body{font-family:'DM Sans',sans-serif;font-weight:300;background:var(--bg);color
     <button class="sb-fbtn" onclick="exportAll()">⬇ Export</button>
     <button class="sb-fbtn" onclick="importAll()">⬆ Import</button>
     <button class="sb-fbtn" onclick="showStats()">📊 Stats</button>
+    <button class="sb-fbtn" onclick="showCodeAccess()">🔑 Code</button>
     <button class="sb-fbtn" onclick="showFeedback()">💬 Avis</button>
     <button class="sb-fbtn" onclick="showOnboarding(true)" title="Aide">❓ Aide</button>
     <input type="file" id="imp-inp" accept=".json" style="display:none" onchange="doImport(event)">
@@ -4167,7 +4168,7 @@ function showGenLimitModal(){
 
 function activateBetaCode(){
   const input = document.getElementById('beta-code-input');
-  const VALID_CODES = ['BP-7K2M','BP-9XQR','BP-4VBN','BP-3WQT','BP-8ZLF','BP-2YNK','BP-6RJP','BP-5HCX','BP-1GTD','BP-0MWS','BP2025PRO','ALEX75'];
+  const VALID_CODES = ['BP-7K2M','BP-9XQR','BP-4VBN','BP-3WQT','BP-8ZLF','BP-2YNK','BP-6RJP','BP-5HCX','BP-1GTD','BP-0MWS','BP2025PRO','ALEX75','TESTEUR1','TESTEUR2','TESTEUR3'];
   if(VALID_CODES.includes(input?.value?.toUpperCase().trim())){
     localStorage.setItem(BETA_KEY, 'true');
     document.getElementById('gen-limit-modal').classList.remove('open');
@@ -4882,6 +4883,43 @@ function toggleVoice(targetId){
 }
 
 // ── STATS ─────────────────────────────────────────────────────────────────────
+function showCodeAccess(){
+  const hasBeta=hasBetaAccess();
+  const mo=document.createElement('div');
+  mo.className='mo-overlay';
+  mo.innerHTML=`<div class="mo-box" style="max-width:380px;text-align:center">
+    <div style="font-size:1.8rem;margin-bottom:8px">🔑</div>
+    <div class="mo-t" style="margin-bottom:12px">Code d'accès</div>
+    ${hasBeta
+      ? `<p style="color:var(--accent);font-weight:600;margin-bottom:16px">✅ Accès bêta actif — générations illimitées</p>`
+      : `<p style="font-size:.88rem;color:var(--muted);margin-bottom:16px">Entrez votre code pour activer l'accès complet.</p>
+         <div style="display:flex;gap:8px;justify-content:center;margin-bottom:12px">
+           <input id="code-access-input" class="mo-inp" placeholder="Votre code..." style="width:180px">
+           <button class="btn btn-g" onclick="activateCodeFromModal()">Activer</button>
+         </div>`
+    }
+    <button class="btn btn-o" onclick="this.closest('.mo-overlay').remove()">Fermer</button>
+  </div>`;
+  document.body.appendChild(mo);
+  mo.classList.add('open');
+  mo.addEventListener('click',e=>{if(e.target===mo)mo.remove();});
+  setTimeout(()=>document.getElementById('code-access-input')?.focus(),100);
+}
+
+function activateCodeFromModal(){
+  const input=document.getElementById('code-access-input');
+  const VALID_CODES=['BP-7K2M','BP-9XQR','BP-4VBN','BP-3WQT','BP-8ZLF','BP-2YNK','BP-6RJP','BP-5HCX','BP-1GTD','BP-0MWS','BP2025PRO','ALEX75','TESTEUR1','TESTEUR2','TESTEUR3'];
+  if(VALID_CODES.includes(input?.value?.toUpperCase().trim())){
+    localStorage.setItem(BETA_KEY,'true');
+    document.querySelector('.mo-overlay')?.remove();
+    toast('✅ Accès activé — générations illimitées !');
+    updateGenCounter();
+  } else {
+    toast('❌ Code invalide');
+    input?.select();
+  }
+}
+
 function showStats(){
   const mo=document.getElementById('mo-stats');
   if(!mo){buildStatsModal();return;}
