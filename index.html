@@ -3965,9 +3965,11 @@ ATTENTION : si le niveau est "fragile" ou "insuffisant", ou si une régression e
     // Capitalize properly
     if(studentName) studentName=studentName.charAt(0).toUpperCase()+studentName.slice(1).toLowerCase();
   }
+  // RGPD — never send real name to API, use placeholder instead
+  const PLACEHOLDER = 'Élève';
   const studentRef = cls.useName
     ? (studentName
-        ? `Prénom de l'élève : ${studentName}. Utilise son prénom naturellement dans l'appréciation (ex: "${studentName} fait preuve de…").`
+        ? `Prénom de l'élève : ${PLACEHOLDER}. Utilise ce prénom naturellement dans l'appréciation (ex: "${PLACEHOLDER} fait preuve de…").`
         : `L'élève n'a pas de prénom renseigné. Écris "(nom de l'élève)" là où tu aurais mis le prénom.`)
     : `Ne mentionne pas le prénom. N'écris jamais "(nom)" ou "(prénom)" ou tout placeholder. Rédige sans prénom.`;
 
@@ -4393,8 +4395,15 @@ async function genOne(sid){
     ta.classList.remove('gen');
     // Safety strip — only apply if result is non-empty
     const cleanTxt=stripHallucinatedSentences(txt,checkedNeg,checkedPos,st.verdict);
-    const finalTxt=(cleanTxt&&cleanTxt.length>50)?cleanTxt:txt;
+    let finalTxt=(cleanTxt&&cleanTxt.length>50)?cleanTxt:txt;
     if(!finalTxt){toast('Erreur : génération vide');return;}
+    // RGPD swap — replace placeholder with real name
+    if(cls.useName && st.name){
+      const parts=st.name.trim().split(/\s+/);
+      let realName=parts.length===1?parts[0]:parts.find(p=>p===p.charAt(0).toUpperCase()+p.slice(1).toLowerCase()&&p!==p.toUpperCase())||parts[parts.length-1];
+      if(realName) realName=realName.charAt(0).toUpperCase()+realName.slice(1).toLowerCase();
+      if(realName) finalTxt=finalTxt.replace(/\bÉlève\b/g, realName);
+    }
     ta.value=finalTxt;
     addMem(S.active,finalTxt); saveCmt(sid,finalTxt); updCC(sid,finalTxt);
     incrementGenCount(1);
@@ -4491,6 +4500,13 @@ async function generateAll(){
         let txt=(d.choices?.[0]?.message?.content||'').replace(/\n+/g,' ').trim();
         if(!txt) throw new Error('empty response');
         txt=fitToLimit(txt, cls.charLimit||750);
+        // RGPD swap — replace placeholder with real name
+        if(cls.useName && st.name){
+          const parts=st.name.trim().split(/\s+/);
+          let realName=parts.length===1?parts[0]:parts.find(p=>p===p.charAt(0).toUpperCase()+p.slice(1).toLowerCase()&&p!==p.toUpperCase())||parts[parts.length-1];
+          if(realName) realName=realName.charAt(0).toUpperCase()+realName.slice(1).toLowerCase();
+          if(realName) txt=txt.replace(/\bÉlève\b/g, realName);
+        }
 
         // Save immediately to state
         if(!st.comments)st.comments={};
@@ -4627,6 +4643,7 @@ function renderBulkView(content){
       <div style="display:flex;gap:6px">
         <button class="btn btn-o btn-sm" onclick="copyAll()">📋 Tout copier</button>
         <button class="btn btn-o btn-sm" onclick="doCSV()">⬇ CSV</button>
+        <button class="btn btn-o btn-sm" onclick="doPronote()" title="Export format PRONOTE — copier-coller direct dans PRONOTE">⬇ PRONOTE</button>
         <button class="btn btn-o btn-sm" onclick="exportPDF()">📄 PDF</button>
         <button class="btn btn-o btn-sm" onclick="exportWord()">📝 Word</button>
         <button class="btn btn-sm" style="background:var(--warn-l);color:var(--warn);border:1px solid var(--warn-b)" onclick="resetAllAppreciations()">🗑 Effacer tout</button>
@@ -4695,6 +4712,37 @@ function copyAll(){
   const lines=cls.students.map(s=>{const c=(s.comments&&s.comments[S.period])||'';return `Élève n°${s.num}\n${c}`;}).join('\n\n---\n\n');
   navigator.clipboard.writeText(lines).then(()=>toast('Toutes les appréciations copiées !'));
 }
+function doPronote(){
+  const cls=S.classes[S.active]; if(!cls)return;
+  const pLabel=cls.periodType==='semestre'?`S${S.period}`:`T${S.period}`;
+  // Tab-separated format for PRONOTE copy-paste import
+  // Columns: Nom | Prénom | Appréciation
+  let tsv='Nom\tPrénom\tAppréciation\n';
+  cls.students.forEach(s=>{
+    const appr=(s.comments&&s.comments[S.period])||'';
+    if(!appr) return; // skip empty
+    // Split name into last name / first name
+    const parts=(s.name||'').trim().split(/\s+/);
+    let nom='', prenom='';
+    if(parts.length===1){
+      nom=parts[0]; prenom='';
+    } else {
+      // Assume ALL CAPS part = last name, capitalised = first name
+      const firstNamePart=parts.find(p=>p===p.charAt(0).toUpperCase()+p.slice(1).toLowerCase()&&p!==p.toUpperCase());
+      const lastNameParts=parts.filter(p=>p!==firstNamePart);
+      prenom=firstNamePart||'';
+      nom=lastNameParts.join(' ');
+    }
+    const cleanAppr=appr.replace(/\t/g,' ').replace(/\n/g,' ');
+    tsv+=`${nom}\t${prenom}\t${cleanAppr}\n`;
+  });
+  // Download as TSV file
+  const blob=new Blob(['\uFEFF'+tsv],{type:'text/tab-separated-values;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download=`${cls.name}_${pLabel}_PRONOTE.txt`;a.click();URL.revokeObjectURL(url);
+  toast('✅ Export PRONOTE prêt — importez via PRONOTE → Imports/Exports → TXT/CSV/XML');
+}
+
 function doCSV(){
   const cls=S.classes[S.active];
   const pLabel=cls.periodType==='semestre'?`S${S.period}`:`T${S.period}`;
