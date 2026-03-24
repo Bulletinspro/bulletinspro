@@ -4274,7 +4274,7 @@ function updateGenCounter(){
 }
 
 async function callClaude(prompt, retries=3, bulkMode=false){
-  const model = 'anthropic/claude-sonnet-4-5-20251001';
+  const model = 'anthropic/claude-sonnet-4.5';
   for(let attempt=0; attempt<retries; attempt++){
     try{
       const r=await fetch('https://openrouter.ai/api/v1/chat/completions',{
@@ -4460,7 +4460,7 @@ async function generateAll(){
           method:'POST',
           headers:{'Content-Type':'application/json','Authorization':`Bearer ${_apiKey}`,'HTTP-Referer':'https://bulletinspro.github.io','X-Title':'BulletinsPro'},
           body:JSON.stringify({
-            model:'anthropic/claude-sonnet-4-5-20251001',
+            model:'anthropic/claude-sonnet-4.5',
             max_tokens:800,
             messages:[
               {role:'system',content:'Tu rédiges des appréciations scolaires françaises. Utilise UNIQUEMENT les observations fournies. N\'invente rien.'},
