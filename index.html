@@ -1199,6 +1199,8 @@ const CORE_BOXES = {
       {id:'pr3',l:'Résultats satisfaisants',v:'pos'},
       {id:'pr7',l:'Progression notable',v:'pos'},
       {id:'pr8',l:'Progression régulière',v:'pos'},
+      {id:'pr20',l:'Redressement positif en fin de trimestre — à confirmer',v:'neutral'},
+      {id:'pr21',l:'Sursaut encourageant en fin de trimestre',v:'neutral'},
       {id:'pr19',l:'Résultats obtenus dans une classe à l\'ambiance difficile — mérite d\'être souligné',v:'pos'},
       {id:'pr4',l:'Résultats fragiles',v:'neutral'},
       {id:'pr9',l:'Progression stable',v:'neutral'},
@@ -1325,6 +1327,8 @@ const CORE_BOXES = {
       {id:'ob1',l:'Félicitations',v:'pos'},
       {id:'ob2',l:'Encouragements',v:'pos'},
       {id:'ob3',l:'Continuer sur cette lancée',v:'pos'},
+      {id:'ob16',l:'Amplifier et confirmer cette dynamique positive au prochain trimestre',v:'pos'},
+      {id:'ob17',l:'Maintenir les efforts engagés en fin de trimestre',v:'pos'},
       {id:'ob4',l:'Être plus régulier(ière) à l\'écrit',v:'neutral'},
       {id:'ob5',l:'Être plus régulier(ière) à l\'oral',v:'neutral'},
       {id:'ob6',l:'Revoir les bases',v:'neutral'},
@@ -4153,17 +4157,25 @@ function incrementGenCount(n=1){
   const c=getGenCount()+n;
   localStorage.setItem(GEN_COUNT_KEY,String(c));
   localStorage.setItem(GEN_YEAR_KEY,String(getSchoolYear()));
+  // Track first use date for time-based feedback trigger
+  if(!localStorage.getItem('bp3_first_use')) localStorage.setItem('bp3_first_use',String(Date.now()));
   updateGenCounter();
-  // Invite feedback after 5 and 20 generations
-  if((c===5||c===20)&&!localStorage.getItem('bp3_feedback_given')){
-    setTimeout(()=>{
-      const t=document.getElementById('toast');
-      if(!t)return;
-      t.innerHTML=`Vous avez généré ${c} appréciations ! 🎉 <span onclick="showFeedback();document.getElementById('toast').classList.remove('show')" style="text-decoration:underline;cursor:pointer;margin-left:6px">Donner mon avis →</span>`;
-      t.classList.add('show');
-      clearTimeout(t._t);
-      t._t=setTimeout(()=>{t.classList.remove('show');t.textContent='';},6000);
-    },1500);
+  // Only show feedback invite outside of bulk generation, and only once
+  if(!_generating && !localStorage.getItem('bp3_feedback_given')){
+    const firstUse=parseInt(localStorage.getItem('bp3_first_use')||'0');
+    const daysSinceFirst=(Date.now()-firstUse)/(1000*60*60*24);
+    // Trigger after 3+ days AND 10+ generations, or after 30+ generations
+    if((daysSinceFirst>=3 && c>=10) || c===30){
+      setTimeout(()=>{
+        if(_generating) return; // double-check
+        const t=document.getElementById('toast');
+        if(!t)return;
+        t.innerHTML=`BulletinsPro vous est utile ? 😊 <span onclick="showFeedback();document.getElementById('toast').classList.remove('show')" style="text-decoration:underline;cursor:pointer;margin-left:6px">Donner mon avis →</span>`;
+        t.classList.add('show');
+        clearTimeout(t._t);
+        t._t=setTimeout(()=>{t.classList.remove('show');t.textContent='';},8000);
+      },2000);
+    }
   }
   return c;
 }
@@ -4506,13 +4518,16 @@ async function generateAll(){
     }
 
     // Final save including Drive sync
-    save();
+    try{localStorage.setItem('bp3',JSON.stringify(S));}catch(e){}
     setBanner(`🎉 Terminé — <strong>${done}/${total}</strong> générées${errors>0?` · <span style="color:#f87171">${errors} erreur(s)</span>`:''}`);
     setTimeout(()=>{if(banner)banner.style.display='none';},6000);
 
   }finally{
     _generating=false;
     document.querySelectorAll('[onclick*="goGenAll"]').forEach(b=>{b.disabled=false;b.style.opacity='';});
+    // Force Drive sync NOW that _generating is false
+    save();
+    if(GD.accessToken) gdSaveToDrive().then(()=>toast('✅ Appréciations sauvegardées sur Drive')).catch(()=>toast('⚠️ Sauvegarde Drive échouée — données en local'));
   }
 }
 
