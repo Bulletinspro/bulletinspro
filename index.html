@@ -4131,8 +4131,10 @@ let _apiKey=atob(_k);
 
 // ── GENERATION COUNTER ────────────────────────────────────────────────────────
 const FREE_LIMIT = 50;        // Limite visiteurs sans code
+const BETA_LIMIT = 200;       // Limite bêta testeurs
 const ANNUAL_LIMIT = 2500;    // Limite abonnés payants par année scolaire
 const BETA_ACTIVE = true;     // 🔴 false = fin de bêta, les codes deviennent des comptes payants limités
+const OWNER_KEY = 'bp3_owner'; // Accès illimité propriétaire
 const BETA_KEY = 'bp3_beta_access';
 const GEN_COUNT_KEY = 'bp3_gen_count';
 const GEN_YEAR_KEY  = 'bp3_gen_year';
@@ -4180,17 +4182,20 @@ function incrementGenCount(n=1){
   return c;
 }
 
+function hasOwnerAccess(){ return localStorage.getItem(OWNER_KEY)==='true'; }
 function hasBetaAccess(){ return BETA_ACTIVE && localStorage.getItem(BETA_KEY)==='true'; }
 function hasPaidAccess(){ return !BETA_ACTIVE && localStorage.getItem(BETA_KEY)==='true'; }
 
 function getRemainingGens(){
-  if(hasBetaAccess()) return Infinity;
+  if(hasOwnerAccess()) return Infinity;
+  if(hasBetaAccess()) return Math.max(0, BETA_LIMIT - getGenCount());
   if(hasPaidAccess()) return Math.max(0, ANNUAL_LIMIT - getGenCount());
   return Math.max(0, FREE_LIMIT - getGenCount());
 }
 
 function checkGenLimit(needed=1){
-  if(hasBetaAccess()) return true;
+  if(hasOwnerAccess()) return true;
+  if(hasBetaAccess()) return getRemainingGens() >= needed;
   const remaining = getRemainingGens();
   if(remaining < needed){
     showGenLimitModal();
@@ -4246,10 +4251,15 @@ function activateBetaCode(){
 function updateGenCounter(){
   const el = document.getElementById('gen-counter-badge');
   if(!el) return;
-  if(hasBetaAccess()){
-    el.textContent = '∞ bêta';
-    el.title = 'Accès bêta — illimité';
+  if(hasOwnerAccess()){
+    el.textContent = '∞';
+    el.title = 'Accès propriétaire — illimité';
     el.style.color = 'var(--accent)';
+  } else if(hasBetaAccess()){
+    const remaining = getRemainingGens();
+    el.textContent = remaining + ' / ' + BETA_LIMIT + ' bêta';
+    el.title = `Accès bêta — ${remaining} générations restantes sur ${BETA_LIMIT}`;
+    el.style.color = remaining <= 20 ? '#f87171' : remaining <= 50 ? '#fb923c' : 'var(--accent)';
   } else if(hasPaidAccess()){
     const remaining = getRemainingGens();
     el.textContent = remaining + ' / ' + ANNUAL_LIMIT;
@@ -4264,7 +4274,7 @@ function updateGenCounter(){
 }
 
 async function callClaude(prompt, retries=3, bulkMode=false){
-  const model = 'anthropic/claude-3.5-sonnet';
+  const model = 'anthropic/claude-sonnet-4-5-20251001';
   for(let attempt=0; attempt<retries; attempt++){
     try{
       const r=await fetch('https://openrouter.ai/api/v1/chat/completions',{
@@ -4450,7 +4460,7 @@ async function generateAll(){
           method:'POST',
           headers:{'Content-Type':'application/json','Authorization':`Bearer ${_apiKey}`,'HTTP-Referer':'https://bulletinspro.github.io','X-Title':'BulletinsPro'},
           body:JSON.stringify({
-            model:'anthropic/claude-3.5-sonnet',
+            model:'anthropic/claude-sonnet-4-5-20251001',
             max_tokens:800,
             messages:[
               {role:'system',content:'Tu rédiges des appréciations scolaires françaises. Utilise UNIQUEMENT les observations fournies. N\'invente rien.'},
@@ -4978,11 +4988,19 @@ function showCodeAccess(){
 
 function activateCodeFromModal(){
   const input=document.getElementById('code-access-input');
-  const VALID_CODES=['BP-7K2M','BP-9XQR','BP-4VBN','BP-3WQT','BP-8ZLF','BP-2YNK','BP-6RJP','BP-5HCX','BP-1GTD','BP-0MWS','BP2025PRO','ALEX75','TESTEUR1','TESTEUR2','TESTEUR3'];
-  if(VALID_CODES.includes(input?.value?.toUpperCase().trim())){
+  const code=input?.value?.toUpperCase().trim();
+  const OWNER_CODES=['ALEX75'];
+  const VALID_CODES=['BP-7K2M','BP-9XQR','BP-4VBN','BP-3WQT','BP-8ZLF','BP-2YNK','BP-6RJP','BP-5HCX','BP-1GTD','BP-0MWS','BP2025PRO','TESTEUR1','TESTEUR2','TESTEUR3'];
+  if(OWNER_CODES.includes(code)){
+    localStorage.setItem(BETA_KEY,'true');
+    localStorage.setItem(OWNER_KEY,'true');
+    document.querySelector('.mo-overlay')?.remove();
+    toast('✅ Accès propriétaire — illimité !');
+    updateGenCounter();
+  } else if(VALID_CODES.includes(code)){
     localStorage.setItem(BETA_KEY,'true');
     document.querySelector('.mo-overlay')?.remove();
-    toast('✅ Accès activé — générations illimitées !');
+    toast('✅ Accès bêta activé — 200 générations !');
     updateGenCounter();
   } else {
     toast('❌ Code invalide');
