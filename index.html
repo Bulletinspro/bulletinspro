@@ -2558,12 +2558,16 @@ const CLASS_BOXES = {
   niveau:{label:'Niveau & Atmosphère',items:[
     {id:'cn1',l:'Classe de bon niveau',v:'pos'},{id:'cn2',l:'Niveau hétérogène',v:'neutral'},
     {id:'cn3',l:'Ambiance de travail sérieuse',v:'pos'},{id:'cn4',l:'Classe agréable et dynamique',v:'pos'},
+    {id:'cn7',l:'Classe motivée et impliquée',v:'pos'},
     {id:'cn5',l:'Niveau insuffisant',v:'neg'},{id:'cn6',l:'Bonne cohésion',v:'pos'},
+    {id:'cn8',l:'Ambiance de classe difficile — perturbations récurrentes',v:'neg'},
+    {id:'cn9',l:'Manque de cohésion',v:'neg'},
   ]},
   comportement:{label:'Comportement de groupe',items:[
     {id:'cc1',l:'Comportement exemplaire',v:'pos'},{id:'cc2',l:'Perturbations récurrentes',v:'neg'},
     {id:'cc3',l:'Respect mutuel établi',v:'pos'},{id:'cc4',l:'Bavardages trop fréquents',v:'neg'},
     {id:'cc5',l:'Classe participative',v:'pos'},{id:'cc6',l:'Manque de concentration collective',v:'neg'},
+    {id:'cc7',l:'Classe peu participative — manque de dynamisme',v:'neg'},
   ]},
   forces:{label:'Points forts & faiblesses',items:[
     {id:'cf1',l:'Fort engagement collectif',v:'pos'},
@@ -2573,6 +2577,7 @@ const CLASS_BOXES = {
     {id:'cf7',l:'Bonne dynamique de classe',v:'pos'},
     {id:'cf8',l:'Un petit groupe moteur tire la classe vers le haut',v:'pos'},
     {id:'cf9',l:'Classe agréable et respectueuse',v:'pos'},
+    {id:'cf15',l:'Entraide naturelle entre élèves',v:'pos'},
     {id:'cf2',l:'Difficultés à l\'oral — manque de prise de parole',v:'neg'},
     {id:'cf4',l:'Lacunes méthodologiques',v:'neg'},
     {id:'cf10',l:'Travail de groupe inefficace',v:'neg'},
@@ -2580,6 +2585,7 @@ const CLASS_BOXES = {
     {id:'cf12',l:'Classe peu participative — manque de dynamisme',v:'neg'},
     {id:'cf13',l:'Ambiance de classe difficile',v:'neg'},
     {id:'cf14',l:'Niveau hétérogène compliquant la gestion du groupe',v:'neg'},
+    {id:'cf16',l:'Manque de maturité collective',v:'neg'},
   ]},
   conseils:{label:'Conseils pour la classe',items:[
     {id:'ca1',l:'Poursuivre les efforts',v:'pos'},
@@ -2590,9 +2596,11 @@ const CLASS_BOXES = {
     {id:'ca7',l:'Gagner en maturité collective',v:'neutral'},
     {id:'ca8',l:'Gagner en dynamisme et en implication',v:'neutral'},
     {id:'ca9',l:'Prendre en compte les conseils donnés',v:'neutral'},
+    {id:'ca12',l:'Savoir prendre en compte les conseils de l\'enseignant',v:'neutral'},
     {id:'ca3',l:'Plus de rigueur dans le travail',v:'neg'},
     {id:'ca10',l:'Le petit groupe perturbateur doit réagir',v:'neg'},
     {id:'ca11',l:'Un investissement plus sérieux est attendu',v:'neg'},
+    {id:'ca13',l:'Un sursaut collectif est nécessaire',v:'neg'},
   ]},
 };
 
@@ -4134,7 +4142,7 @@ ${checked.length?checked.map(i=>'• '+i).join('\n'):'• Classe correcte dans l
 
 RÈGLES :
 1. Texte continu et fluide, 350–650 caractères, jamais de liste.
-2. Parle de la classe comme d'un collectif (la classe, les élèves, le groupe…).
+2. Parle de la classe comme d'un collectif : "la classe", "les élèves", "ce groupe", "cette classe". JAMAIS le nom de la classe (${cls.name}) ni la matière — c'est évident pour les lecteurs.
 3. Relie les idées avec des connecteurs logiques variés.
 4. Ton : ${toneDesc}.
 5. Termine par un conseil ou un encouragement collectif.
