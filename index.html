@@ -4738,8 +4738,8 @@ function doPronote(){
   });
   // Show modal with options
   const mo=document.createElement('div');
-  mo.className='mo-overlay';
-  mo.style.cssText='display:flex;align-items:center;justify-content:center;';
+  mo.className='mo';
+  mo.style.cssText='';
   mo.innerHTML=`<div class="mo-box" style="max-width:480px">
     <div class="mo-t" style="margin-bottom:8px">📋 Export PRONOTE — ${count} appréciations</div>
     <p style="font-size:.85rem;color:var(--muted);margin-bottom:16px">Choisissez votre méthode selon votre version de PRONOTE :</p>
@@ -4753,7 +4753,7 @@ function doPronote(){
         <span style="font-size:.78rem;opacity:.8">PRONOTE en ligne → ouvrir un tableur (Excel/Sheets), coller, puis copier-coller dans PRONOTE</span>
       </button>
     </div>
-    <button class="btn btn-o" onclick="this.closest('.mo-overlay').remove()">Fermer</button>
+    <button class="btn btn-o" onclick="this.closest('.mo').remove()">Fermer</button>
   </div>`;
   mo.dataset.tsv=tsv;
   mo.dataset.cls=cls.name;
@@ -4765,7 +4765,7 @@ function doPronote(){
 }
 
 function pronoteDownload(btn){
-  const mo=btn.closest('.mo-overlay');
+  const mo=btn.closest('.mo');
   const tsv=mo.dataset.tsv;
   const blob=new Blob(['\uFEFF'+tsv],{type:'text/tab-separated-values;charset=utf-8'});
   const url=URL.createObjectURL(blob);
@@ -4774,7 +4774,7 @@ function pronoteDownload(btn){
 }
 
 function pronoteCopy(btn){
-  const mo=btn.closest('.mo-overlay');
+  const mo=btn.closest('.mo');
   navigator.clipboard.writeText(mo.dataset.tsv).then(()=>{
     toast('✅ '+mo.dataset.count+' appréciations copiées — collez dans Excel/Sheets puis dans PRONOTE');
     btn.textContent='✅ Copié !';
@@ -5064,7 +5064,7 @@ function showCodeAccess(){
            <button class="btn btn-g" onclick="activateCodeFromModal()">Activer</button>
          </div>`
     }
-    <button class="btn btn-o" onclick="this.closest('.mo-overlay').remove()">Fermer</button>
+    <button class="btn btn-o" onclick="this.closest('.mo').remove()">Fermer</button>
   </div>`;
   document.body.appendChild(mo);
   mo.classList.add('open');
