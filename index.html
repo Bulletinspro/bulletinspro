@@ -1331,6 +1331,7 @@ const CORE_BOXES = {
       {id:'ob3',l:'Continuer sur cette lancée',v:'pos'},
       {id:'ob20',l:'Amplifier et confirmer cette dynamique positive au prochain trimestre',v:'pos'},
       {id:'ob21',l:'Maintenir les efforts engagés en fin de trimestre',v:'pos'},
+      {id:'ob24',l:'Prendre en compte les conseils donnés',v:'neutral'},
       {id:'ob4',l:'Être plus régulier(ière) à l\'écrit',v:'neutral'},
       {id:'ob5',l:'Être plus régulier(ière) à l\'oral',v:'neutral'},
       {id:'ob6',l:'Revoir les bases',v:'neutral'},
@@ -2565,14 +2566,33 @@ const CLASS_BOXES = {
     {id:'cc5',l:'Classe participative',v:'pos'},{id:'cc6',l:'Manque de concentration collective',v:'neg'},
   ]},
   forces:{label:'Points forts & faiblesses',items:[
-    {id:'cf1',l:'Fort engagement',v:'pos'},{id:'cf2',l:'Difficultés à l\'oral',v:'neg'},
-    {id:'cf3',l:'Bonne compréhension',v:'pos'},{id:'cf4',l:'Lacunes méthodologiques',v:'neg'},
-    {id:'cf5',l:'Créativité collective',v:'pos'},{id:'cf6',l:'Travail de groupe efficace',v:'pos'},
+    {id:'cf1',l:'Fort engagement collectif',v:'pos'},
+    {id:'cf3',l:'Bonne compréhension générale',v:'pos'},
+    {id:'cf5',l:'Créativité collective',v:'pos'},
+    {id:'cf6',l:'Travail de groupe efficace',v:'pos'},
+    {id:'cf7',l:'Bonne dynamique de classe',v:'pos'},
+    {id:'cf8',l:'Un petit groupe moteur tire la classe vers le haut',v:'pos'},
+    {id:'cf9',l:'Classe agréable et respectueuse',v:'pos'},
+    {id:'cf2',l:'Difficultés à l\'oral — manque de prise de parole',v:'neg'},
+    {id:'cf4',l:'Lacunes méthodologiques',v:'neg'},
+    {id:'cf10',l:'Travail de groupe inefficace',v:'neg'},
+    {id:'cf11',l:'Un petit groupe perturbe la dynamique générale',v:'neg'},
+    {id:'cf12',l:'Classe peu participative — manque de dynamisme',v:'neg'},
+    {id:'cf13',l:'Ambiance de classe difficile',v:'neg'},
+    {id:'cf14',l:'Niveau hétérogène compliquant la gestion du groupe',v:'neg'},
   ]},
   conseils:{label:'Conseils pour la classe',items:[
-    {id:'ca1',l:'Poursuivre les efforts',v:'pos'},{id:'ca2',l:'Mieux gérer le temps',v:'neutral'},
-    {id:'ca3',l:'Plus de rigueur',v:'neg'},{id:'ca4',l:'Belle dynamique à maintenir',v:'pos'},
-    {id:'ca5',l:'Révisions régulières',v:'neutral'},{id:'ca6',l:'Oser prendre la parole',v:'neutral'},
+    {id:'ca1',l:'Poursuivre les efforts',v:'pos'},
+    {id:'ca4',l:'Belle dynamique à maintenir',v:'pos'},
+    {id:'ca2',l:'Mieux gérer le temps',v:'neutral'},
+    {id:'ca5',l:'Révisions régulières',v:'neutral'},
+    {id:'ca6',l:'Oser prendre la parole',v:'neutral'},
+    {id:'ca7',l:'Gagner en maturité collective',v:'neutral'},
+    {id:'ca8',l:'Gagner en dynamisme et en implication',v:'neutral'},
+    {id:'ca9',l:'Prendre en compte les conseils donnés',v:'neutral'},
+    {id:'ca3',l:'Plus de rigueur dans le travail',v:'neg'},
+    {id:'ca10',l:'Le petit groupe perturbateur doit réagir',v:'neg'},
+    {id:'ca11',l:'Un investissement plus sérieux est attendu',v:'neg'},
   ]},
 };
 
@@ -3893,6 +3913,10 @@ function buildPrompt(st,cls,period,seed,memSamp){
     evalCtx+=`Compétences : ${compLabels[st.comps.global]||st.comps.global}. `;
   }
 
+  // Class appreciation context — only if filled
+  const classComment=cls.classComments&&cls.classComments[period];
+  const classCtx=classComment?`\nCONTEXTE DE CLASSE (appréciation générale de la classe rédigée par le professeur) :\n"${classComment}"\n→ Tu peux t'en inspirer pour contextualiser l'appréciation individuelle, mais ne pas la copier ni la répéter.`:'';
+
   let aeshCtx='';
   if(st.aesh?.on){
     const AESH_LABELS={
@@ -4073,7 +4097,7 @@ ${checkedNeg.length
   : '\n⛔ AUCUN défaut coché → INTERDITS : bavardage, distraction, difficulté, lacune.'}
 ${isDiscreet ? '\n⛔ Discret/réservé → INTERDIRE : "participe activement", "participe régulièrement". Dire : "suit attentivement", "s\'implique discrètement".' : ''}
 ${checked.some(c=>c.toLowerCase().includes('régress')&&(isDiscreet||checkedNeg.length>=2)) ? '\n⚠️ RÉGRESSION + profil fragile : ne pas mentionner la régression brutalement. Dire plutôt : "des efforts supplémentaires permettront de retrouver une dynamique positive" ou "il lui faudra redoubler d\'efforts pour inverser la tendance". L\'objectif est d\'encourager, pas de décourager.' : ''}
-${aeshCtx}${orientCtx}${prevCtx}${memCtx}
+${aeshCtx}${orientCtx}${classCtx}${prevCtx}${memCtx}
 
 RÈGLES DE SYNTHÈSE — OBLIGATOIRES :
 0. Longueur : maximum ${targetMax} caractères. Synthétise — 4-5 observations liées = 1 phrase fluide.
@@ -4093,8 +4117,8 @@ RÈGLES DE SYNTHÈSE — OBLIGATOIRES :
 6. Ton : ${toneDesc}. Félicitations seulement si excellent/très bon verdict. JAMAIS "félicitations du conseil de classe". Écrire : ${cls.noJe ? '"Félicitations."' : '"Félicitations." ou "Toutes mes félicitations."'}
 7. "son travail est régulier" pas "elle est régulière dans son travail". "elle maîtrise l'expression orale" pas "elle exprime une bonne maîtrise". "Cette élève" pas "Ceste élève". JAMAIS "satisfaisant" plus d'une fois.
 8. FUSION : 3 observations similaires (discret + participe peu + évite de prendre la parole) = UNE seule phrase courte et bienveillante. Ne pas les répéter en conclusion si déjà mentionnées.
-9. Répondre UNIQUEMENT avec l'appréciation, sans guillemets ni commentaire.`;
-}
+8b. CLICHÉS INTERDITS — ne jamais écrire : "ambiance de classe", "bonne ambiance en classe", "atmosphère de classe" sauf si explicitement coché. Ne pas inventer de contexte sur la classe.
+9. Répondre UNIQUEMENT avec l'appréciation, sans guillemets ni commentaire.`;}
 
 function buildClassPrompt(cls,period){
   const checked=[];
