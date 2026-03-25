@@ -4739,6 +4739,7 @@ function doPronote(){
   // Show modal with options
   const mo=document.createElement('div');
   mo.className='mo-overlay';
+  mo.style.cssText='display:flex;align-items:center;justify-content:center;';
   mo.innerHTML=`<div class="mo-box" style="max-width:480px">
     <div class="mo-t" style="margin-bottom:8px">📋 Export PRONOTE — ${count} appréciations</div>
     <p style="font-size:.85rem;color:var(--muted);margin-bottom:16px">Choisissez votre méthode selon votre version de PRONOTE :</p>
