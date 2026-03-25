@@ -1251,12 +1251,12 @@ const CORE_BOXES = {
       {id:'tr7',l:'Participation insuffisante en classe',v:'neg'},
       {id:'tr8',l:'Absence d\'effort en classe',v:'neg'},
       {id:'tr18',l:'En difficulté et sans effort apparent',v:'neg'},
-      {id:'tr9',l:'Travail à la maison inexistant',v:'neg'},
+      {id:'tr10',l:'Travail à la maison insuffisant',v:'neg'},
       {id:'tr21',l:'Feuilles blanches rendues — refus total de produire',v:'neg'},
       {id:'tr22',l:'Aucun travail rendu ce trimestre',v:'neg'},
       {id:'tr23',l:'Présent(e) physiquement mais absent(e) mentalement',v:'neg'},
       {id:'tr24',l:'S\'endort en classe',v:'neg'},
-      {id:'tr10',l:'Travail à la maison insuffisant',v:'neg'},
+      {id:'tr9',l:'Travail à la maison inexistant',v:'neg'},
       {id:'tr12',l:'Devoirs souvent non rendus',v:'neg'},
       {id:'tr14',l:'Travail souvent bâclé',v:'neg'},
     ]
@@ -1327,19 +1327,19 @@ const CORE_BOXES = {
       {id:'ob1',l:'Félicitations',v:'pos'},
       {id:'ob2',l:'Encouragements',v:'pos'},
       {id:'ob3',l:'Continuer sur cette lancée',v:'pos'},
-      {id:'ob16',l:'Amplifier et confirmer cette dynamique positive au prochain trimestre',v:'pos'},
-      {id:'ob17',l:'Maintenir les efforts engagés en fin de trimestre',v:'pos'},
+      {id:'ob20',l:'Amplifier et confirmer cette dynamique positive au prochain trimestre',v:'pos'},
+      {id:'ob21',l:'Maintenir les efforts engagés en fin de trimestre',v:'pos'},
       {id:'ob4',l:'Être plus régulier(ière) à l\'écrit',v:'neutral'},
       {id:'ob5',l:'Être plus régulier(ière) à l\'oral',v:'neutral'},
       {id:'ob6',l:'Revoir les bases',v:'neutral'},
       {id:'ob7',l:'Améliorer la méthode',v:'neutral'},
       {id:'ob8',l:'Gagner en confiance',v:'neutral'},
-      {id:'ob17',l:'Gagner en concentration',v:'neutral'},
+      {id:'ob22',l:'Gagner en concentration',v:'neutral'},
       {id:'ob18',l:'Mieux s\'organiser dans son travail',v:'neutral'},
       {id:'ob13',l:'Approfondir davantage le travail',v:'neutral'},
       {id:'ob14',l:'Aller plus loin dans la réflexion',v:'neutral'},
       {id:'ob15',l:'Consolider les acquis avant d\'aller plus loin',v:'neutral'},
-      {id:'ob16',l:'Persévérer malgré les difficultés',v:'neutral'},
+      {id:'ob23',l:'Persévérer malgré les difficultés',v:'neutral'},
       {id:'ob19',l:"S'investir davantage",v:'neutral'},
       {id:'ob9',l:'Implication accrue nécessaire',v:'neg'},
       {id:'ob10',l:'Attitude constructive requise',v:'neg'},
@@ -3966,7 +3966,7 @@ ATTENTION : si le niveau est "fragile" ou "insuffisant", ou si une régression e
     if(studentName) studentName=studentName.charAt(0).toUpperCase()+studentName.slice(1).toLowerCase();
   }
   // RGPD — never send real name to API, use placeholder instead
-  const PLACEHOLDER = 'Élève';
+  const PLACEHOLDER = 'Alex';
   const studentRef = cls.useName
     ? (studentName
         ? `Prénom de l'élève : ${PLACEHOLDER}. Utilise ce prénom naturellement dans l'appréciation (ex: "${PLACEHOLDER} fait preuve de…").`
@@ -4134,7 +4134,11 @@ let _apiKey=atob(_k);
 // ── GENERATION COUNTER ────────────────────────────────────────────────────────
 const FREE_LIMIT = 50;        // Limite visiteurs sans code
 const BETA_LIMIT = 200;       // Limite bêta testeurs
-const ANNUAL_LIMIT = 2500;    // Limite abonnés payants par année scolaire
+const STANDARD_MONTHLY = 200; // Standard mensuel
+const PRO_MONTHLY = 400;      // Pro mensuel
+const STANDARD_ANNUAL = 800;  // Standard annuel
+const PRO_ANNUAL = 1500;      // Pro annuel
+const ANNUAL_LIMIT = 800;     // Limite abonnés standard annuel (actif)
 const BETA_ACTIVE = true;     // 🔴 false = fin de bêta, les codes deviennent des comptes payants limités
 const OWNER_KEY = 'bp3_owner'; // Accès illimité propriétaire
 const BETA_KEY = 'bp3_beta_access';
@@ -4400,9 +4404,11 @@ async function genOne(sid){
     // RGPD swap — replace placeholder with real name
     if(cls.useName && st.name){
       const parts=st.name.trim().split(/\s+/);
-      let realName=parts.length===1?parts[0]:parts.find(p=>p===p.charAt(0).toUpperCase()+p.slice(1).toLowerCase()&&p!==p.toUpperCase())||parts[parts.length-1];
+      // Find first name: word that is NOT all-caps (last names are all caps)
+      let realName=parts.find(p=>p!==p.toUpperCase()&&p.length>1);
+      if(!realName) realName=parts[parts.length-1]; // fallback
       if(realName) realName=realName.charAt(0).toUpperCase()+realName.slice(1).toLowerCase();
-      if(realName) finalTxt=finalTxt.replace(/\bÉlève\b/g, realName);
+      if(realName) finalTxt=finalTxt.replace(/Alex/g, realName);
     }
     ta.value=finalTxt;
     addMem(S.active,finalTxt); saveCmt(sid,finalTxt); updCC(sid,finalTxt);
@@ -4503,9 +4509,10 @@ async function generateAll(){
         // RGPD swap — replace placeholder with real name
         if(cls.useName && st.name){
           const parts=st.name.trim().split(/\s+/);
-          let realName=parts.length===1?parts[0]:parts.find(p=>p===p.charAt(0).toUpperCase()+p.slice(1).toLowerCase()&&p!==p.toUpperCase())||parts[parts.length-1];
+          let realName=parts.find(p=>p!==p.toUpperCase()&&p.length>1);
+          if(!realName) realName=parts[parts.length-1];
           if(realName) realName=realName.charAt(0).toUpperCase()+realName.slice(1).toLowerCase();
-          if(realName) txt=txt.replace(/\bÉlève\b/g, realName);
+          if(realName) txt=txt.replace(/Alex/g, realName);
         }
 
         // Save immediately to state
@@ -4643,7 +4650,7 @@ function renderBulkView(content){
       <div style="display:flex;gap:6px">
         <button class="btn btn-o btn-sm" onclick="copyAll()">📋 Tout copier</button>
         <button class="btn btn-o btn-sm" onclick="doCSV()">⬇ CSV</button>
-        <button class="btn btn-o btn-sm" onclick="doPronote()" title="Export format PRONOTE — copier-coller direct dans PRONOTE">⬇ PRONOTE</button>
+        <button class="btn btn-o btn-sm" onclick="doPronote()" title="Export pour PRONOTE">⬇ PRONOTE</button>
         <button class="btn btn-o btn-sm" onclick="exportPDF()">📄 PDF</button>
         <button class="btn btn-o btn-sm" onclick="exportWord()">📝 Word</button>
         <button class="btn btn-sm" style="background:var(--warn-l);color:var(--warn);border:1px solid var(--warn-b)" onclick="resetAllAppreciations()">🗑 Effacer tout</button>
@@ -4715,32 +4722,62 @@ function copyAll(){
 function doPronote(){
   const cls=S.classes[S.active]; if(!cls)return;
   const pLabel=cls.periodType==='semestre'?`S${S.period}`:`T${S.period}`;
-  // Tab-separated format for PRONOTE copy-paste import
-  // Columns: Nom | Prénom | Appréciation
+  // Build tab-separated content
   let tsv='Nom\tPrénom\tAppréciation\n';
+  let count=0;
   cls.students.forEach(s=>{
     const appr=(s.comments&&s.comments[S.period])||'';
-    if(!appr) return; // skip empty
-    // Split name into last name / first name
+    if(!appr) return;
     const parts=(s.name||'').trim().split(/\s+/);
-    let nom='', prenom='';
-    if(parts.length===1){
-      nom=parts[0]; prenom='';
-    } else {
-      // Assume ALL CAPS part = last name, capitalised = first name
-      const firstNamePart=parts.find(p=>p===p.charAt(0).toUpperCase()+p.slice(1).toLowerCase()&&p!==p.toUpperCase());
-      const lastNameParts=parts.filter(p=>p!==firstNamePart);
-      prenom=firstNamePart||'';
-      nom=lastNameParts.join(' ');
-    }
-    const cleanAppr=appr.replace(/\t/g,' ').replace(/\n/g,' ');
-    tsv+=`${nom}\t${prenom}\t${cleanAppr}\n`;
+    const firstNamePart=parts.find(p=>p!==p.toUpperCase()&&p.length>1);
+    const lastNameParts=parts.filter(p=>p!==firstNamePart);
+    const prenom=firstNamePart?firstNamePart.charAt(0).toUpperCase()+firstNamePart.slice(1).toLowerCase():'';
+    const nom=lastNameParts.join(' ');
+    tsv+=`${nom}\t${prenom}\t${appr.replace(/\t/g,' ').replace(/\n/g,' ')}\n`;
+    count++;
   });
-  // Download as TSV file
+  // Show modal with options
+  const mo=document.createElement('div');
+  mo.className='mo-overlay';
+  mo.innerHTML=`<div class="mo-box" style="max-width:480px">
+    <div class="mo-t" style="margin-bottom:8px">📋 Export PRONOTE — ${count} appréciations</div>
+    <p style="font-size:.85rem;color:var(--muted);margin-bottom:16px">Choisissez votre méthode selon votre version de PRONOTE :</p>
+    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px">
+      <button class="btn btn-g" onclick="pronoteDownload(this)" style="text-align:left;padding:10px 14px">
+        <strong>⬇ Télécharger le fichier</strong><br>
+        <span style="font-size:.78rem;opacity:.8">PRONOTE client → Imports/Exports → TXT/CSV/XML → Importer</span>
+      </button>
+      <button class="btn btn-o" onclick="pronoteCopy(this)" style="text-align:left;padding:10px 14px">
+        <strong>📋 Copier dans le presse-papier</strong><br>
+        <span style="font-size:.78rem;opacity:.8">PRONOTE en ligne → ouvrir un tableur (Excel/Sheets), coller, puis copier-coller dans PRONOTE</span>
+      </button>
+    </div>
+    <button class="btn btn-o" onclick="this.closest('.mo-overlay').remove()">Fermer</button>
+  </div>`;
+  mo.dataset.tsv=tsv;
+  mo.dataset.cls=cls.name;
+  mo.dataset.period=pLabel;
+  mo.dataset.count=count;
+  document.body.appendChild(mo);
+  mo.classList.add('open');
+  mo.addEventListener('click',e=>{if(e.target===mo)mo.remove();});
+}
+
+function pronoteDownload(btn){
+  const mo=btn.closest('.mo-overlay');
+  const tsv=mo.dataset.tsv;
   const blob=new Blob(['\uFEFF'+tsv],{type:'text/tab-separated-values;charset=utf-8'});
   const url=URL.createObjectURL(blob);
-  const a=document.createElement('a');a.href=url;a.download=`${cls.name}_${pLabel}_PRONOTE.txt`;a.click();URL.revokeObjectURL(url);
-  toast('✅ Export PRONOTE prêt — importez via PRONOTE → Imports/Exports → TXT/CSV/XML');
+  const a=document.createElement('a');a.href=url;a.download=`${mo.dataset.cls}_${mo.dataset.period}_PRONOTE.txt`;a.click();URL.revokeObjectURL(url);
+  toast('✅ Fichier téléchargé');
+}
+
+function pronoteCopy(btn){
+  const mo=btn.closest('.mo-overlay');
+  navigator.clipboard.writeText(mo.dataset.tsv).then(()=>{
+    toast('✅ '+mo.dataset.count+' appréciations copiées — collez dans Excel/Sheets puis dans PRONOTE');
+    btn.textContent='✅ Copié !';
+  }).catch(()=>toast('❌ Erreur copie — utilisez le téléchargement'));
 }
 
 function doCSV(){
@@ -5220,6 +5257,18 @@ function openImportStudents(){
       <input type="file" id="imp-students-file" accept=".csv,.txt,.xlsx" style="margin-bottom:12px;font-size:.8rem;width:100%" onchange="previewImportFile(event)">
       <div class="mo-lbl">Option 2 — Coller une liste (un élève par ligne)</div>
       <textarea id="imp-students-text" class="mo-inp" rows="6" style="font-family:monospace;font-size:.78rem;resize:vertical" placeholder="1,Marie Dupont,F&#10;2,Lucas Martin,M&#10;3,Emma Bernard,F&#10;..."></textarea>
+      <div style="margin-top:8px;margin-bottom:4px;font-size:.8rem;color:var(--muted)">Ordre du nom dans la liste :</div>
+      <div style="display:flex;gap:8px;margin-bottom:8px">
+        <label style="display:flex;align-items:center;gap:5px;font-size:.82rem;cursor:pointer">
+          <input type="radio" name="nameOrder" value="prenom_nom" checked> Prénom NOM
+        </label>
+        <label style="display:flex;align-items:center;gap:5px;font-size:.82rem;cursor:pointer">
+          <input type="radio" name="nameOrder" value="nom_prenom"> NOM Prénom (PRONOTE)
+        </label>
+        <label style="display:flex;align-items:center;gap:5px;font-size:.82rem;cursor:pointer">
+          <input type="radio" name="nameOrder" value="auto"> Détecter auto (MAJUSCULES = NOM)
+        </label>
+      </div>
       <div id="imp-preview" style="margin-top:10px;font-size:.78rem;color:var(--accent);font-family:'DM Mono',monospace"></div>
       <div style="margin-top:10px;font-size:.76rem;color:var(--muted);background:var(--bg);padding:8px 10px;border-radius:6px">
         💡 <strong>Formats acceptés :</strong><br>
@@ -5249,6 +5298,33 @@ function previewImportFile(e){
     document.getElementById('imp-preview').textContent=`✓ ${lines} lignes détectées`;
   };
   r.readAsText(f);
+}
+
+function getNameOrder(){
+  const sel=document.querySelector('input[name="nameOrder"]:checked');
+  return sel?sel.value:'auto';
+}
+
+function extractFirstName(fullName, order){
+  const parts=fullName.trim().split(/\s+/);
+  if(parts.length===1) return fullName; // single word — use as is
+  if(order==='prenom_nom'){
+    // First word(s) that are not all-caps = prénom
+    const firstCaps=parts.findIndex(p=>p===p.toUpperCase()&&p.length>1);
+    return firstCaps>0?parts.slice(0,firstCaps).join(' '):parts[0];
+  } else if(order==='nom_prenom'){
+    // Last word(s) that are not all-caps = prénom
+    const lastNonCaps=[...parts].reverse().findIndex(p=>p!==p.toUpperCase()||p.length<=1);
+    if(lastNonCaps>=0){
+      const prenomParts=parts.slice(parts.length-lastNonCaps-1);
+      return prenomParts.join(' ');
+    }
+    return parts[parts.length-1];
+  } else {
+    // Auto: any part NOT all-caps = prénom, ALL CAPS = nom
+    const firstName=parts.find(p=>p!==p.toUpperCase()&&p.length>1);
+    return firstName||parts[parts.length-1];
+  }
 }
 
 function parseImportLine(line, autoNum){
