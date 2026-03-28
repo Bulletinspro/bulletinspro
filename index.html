@@ -3661,7 +3661,7 @@ function renderEditor(id){
     const collapsed=isCollapsed&&!hasSelected;
     html+=`<div class="card">
       <div class="card-hd" style="cursor:pointer" onclick="toggleSection('${S.active}','${key}','${id}')">
-        <span>${sec.label}${hasSelected?` <span style="color:var(--accent);font-size:.7em">(${sec.items.filter(i=>st.boxes&&st.boxes[i.id]).length})</span>`:''}</span>
+        <span>${sec.label}${hasSelected?` <span style="background:var(--accent);color:#fff;font-size:.65em;padding:1px 6px;border-radius:999px;font-weight:700;margin-left:4px">${sec.items.filter(i=>st.boxes&&st.boxes[i.id]).length}</span>`:''}</span>
         <span style="display:flex;align-items:center;gap:6px">
           <button onclick="event.stopPropagation();resetCategoryBoxes('${id}','${itemIds.join(',')}')" style="padding:1px 6px;border:1px solid var(--border);border-radius:3px;font-size:.58rem;font-family:'DM Mono',monospace;background:transparent;color:var(--muted);cursor:pointer;opacity:.5" title="Réinitialiser">↺</button>
           <span style="font-size:.75rem;opacity:.5;transition:transform .2s;${collapsed?'':'transform:rotate(180deg)'}">${collapsed?'▸':'▾'}</span>
@@ -3783,7 +3783,7 @@ function toggleSection(cid, sectionKey, sid){
   if(!cls.collapsedSections) cls.collapsedSections={};
   cls.collapsedSections[sectionKey]=!cls.collapsedSections[sectionKey];
   save();
-  renderStudentList();
+  renderMain();
 }
 
 function togBox(sid,itemId,el){
