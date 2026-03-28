@@ -1215,7 +1215,7 @@ const CORE_BOXES = {
       {id:'pr3',l:'Résultats satisfaisants',v:'pos'},
       {id:'pr7',l:'Progression notable',v:'pos'},
       {id:'pr8',l:'Progression régulière',v:'pos'},
-      {id:'pr24',l:'Progression constante tout au long du trimestre',v:'pos'},
+      {id:'pr27',l:'Progression constante tout au long du trimestre',v:'pos'},
       {id:'pr25',l:'Nette amélioration par rapport au trimestre précédent',v:'pos'},
       {id:'pr26',l:'Évolution positive en comportement et en investissement',v:'pos'},
       {id:'pr19',l:'Résultats obtenus dans une classe à l\'ambiance difficile — mérite d\'être souligné',v:'pos'},
@@ -1261,8 +1261,8 @@ const CORE_BOXES = {
       {id:'tr2',l:'Travail régulier',v:'pos'},
       {id:'tr3',l:'Efforts soutenus',v:'pos'},
       {id:'tr15',l:'Va au-delà des exigences',v:'pos'},
-      {id:'tr11',l:'Devoirs toujours rendus',v:'pos'},
       {id:'tr13',l:'Soin apporté au travail',v:'pos'},
+      {id:'tr11',l:'Devoirs toujours rendus',v:'pos'},
       {id:'tr4',l:'Travail satisfaisant sans être pleinement investi',v:'neutral'},
       {id:'tr4b',l:'Manque d\'approfondissement',v:'neutral'},
       {id:'tr5',l:'Travail irrégulier',v:'neutral'},
@@ -1271,19 +1271,20 @@ const CORE_BOXES = {
       {id:'tr16',l:'En difficulté mais mobilisé(e)',v:'neutral'},
       {id:'tr17',l:'Difficultés persistantes malgré les efforts',v:'neutral'},
       {id:'tr6',l:'Investissement en deçà des capacités',v:'neg'},
-      {id:'tr7',l:'Participation insuffisante en classe',v:'neg'},
+      {id:'tr27',l:'Travail insuffisant',v:'neg'},
       {id:'tr8',l:'Absence d\'effort en classe',v:'neg'},
+      {id:'tr7',l:'Participation insuffisante en classe',v:'neg'},
       {id:'tr18',l:'En difficulté et sans effort apparent',v:'neg'},
-      {id:'tr10',l:'Travail à la maison insuffisant',v:'neg'},
-      {id:'tr25',l:'Leçons insuffisamment apprises — lacunes qui s\'accumulent',v:'neg'},
-      {id:'tr26',l:'Matériel souvent oublié ou incomplet',v:'neg'},
-      {id:'tr21',l:'Feuilles blanches rendues — refus total de produire',v:'neg'},
-      {id:'tr22',l:'Aucun travail rendu ce trimestre',v:'neg'},
       {id:'tr23',l:'Présent(e) physiquement mais absent(e) mentalement',v:'neg'},
       {id:'tr24',l:'S\'endort en classe',v:'neg'},
+      {id:'tr10',l:'Travail à la maison insuffisant',v:'neg'},
       {id:'tr9',l:'Travail à la maison inexistant',v:'neg'},
+      {id:'tr25',l:'Leçons insuffisamment apprises — lacunes qui s\'accumulent',v:'neg'},
+      {id:'tr26',l:'Matériel souvent oublié ou incomplet',v:'neg'},
       {id:'tr12',l:'Devoirs souvent non rendus',v:'neg'},
       {id:'tr14',l:'Travail souvent bâclé',v:'neg'},
+      {id:'tr21',l:'Feuilles blanches rendues — refus total de produire',v:'neg'},
+      {id:'tr22',l:'Aucun travail rendu ce trimestre',v:'neg'},
     ]
   },
   participation: {
@@ -1339,6 +1340,7 @@ const CORE_BOXES = {
       {id:'co11',l:'Attitude constructive',v:'pos'},
       {id:'co13',l:'Élève agréable et sympathique',v:'pos'},
       {id:'co14',l:'Bonne intégration dans la classe',v:'pos'},
+      {id:'pr26',l:'Évolution positive en comportement et en investissement',v:'pos'},
       {id:'co4',l:'Comportement correct',v:'neutral'},
       {id:'co12',l:'Discret(e) et réservé(e)',v:'neutral'},
       {id:'co15',l:'Semble traverser une période difficile',v:'neutral'},
@@ -4285,8 +4287,9 @@ RÈGLES DE SYNTHÈSE — OBLIGATOIRES :
 8d. INTENSITÉ PROPORTIONNELLE — respecter le degré exact de la pill cochée. "Bavarde parfois" = mention légère ("quelques bavardages ponctuels"). JAMAIS amplifier en "rappels fréquents", "perturbe régulièrement", "problème récurrent" si ce n'est pas coché. "Bavardages incessants" = mention forte. "Parfois perturbateur/trice" ≠ "très perturbateur". Ne jamais aggraver ce qui est coché.
 8e. COHÉRENCE ENTRE PILLS — si "Réagit bien aux rappels" est coché avec "Bavarde parfois" → dire "quelques bavardages, mais réagit bien quand on le signale" — les rappels ne sont PAS fréquents. Si coché avec "Bavardages incessants" ou "Très perturbateur" → "malgré des rappels fréquents nécessaires". La fréquence des rappels dépend de la sévérité du comportement coché.
 8f. PAS DE REDONDANCE — ne pas exprimer la même idée deux fois avec des mots différents. Si "travail sérieux et approfondi" est dit en phrase 1, ne pas redire "applique avec rigueur" ou "méthode rigoureuse" en phrase 2. Chaque phrase apporte une information nouvelle.
+8i. NE PAS COPIER LES LABELS — reformuler les observations avec des mots naturels. JAMAIS recopier mot pour mot le libellé d'une observation. Ex: "Très bonnes connaissances historiques et géographiques" → dire "Ses connaissances sont solides et bien ancrées" ou "Il maîtrise bien le programme". "Participation orale riche et pertinente" → "Il s'exprime avec aisance et apporte des contributions de qualité".
 8g. BREVET / BAC / EXAMENS — ne jamais mentionner le Brevet, le Bac, ou tout examen sauf si une pill "Brevet" ou "Bac" est explicitement cochée. Même en 3e ou Terminale, ne pas inférer l'examen du niveau scolaire.
-8h. ENCOURAGEMENTS / FÉLICITATIONS — si "Encouragements" est coché → terminer par "Encouragements." ou "Bon courage !" ou "Des encouragements !" comme phrase finale distincte. Ne pas noyer dans une périphrase. Si "Félicitations" est coché → terminer par "Félicitations." seul, pas "je félicite" ou "mérite des félicitations".
+8h. ENCOURAGEMENTS / FÉLICITATIONS — si "Encouragements" est coché → terminer par "Encouragements." ou "Bon courage !" ou "Des encouragements !" comme phrase finale distincte. Ne pas noyer dans une périphrase. Si "Félicitations" est coché → terminer par "Félicitations." seul, pas "je félicite" ou "mérite des félicitations". Si "Félicitations" ET "Continuer sur cette lancée" sont tous deux cochés → intégrer "continuer sur cette lancée" dans le corps du texte, pas comme deuxième phrase de conclusion.
 9. Répondre UNIQUEMENT avec l'appréciation, sans guillemets ni commentaire.`;}
 
 function buildClassPrompt(cls,period){
