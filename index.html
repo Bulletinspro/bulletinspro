@@ -5844,13 +5844,42 @@ function renderOnboardStep(){
 }
 
 // ── DARK MODE ─────────────────────────────────────────────────────────────────
-let _darkMode=localStorage.getItem('bp3_dark')==='1';
+function getAutoDark(){
+  // 1. Check system OS preference
+  if(window.matchMedia){
+    const sysDark=window.matchMedia('(prefers-color-scheme: dark)');
+    if(sysDark.media!=='not all') return sysDark.matches;
+  }
+  // 2. Fallback: time-based (20h → 7h = dark)
+  const h=new Date().getHours();
+  return h>=20||h<7;
+}
+
+const _manualPref=localStorage.getItem('bp3_dark'); // '1', '0', or null
+let _darkMode = _manualPref!==null ? _manualPref==='1' : getAutoDark();
+
 function applyDarkMode(){
   document.body.classList.toggle('dark-mode',_darkMode);
   const btn=document.getElementById('dark-toggle-btn');
   if(btn)btn.textContent=_darkMode?'☀️':'🌙';
 }
-function toggleDarkMode(){_darkMode=!_darkMode;localStorage.setItem('bp3_dark',_darkMode?'1':'0');applyDarkMode();}
+function toggleDarkMode(){
+  _darkMode=!_darkMode;
+  localStorage.setItem('bp3_dark',_darkMode?'1':'0');
+  applyDarkMode();
+}
+
+// Listen for OS preference changes in real time
+if(window.matchMedia){
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',e=>{
+    // Only follow OS change if user hasn't set a manual preference
+    if(localStorage.getItem('bp3_dark')===null){
+      _darkMode=e.matches;
+      applyDarkMode();
+    }
+  });
+}
+
 setTimeout(applyDarkMode,100);
 
 // ── FONT SIZE ─────────────────────────────────────────────────────────────────
