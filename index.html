@@ -2790,6 +2790,8 @@ async function gdLoadFromDrive(){
           const localCls=local.classes[cid];
           const remoteCls=remote.classes[cid];
           if(!localCls.students||!remoteCls.students) return;
+
+          // Merge student comments (appreciation text)
           localCls.students.forEach(localSt=>{
             const remoteSt=remoteCls.students.find(s=>s.id===localSt.id);
             if(!remoteSt) return;
@@ -2799,7 +2801,6 @@ async function gdLoadFromDrive(){
               const remoteCmt=(remoteSt.comments&&remoteSt.comments[period])||'';
               const localTs=(localSt.commentTs&&localSt.commentTs[period])||0;
               const remoteTs=(remoteSt.commentTs&&remoteSt.commentTs[period])||0;
-              // Local wins if: newer timestamp OR same timestamp but longer text
               if(localTs > remoteTs || (localTs===remoteTs && localCmt.length > remoteCmt.length)){
                 if(!remoteSt.comments) remoteSt.comments={};
                 if(!remoteSt.commentTs) remoteSt.commentTs={};
@@ -2807,7 +2808,23 @@ async function gdLoadFromDrive(){
                 remoteSt.commentTs[period]=localTs;
               }
             });
+
+            // Merge boxes (pills) — local wins if boxes were modified more recently
+            const localBoxTs=localSt.boxTs||0;
+            const remoteBoxTs=remoteSt.boxTs||0;
+            if(localBoxTs > remoteBoxTs && localSt.boxes){
+              remoteSt.boxes=localSt.boxes;
+              remoteSt.boxTs=localBoxTs;
+            }
           });
+
+          // Merge class-level boxes (class appreciation pills)
+          const localClsTs=localCls.clsBoxTs||0;
+          const remoteClsTs=remoteCls.clsBoxTs||0;
+          if(localClsTs > remoteClsTs && localCls.classBoxes){
+            remoteCls.classBoxes=localCls.classBoxes;
+            remoteCls.clsBoxTs=localClsTs;
+          }
         });
       }
 
@@ -3709,6 +3726,7 @@ function setComp(id,key,v,btn){const st=getSt(id);if(!st.comps)st.comps={};st.co
 function togBox(sid,itemId,el){
   const st=getSt(sid); if(!st.boxes)st.boxes={};
   st.boxes[itemId]=!st.boxes[itemId];
+  st.boxTs=Date.now(); // timestamp for merge conflict resolution
   el.classList.toggle('sel',st.boxes[itemId]);
   save();
 }
@@ -4669,6 +4687,7 @@ function renderClassRevView(content){
 function togClsBox(itemId,el){
   const cls=S.classes[S.active]; if(!cls.classBoxes)cls.classBoxes={};
   cls.classBoxes[itemId]=!cls.classBoxes[itemId];
+  cls.clsBoxTs=Date.now(); // timestamp for merge conflict resolution
   el.classList.toggle('sel',cls.classBoxes[itemId]);
   save();
 }
