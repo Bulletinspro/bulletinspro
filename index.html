@@ -3651,10 +3651,23 @@ function renderEditor(id){
 
   // SUBJECT-SPECIFIC + CORE BOXES
   const allBoxes=getSubjectBoxes(cls.subject, cls.langLevel);
+  if(!cls.collapsedSections) cls.collapsedSections={};
   Object.entries(allBoxes).forEach(([key,sec])=>{
     const itemIds=sec.items.map(i=>i.id);
     const customPills=getCustomPills(S.active,key);
-    html+=`<div class="card"><div class="card-hd">${sec.label}<button onclick="resetCategoryBoxes('${id}','${itemIds.join(',')}')" style="padding:1px 6px;border:1px solid var(--border);border-radius:3px;font-size:.58rem;font-family:'DM Mono',monospace;background:transparent;color:var(--muted);cursor:pointer;opacity:.5;margin-left:6px" title="Réinitialiser cette catégorie">↺</button></div><div class="pill-grid">`;
+    const isCollapsed=!!cls.collapsedSections[key];
+    const hasSelected=sec.items.some(i=>st.boxes&&st.boxes[i.id]);
+    // Never collapse a section that has selected pills
+    const collapsed=isCollapsed&&!hasSelected;
+    html+=`<div class="card">
+      <div class="card-hd" style="cursor:pointer" onclick="toggleSection('${S.active}','${key}','${id}')">
+        <span>${sec.label}${hasSelected?` <span style="color:var(--accent);font-size:.7em">(${sec.items.filter(i=>st.boxes&&st.boxes[i.id]).length})</span>`:''}</span>
+        <span style="display:flex;align-items:center;gap:6px">
+          <button onclick="event.stopPropagation();resetCategoryBoxes('${id}','${itemIds.join(',')}')" style="padding:1px 6px;border:1px solid var(--border);border-radius:3px;font-size:.58rem;font-family:'DM Mono',monospace;background:transparent;color:var(--muted);cursor:pointer;opacity:.5" title="Réinitialiser">↺</button>
+          <span style="font-size:.75rem;opacity:.5;transition:transform .2s;${collapsed?'':'transform:rotate(180deg)'}">${collapsed?'▸':'▾'}</span>
+        </span>
+      </div>
+      <div class="pill-grid" style="display:${collapsed?'none':'flex'}">`;
     sec.items.forEach(item=>{
       const sel=!!(st.boxes&&st.boxes[item.id]);
       const cls2=item.v==='neg'?'neg':item.v==='neutral'?'neutral':'';
@@ -3764,6 +3777,14 @@ function setSTone(tone,id,btn){const st=getSt(id);st.tone=tone;btn.closest('.ton
 function setSGrade(id,v){getSt(id).grade=v;save();}
 function setSLevel(id,v,btn){const st=getSt(id);st.level=v;btn.closest('.level-row').querySelectorAll('.lvl-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');save();}
 function setComp(id,key,v,btn){const st=getSt(id);if(!st.comps)st.comps={};st.comps[key]=v;btn.closest('.comp-row').querySelectorAll('.comp-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');save();}
+
+function toggleSection(cid, sectionKey, sid){
+  const cls=S.classes[cid]; if(!cls) return;
+  if(!cls.collapsedSections) cls.collapsedSections={};
+  cls.collapsedSections[sectionKey]=!cls.collapsedSections[sectionKey];
+  save();
+  renderStudentList();
+}
 
 function togBox(sid,itemId,el){
   const st=getSt(sid); if(!st.boxes)st.boxes={};
@@ -4204,6 +4225,8 @@ RÈGLES DE SYNTHÈSE — OBLIGATOIRES :
 8. FUSION : 3 observations similaires (discret + participe peu + évite de prendre la parole) = UNE seule phrase courte et bienveillante. Ne pas les répéter en conclusion si déjà mentionnées.
 8b. CLICHÉS INTERDITS — ne jamais écrire : "ambiance de classe", "bonne ambiance en classe", "atmosphère de classe" sauf si explicitement coché. Ne pas inventer de contexte sur la classe. INTERDIT aussi : "Il est désormais essentiel que", "Il est impératif que", "Il est indispensable que" — trop lourd. Préférer : "Il doit", "Il lui faudra", "Un effort s'impose".
 8c. ÉLISION CORRECTE — "que" + consonne = "que" (pas "qu'"). "que Mathis", "que Marie", "que Léa". "qu'" uniquement devant voyelle : "qu'il", "qu'elle", "qu'un". JAMAIS "qu'Mathis", "qu'Léa".
+8d. INTENSITÉ PROPORTIONNELLE — respecter le degré exact de la pill cochée. "Bavarde parfois" = mention légère ("quelques bavardages ponctuels"). JAMAIS amplifier en "rappels fréquents", "perturbe régulièrement", "problème récurrent" si ce n'est pas coché. "Bavardages incessants" = mention forte. "Parfois perturbateur/trice" ≠ "très perturbateur". Ne jamais aggraver ce qui est coché.
+8e. COHÉRENCE ENTRE PILLS — si "Réagit bien aux rappels" est coché avec "Bavarde parfois" → dire "quelques bavardages, mais réagit bien quand on le signale" — les rappels ne sont PAS fréquents. Si coché avec "Bavardages incessants" ou "Très perturbateur" → "malgré des rappels fréquents nécessaires". La fréquence des rappels dépend de la sévérité du comportement coché.
 9. Répondre UNIQUEMENT avec l'appréciation, sans guillemets ni commentaire.`;}
 
 function buildClassPrompt(cls,period){
