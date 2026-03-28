@@ -2054,6 +2054,15 @@ const SUBJECT_BOXES = {
         {id:'sac3',l:'Intérêt pour l\'actualité à développer',v:'neg'},
       ]
     },
+    speExamen: {
+      label:'Spécialité — Épreuve du Bac',
+      items:[
+        {id:'sesex1',l:'Bac — excellent niveau pour l\'épreuve de spécialité',v:'pos'},
+        {id:'sesex2',l:'Bac — préparation sérieuse et régulière',v:'pos'},
+        {id:'sesex3',l:'Bac — préparation à intensifier',v:'neutral'},
+        {id:'sesex4',l:'Bac — niveau fragile pour l\'épreuve',v:'neg'},
+      ]
+    },
   },
   nsi: {
     programmation: {
@@ -2086,6 +2095,15 @@ const SUBJECT_BOXES = {
         {id:'np3',l:'Participation correcte aux projets',v:'neutral'},
         {id:'np4',l:'Manque d\'autonomie dans les projets',v:'neg'},
         {id:'np5',l:'Ne finalise pas les projets',v:'neg'},
+      ]
+    },
+    speExamen: {
+      label:'Spécialité — Épreuve du Bac',
+      items:[
+        {id:'nsiex1',l:'Bac — excellent niveau pour l\'épreuve de spécialité',v:'pos'},
+        {id:'nsiex2',l:'Bac — préparation sérieuse et régulière',v:'pos'},
+        {id:'nsiex3',l:'Bac — préparation à intensifier',v:'neutral'},
+        {id:'nsiex4',l:'Bac — niveau fragile pour l\'épreuve',v:'neg'},
       ]
     },
   },
@@ -2334,6 +2352,15 @@ const SUBJECT_BOXES = {
         {id:'ho4',l:'Participe peu — doit s\'engager dans les débats',v:'neg'},
       ]
     },
+    speExamen: {
+      label:'Spécialité — Épreuve du Bac',
+      items:[
+        {id:'hlpex1',l:'Bac — excellent niveau pour l\'épreuve de spécialité',v:'pos'},
+        {id:'hlpex2',l:'Bac — préparation sérieuse et régulière',v:'pos'},
+        {id:'hlpex3',l:'Bac — préparation à intensifier',v:'neutral'},
+        {id:'hlpex4',l:'Bac — niveau fragile pour l\'épreuve',v:'neg'},
+      ]
+    },
   },
   hggsp: {
     connaissances: {
@@ -2366,6 +2393,15 @@ const SUBJECT_BOXES = {
         {id:'hs4',l:'Doit développer son regard critique sur les sources',v:'neg'},
       ]
     },
+    hexamen: {
+      label:'Spécialité — Épreuve du Bac',
+      items:[
+        {id:'hgex1',l:'Bac — excellent niveau pour l\'épreuve de spécialité',v:'pos'},
+        {id:'hgex2',l:'Bac — préparation sérieuse et régulière',v:'pos'},
+        {id:'hgex3',l:'Bac — préparation à intensifier',v:'neutral'},
+        {id:'hgex4',l:'Bac — niveau fragile pour l\'épreuve',v:'neg'},
+      ]
+    },
   },
   mathsExp: {
     raisonnement: {
@@ -2387,6 +2423,15 @@ const SUBJECT_BOXES = {
         {id:'mn3',l:'Assimilation satisfaisante',v:'neutral'},
         {id:'mn4',l:'Difficultés sur certaines notions avancées',v:'neg'},
         {id:'mn5',l:'Lacunes importantes pour ce niveau d\'option',v:'neg'},
+      ]
+    },
+    speExamen: {
+      label:'Spécialité — Épreuve du Bac',
+      items:[
+        {id:'mExpex1',l:'Bac — excellent niveau pour l\'épreuve de spécialité',v:'pos'},
+        {id:'mExpex2',l:'Bac — préparation sérieuse et régulière',v:'pos'},
+        {id:'mExpex3',l:'Bac — préparation à intensifier',v:'neutral'},
+        {id:'mExpex4',l:'Bac — niveau fragile pour l\'épreuve',v:'neg'},
       ]
     },
   },
@@ -2465,6 +2510,15 @@ const SUBJECT_BOXES = {
         {id:'sk4',l:'Des lacunes pour ce niveau de spécialité',v:'neg'},
       ]
     },
+    speExamen: {
+      label:'Spécialité — Épreuve du Bac',
+      items:[
+        {id:'svtSpeex1',l:'Bac — excellent niveau pour l\'épreuve de spécialité',v:'pos'},
+        {id:'svtSpeex2',l:'Bac — préparation sérieuse et régulière',v:'pos'},
+        {id:'svtSpeex3',l:'Bac — préparation à intensifier',v:'neutral'},
+        {id:'svtSpeex4',l:'Bac — niveau fragile pour l\'épreuve',v:'neg'},
+      ]
+    },
   },
   physiqueSpe: {
     demarche: {
@@ -2483,6 +2537,15 @@ const SUBJECT_BOXES = {
         {id:'pf2',l:'Très bonne articulation maths/physique',v:'pos'},
         {id:'pf3',l:'Calcul satisfaisant',v:'neutral'},
         {id:'pf4',l:'Difficultés avec le formalisme mathématique avancé',v:'neg'},
+      ]
+    },
+    speExamen: {
+      label:'Spécialité — Épreuve du Bac',
+      items:[
+        {id:'phySpeex1',l:'Bac — excellent niveau pour l\'épreuve de spécialité',v:'pos'},
+        {id:'phySpeex2',l:'Bac — préparation sérieuse et régulière',v:'pos'},
+        {id:'phySpeex3',l:'Bac — préparation à intensifier',v:'neutral'},
+        {id:'phySpeex4',l:'Bac — niveau fragile pour l\'épreuve',v:'neg'},
       ]
     },
   },
@@ -3593,13 +3656,15 @@ function getSubjectBoxes(subject, langLevel, classYear){
   ordered.participation= CORE_BOXES.participation;
 
   // Filter exam sections based on class year
-  const examSectionKeys=['fexamen','hexamen','mexamen','exam','lexamen','pbac'];
+  const examSectionKeys=['fexamen','hexamen','mexamen','exam','lexamen','pbac','examen','speExamen'];
   Object.entries(subjectSections).forEach(([key,sec])=>{
     if(examSectionKeys.includes(key)){
       // Hide hexamen for standard histoire (CC subject, no final exam)
       if(key==='hexamen' && effectiveType==='histoire') return;
       // Hide lexamen for languages unless Terminale
       if(key==='lexamen' && !isTerminale) return;
+      // speExamen (spécialités) only in Terminale
+      if(key==='speExamen' && !isTerminale) return;
       // Always show philo exam section (always Terminale)
       if(key==='exam' && effectiveType==='philo'){
         ordered[key]=sec; return;
