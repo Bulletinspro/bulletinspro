@@ -1186,6 +1186,8 @@ const VERDICT_PILLS = [
   {id:'vd2', l:'Très bon trimestre',               weight: 4},
   {id:'vd3', l:'Bon trimestre',                    weight: 3},
   {id:'vd4', l:'Trimestre satisfaisant',           weight: 2},
+  {id:'vd15',l:'Trimestre tout juste satisfaisant',weight: 1},
+  {id:'vd16',l:'Trimestre satisfaisant mais fragile', weight: 1},
   {id:'vd5', l:'Trimestre encourageant',           weight: 2},
   {id:'vd10',l:'Trimestre en deçà des capacités', weight: 0},
   {id:'vd11',l:'Trimestre décevant mais pas sans espoir', weight: 0},
@@ -1334,6 +1336,8 @@ const CORE_BOXES = {
       {id:'co16',l:'Manque de confiance en lui/elle',v:'neutral'},
       {id:'co17',l:'Manque de maturité — a besoin de rappels pour se recentrer',v:'neutral'},
       {id:'co18',l:"Réagit bien aux rappels mais ne s'autorégule pas encore",v:'neutral'},
+      {id:'co19',l:'Attitude fluctuante — peut être investi(e) comme perturbateur/trice selon les séances',v:'neutral'},
+      {id:'co20',l:"Comportement inégal — des séances sérieuses, d'autres à rappeler à l'ordre",v:'neutral'},
       {id:'co5',l:'Manque de concentration',v:'neg'},
       {id:'co6',l:'Bavarde parfois',v:'neg'},
       {id:'co7',l:'Bavardages incessants',v:'neg'},
@@ -4198,7 +4202,8 @@ RÈGLES DE SYNTHÈSE — OBLIGATOIRES :
 6. Ton : ${toneDesc}. Félicitations seulement si excellent/très bon verdict. JAMAIS "félicitations du conseil de classe". Écrire : ${cls.noJe ? '"Félicitations."' : '"Félicitations." ou "Toutes mes félicitations."'}
 7. "son travail est régulier" pas "elle est régulière dans son travail". "elle maîtrise l'expression orale" pas "elle exprime une bonne maîtrise". "Cette élève" pas "Ceste élève". JAMAIS "satisfaisant" plus d'une fois.
 8. FUSION : 3 observations similaires (discret + participe peu + évite de prendre la parole) = UNE seule phrase courte et bienveillante. Ne pas les répéter en conclusion si déjà mentionnées.
-8b. CLICHÉS INTERDITS — ne jamais écrire : "ambiance de classe", "bonne ambiance en classe", "atmosphère de classe" sauf si explicitement coché. Ne pas inventer de contexte sur la classe.
+8b. CLICHÉS INTERDITS — ne jamais écrire : "ambiance de classe", "bonne ambiance en classe", "atmosphère de classe" sauf si explicitement coché. Ne pas inventer de contexte sur la classe. INTERDIT aussi : "Il est désormais essentiel que", "Il est impératif que", "Il est indispensable que" — trop lourd. Préférer : "Il doit", "Il lui faudra", "Un effort s'impose".
+8c. ÉLISION CORRECTE — "que" + consonne = "que" (pas "qu'"). "que Mathis", "que Marie", "que Léa". "qu'" uniquement devant voyelle : "qu'il", "qu'elle", "qu'un". JAMAIS "qu'Mathis", "qu'Léa".
 9. Répondre UNIQUEMENT avec l'appréciation, sans guillemets ni commentaire.`;}
 
 function buildClassPrompt(cls,period){
