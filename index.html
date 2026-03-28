@@ -1186,6 +1186,7 @@ const VERDICT_PILLS = [
   {id:'vd2', l:'Très bon trimestre',               weight: 4},
   {id:'vd3', l:'Bon trimestre',                    weight: 3},
   {id:'vd4', l:'Trimestre satisfaisant',           weight: 2},
+  {id:'vd18',l:'Trimestre assez satisfaisant',      weight: 2},
   {id:'vd15',l:'Trimestre tout juste satisfaisant',weight: 1},
   {id:'vd16',l:'Trimestre satisfaisant mais fragile', weight: 1},
   {id:'vd5', l:'Trimestre encourageant',           weight: 2},
@@ -1255,7 +1256,8 @@ const CORE_BOXES = {
   travail: {
     label:'Travail & Effort',
     items:[
-      {id:'tr1',l:'Travail sérieux et approfondi',v:'pos'},
+      {id:'tr1',l:'Travail sérieux',v:'pos'},
+      {id:'tr1b',l:'Travail approfondi',v:'pos'},
       {id:'tr2',l:'Travail régulier',v:'pos'},
       {id:'tr3',l:'Efforts soutenus',v:'pos'},
       {id:'tr14b',l:'Capacité d\'approfondissement',v:'pos'},
@@ -1263,6 +1265,7 @@ const CORE_BOXES = {
       {id:'tr11',l:'Devoirs toujours rendus',v:'pos'},
       {id:'tr13',l:'Soin apporté au travail',v:'pos'},
       {id:'tr4',l:'Travail satisfaisant sans être pleinement investi',v:'neutral'},
+      {id:'tr4b',l:'Travail sérieux mais manque d\'approfondissement',v:'neutral'},
       {id:'tr5',l:'Travail irrégulier',v:'neutral'},
       {id:'tr19',l:'Se contente du minimum requis',v:'neutral'},
       {id:'tr20',l:'Travail accompli sans réel investissement',v:'neutral'},
@@ -4281,6 +4284,7 @@ RÈGLES DE SYNTHÈSE — OBLIGATOIRES :
 8c. ÉLISION CORRECTE — "que" + consonne = "que" (pas "qu'"). "que Mathis", "que Marie", "que Léa". "qu'" uniquement devant voyelle : "qu'il", "qu'elle", "qu'un". JAMAIS "qu'Mathis", "qu'Léa".
 8d. INTENSITÉ PROPORTIONNELLE — respecter le degré exact de la pill cochée. "Bavarde parfois" = mention légère ("quelques bavardages ponctuels"). JAMAIS amplifier en "rappels fréquents", "perturbe régulièrement", "problème récurrent" si ce n'est pas coché. "Bavardages incessants" = mention forte. "Parfois perturbateur/trice" ≠ "très perturbateur". Ne jamais aggraver ce qui est coché.
 8e. COHÉRENCE ENTRE PILLS — si "Réagit bien aux rappels" est coché avec "Bavarde parfois" → dire "quelques bavardages, mais réagit bien quand on le signale" — les rappels ne sont PAS fréquents. Si coché avec "Bavardages incessants" ou "Très perturbateur" → "malgré des rappels fréquents nécessaires". La fréquence des rappels dépend de la sévérité du comportement coché.
+8f. PAS DE REDONDANCE — ne pas exprimer la même idée deux fois avec des mots différents. Si "travail sérieux et approfondi" est dit en phrase 1, ne pas redire "applique avec rigueur" ou "méthode rigoureuse" en phrase 2. Chaque phrase apporte une information nouvelle.
 9. Répondre UNIQUEMENT avec l'appréciation, sans guillemets ni commentaire.`;}
 
 function buildClassPrompt(cls,period){
