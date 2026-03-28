@@ -1441,7 +1441,18 @@ const SUBJECT_BOXES = {
         {id:'bi7',l:'Bilingue — investissement insuffisant au regard du potentiel',v:'neg'},
         {id:'bi8',l:'Niveau linguistique élevé non exploité pleinement',v:'neg'},
       ]
-    }
+    },
+    lexamen: {
+      label:'Oral Bac & Épreuves',
+      items:[
+        {id:'lex1',l:'Excellent niveau pour l\'épreuve orale du Bac',v:'pos'},
+        {id:'lex2',l:'Très bonne aisance à l\'oral — atout pour l\'épreuve',v:'pos'},
+        {id:'lex3',l:'Préparation orale en bonne voie',v:'neutral'},
+        {id:'lex4',l:'Niveau oral à consolider avant l\'épreuve',v:'neutral'},
+        {id:'lex5',l:'Niveau oral insuffisant — travail intensif nécessaire',v:'neg'},
+        {id:'lex6',l:'Compréhension écrite à renforcer pour l\'épreuve',v:'neutral'},
+      ]
+    },
   },
   francais: {
     lecture: {
@@ -3587,6 +3598,8 @@ function getSubjectBoxes(subject, langLevel, classYear){
     if(examSectionKeys.includes(key)){
       // Hide hexamen for standard histoire (CC subject, no final exam)
       if(key==='hexamen' && effectiveType==='histoire') return;
+      // Hide lexamen for languages unless Terminale
+      if(key==='lexamen' && !isTerminale) return;
       // Always show philo exam section (always Terminale)
       if(key==='exam' && effectiveType==='philo'){
         ordered[key]=sec; return;
