@@ -1633,8 +1633,7 @@ const SUBJECT_BOXES = {
         {id:'hk4',l:'Bonne maîtrise du vocabulaire disciplinaire',v:'pos'},
         {id:'hk5',l:'Connaissances satisfaisantes',v:'neutral'},
         {id:'hk6',l:'Repères en cours de consolidation',v:'neutral'},
-        {id:'hk7',l:'Des lacunes dans les connaissances de base',v:'neg'},
-        {id:'hk8',l:'Repères insuffisants — lacunes chronologiques et spatiales',v:'neg'},
+        {id:'hk7',l:'Lacunes dans les connaissances et les repères',v:'neg'},
         {id:'hk9',l:'Vocabulaire disciplinaire à acquérir',v:'neg'},
       ]
     },
@@ -2087,11 +2086,14 @@ const SUBJECT_BOXES = {
         {id:'pl2',l:'Problématisation rigoureuse et originale',v:'pos'},
         {id:'pl3',l:'Argumentation construite, nuancée et illustrée',v:'pos'},
         {id:'pl4',l:'Bonne structure de dissertation',v:'pos'},
+        {id:'pl10',l:'Utilise des exemples et des auteurs avec pertinence',v:'pos'},
         {id:'pl5',l:'Dissertation en cours de maîtrise',v:'neutral'},
         {id:'pl6',l:'Plan correct mais développement insuffisant',v:'neutral'},
+        {id:'pl11',l:'Des idées pertinentes mais manque de rigueur dans la construction',v:'neutral'},
         {id:'pl7',l:'Difficultés à problématiser',v:'neg'},
         {id:'pl8',l:'Argumentation trop superficielle',v:'neg'},
         {id:'pl9',l:'Hors-sujet récurrents',v:'neg'},
+        {id:'pl12',l:'Peu ou pas de références philosophiques mobilisées',v:'neg'},
       ]
     },
     explication: {
@@ -2099,19 +2101,36 @@ const SUBJECT_BOXES = {
       items:[
         {id:'pe1',l:'Excellente explication de texte — va au cœur de la pensée',v:'pos'},
         {id:'pe2',l:'Bonne compréhension des textes philosophiques',v:'pos'},
+        {id:'pe6',l:'Sait dégager la thèse et reconstruire le raisonnement',v:'pos'},
         {id:'pe3',l:'Explication de texte satisfaisante',v:'neutral'},
+        {id:'pe7',l:'Comprend le texte mais l\'analyse reste en surface',v:'neutral'},
         {id:'pe4',l:'Difficultés à dégager la thèse et les arguments',v:'neg'},
         {id:'pe5',l:'Reste à la surface des textes — manque de profondeur',v:'neg'},
+        {id:'pe8',l:'Paraphrase le texte sans l\'analyser',v:'neg'},
+      ]
+    },
+    expression: {
+      label:'Expression & Vocabulaire',
+      items:[
+        {id:'pv1',l:'Vocabulaire philosophique précis et maîtrisé',v:'pos'},
+        {id:'pv2',l:'Expression écrite claire, rigoureuse et bien construite',v:'pos'},
+        {id:'pv3',l:'Vocabulaire philosophique en cours d\'acquisition',v:'neutral'},
+        {id:'pv4',l:'Expression correcte mais manque de précision conceptuelle',v:'neutral'},
+        {id:'pv5',l:'Vocabulaire trop vague — manque de précision philosophique',v:'neg'},
+        {id:'pv6',l:'Expression écrite à améliorer pour un niveau Terminale',v:'neg'},
       ]
     },
     culture: {
-      label:'Culture philosophique & Auteurs',
+      label:'Culture philosophique & Notions',
       items:[
         {id:'pk1',l:'Très bonne culture philosophique — maîtrise des auteurs',v:'pos'},
         {id:'pk2',l:'Utilise les références avec pertinence',v:'pos'},
+        {id:'pk6',l:'Bonne maîtrise des notions du programme',v:'pos'},
         {id:'pk3',l:'Culture philosophique en construction',v:'neutral'},
+        {id:'pk7',l:'Notions du programme en cours d\'acquisition',v:'neutral'},
         {id:'pk4',l:'Peu de références mobilisées',v:'neg'},
         {id:'pk5',l:'Cours insuffisamment acquis',v:'neg'},
+        {id:'pk8',l:'Notions mal définies ou confondues',v:'neg'},
       ]
     },
     oral: {
@@ -2119,9 +2138,20 @@ const SUBJECT_BOXES = {
       items:[
         {id:'po1',l:'Participe activement — pensée critique remarquable',v:'pos'},
         {id:'po2',l:'Pose des questions profondes et pertinentes',v:'pos'},
+        {id:'po6',l:'S\'engage dans le débat philosophique avec aisance',v:'pos'},
         {id:'po3',l:'Participation correcte',v:'neutral'},
+        {id:'po7',l:'Pensée en construction — progrès perceptibles',v:'neutral'},
         {id:'po4',l:'Participation insuffisante',v:'neg'},
         {id:'po5',l:'Peine à s\'engager dans la réflexion philosophique',v:'neg'},
+      ]
+    },
+    exam: {
+      label:'Grand Oral & Bac',
+      items:[
+        {id:'pbac1',l:'Excellent niveau pour le Grand Oral',v:'pos'},
+        {id:'pbac2',l:'Très bon niveau pour l\'épreuve écrite du Bac',v:'pos'},
+        {id:'pbac3',l:'Préparation au Grand Oral en bonne voie',v:'neutral'},
+        {id:'pbac4',l:'Niveau fragile pour l\'épreuve du Bac — travail intensif nécessaire',v:'neg'},
       ]
     },
   },
@@ -3552,9 +3582,15 @@ function getSubjectBoxes(subject, langLevel, classYear){
   ordered.participation= CORE_BOXES.participation;
 
   // Filter exam sections based on class year
-  const examSectionKeys=['fexamen','hexamen','mexamen','exam','lexamen'];
+  const examSectionKeys=['fexamen','hexamen','mexamen','exam','lexamen','pbac'];
   Object.entries(subjectSections).forEach(([key,sec])=>{
     if(examSectionKeys.includes(key)){
+      // Hide hexamen for standard histoire (CC subject, no final exam)
+      if(key==='hexamen' && effectiveType==='histoire') return;
+      // Always show philo exam section (always Terminale)
+      if(key==='exam' && effectiveType==='philo'){
+        ordered[key]=sec; return;
+      }
       // Only show exam section for relevant years
       const is3e=year==='3e';
       const is1ere=year==='1ère'||year==='1ere'||year==='première';
@@ -3565,7 +3601,7 @@ function getSubjectBoxes(subject, langLevel, classYear){
         const l=item.l.toLowerCase();
         if(l.includes('brevet')&&!is3e) return false;
         if((l.includes('eaf')||l.includes('grand oral'))&&!is1ere&&!isTerminale) return false;
-        if(l.includes('bac ')&&!isTerminale&&!is1ere) return false;
+        if((l.includes('bac ')||l.includes('bac —')||l.startsWith('bac'))&&!isTerminale&&!is1ere) return false;
         return true;
       });
       if(filteredItems.length>0) ordered[key]={...sec, items:filteredItems};
