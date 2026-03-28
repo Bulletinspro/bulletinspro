@@ -1198,6 +1198,7 @@ const VERDICT_PILLS = [
   {id:'vd13',l:'Situation alarmante',               weight:-4},
   {id:'vd14',l:'Trimestre préoccupant — réaction urgente requise', weight:-4},
   {id:'vd9', l:'Trimestre très insuffisant',        weight:-5},
+  {id:'vd17',l:'Trimestre catastrophique',           weight:-6},
 ];
 
 // ── CORE BOXES — shared across all subjects, in display order ────────────────
@@ -1318,6 +1319,14 @@ const CORE_BOXES = {
       {id:'qa8',l:'Manque de méthode',v:'neg'},
       {id:'qa9',l:'Manque d\'autonomie',v:'neg'},
       {id:'qa10',l:'Attitude passive — manque d\'enthousiasme général',v:'neg'},
+      {id:'qa16',l:'Graphie illisible — nuit à la compréhension',v:'neg'},
+      {id:'qa17',l:'Graphie à améliorer — risque de pénalisation aux examens',v:'neg'},
+      {id:'qa18',l:'Travaille trop vite — erreurs évitables par manque de relecture',v:'neg'},
+      {id:'qa19',l:'Consignes mal lues ou mal suivies',v:'neg'},
+      {id:'qa20',l:'Mémorisation des notions insuffisante',v:'neg'},
+      {id:'qa21',l:'Ne prend pas le cours en entier — lacunes qui s\'accumulent',v:'neg'},
+      {id:'qa22',l:'Lenteur à l\'écrit — freine la production en classe',v:'neg'},
+      {id:'qa23',l:'Retards fréquents — perturbent le déroulement du cours',v:'neg'},
     ]
   },
   comportement: {
@@ -1354,6 +1363,9 @@ const CORE_BOXES = {
       {id:'ob20',l:'Amplifier et confirmer cette dynamique positive au prochain trimestre',v:'pos'},
       {id:'ob21',l:'Maintenir les efforts engagés en fin de trimestre',v:'pos'},
       {id:'ob24',l:'Prendre en compte les conseils donnés',v:'neutral'},
+      {id:'ob26',l:'Se relire systématiquement avant de rendre',v:'neutral'},
+      {id:'ob27',l:'S\'impliquer davantage à l\'oral',v:'neutral'},
+      {id:'ob28',l:'Mieux lire et respecter les consignes',v:'neutral'},
       {id:'ob4',l:'Être plus régulier(ière) à l\'écrit',v:'neutral'},
       {id:'ob5',l:'Être plus régulier(ière) à l\'oral',v:'neutral'},
       {id:'ob6',l:'Revoir les bases',v:'neutral'},
@@ -1513,6 +1525,19 @@ const SUBJECT_BOXES = {
         {id:'fex10',l:'Grand Oral — construction du discours à travailler',v:'neutral'},
         {id:'fex11',l:'Grand Oral — gestion du stress à préparer',v:'neutral'},
         {id:'fex12',l:'Grand Oral — niveau insuffisant pour l\'échéance',v:'neg'},
+        {id:'fex13',l:'Brevet — fragilités sur l\'épreuve de rédaction',v:'neg'},
+        {id:'fex14',l:'Brevet — s\'entraîner sur des sujets type pour mieux saisir les attentes',v:'neutral'},
+      ]
+    },
+    methodes: {
+      label:'Méthodes & Consignes',
+      items:[
+        {id:'fm1',l:'Méthodes acquises et bien appliquées',v:'pos'},
+        {id:'fm2',l:'Bonne lecture et compréhension des consignes',v:'pos'},
+        {id:'fm3',l:'Méthodes en cours d\'acquisition',v:'neutral'},
+        {id:'fm4',l:'Manque de rigueur dans l\'application des méthodes',v:'neg'},
+        {id:'fm5',l:'Consignes mal lues ou mal appliquées',v:'neg'},
+        {id:'fm6',l:'Les méthodes vues en classe ne sont pas suffisamment appliquées',v:'neg'},
       ]
     },
   },
@@ -1631,6 +1656,7 @@ const SUBJECT_BOXES = {
         {id:'hr6',l:'Difficultés à rédiger une réponse organisée',v:'neg'},
         {id:'hr7',l:'Réponses trop courtes ou non développées',v:'neg'},
         {id:'hr8',l:'Expression écrite très fragile',v:'neg'},
+        {id:'hr9',l:'Lenteur à l\'écrit — ne termine pas les épreuves',v:'neg'},
       ]
     },
     cartes: {
@@ -1656,8 +1682,17 @@ const SUBJECT_BOXES = {
         {id:'ho7',l:'Ne prend pas la parole spontanément',v:'neg'},
       ]
     },
+    hmethodes: {
+      label:"Méthodes",
+      items:[
+        {id:"hm1",l:"Méthodes acquises et bien appliquées",v:"pos"},
+        {id:"hm2",l:"Bonne rigueur dans l\x27application des méthodes",v:"pos"},
+        {id:"hm3",l:"Méthodes en cours d\x27acquisition",v:"neutral"},
+        {id:"hm4",l:"Manque de rigueur dans l\x27application des méthodes",v:"neg"},
+        {id:"hm5",l:"Les méthodes vues en classe ne sont pas suffisamment appliquées",v:"neg"},
+      ]
+    },
     hexamen: {
-      label:'Examens & Échéances',
       items:[
         {id:'hex1',l:'Brevet — très bon niveau en histoire-géo',v:'pos'},
         {id:'hex2',l:'Brevet — préparation encourageante',v:'neutral'},
