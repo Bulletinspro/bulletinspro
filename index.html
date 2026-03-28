@@ -920,13 +920,25 @@ body{font-family:'DM Sans',sans-serif;font-weight:300;background:var(--bg);color
         <div style="font-size:.75rem;color:var(--muted);margin-top:2px">Si le prénom est renseigné, l'IA l'utilisera. Sinon, elle écrira <em>(nom de l'élève)</em>.</div>
       </div>
     </label>
-    <label for="nc-noje" style="background:var(--accent-l);border:1.5px solid var(--accent-b);border-radius:10px;padding:12px 14px;margin-bottom:14px;display:flex;align-items:center;gap:10px;cursor:pointer">
-      <input type="checkbox" id="nc-noje" style="width:18px;height:18px;accent-color:var(--accent);cursor:pointer;flex-shrink:0">
-      <div>
-        <div style="font-size:.84rem;font-weight:600;color:var(--ink)">Ne jamais utiliser "je" dans les appréciations</div>
-        <div style="font-size:.75rem;color:var(--muted);margin-top:2px">L'appréciation parle de l'élève à la 3e personne. Ex : "Cet élève fait preuve de…" plutôt que "Je note que…"</div>
+    <div style="background:var(--accent-l);border:1.5px solid var(--accent-b);border-radius:10px;padding:12px 14px;margin-bottom:14px">
+      <div style="font-size:.84rem;font-weight:600;color:var(--ink);margin-bottom:8px">Style de rédaction</div>
+      <div style="display:flex;flex-direction:column;gap:6px;font-size:.82rem">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+          <input type="radio" name="nc-pronoun" value="noje" style="accent-color:var(--accent)">
+          <span><strong>3e personne uniquement</strong> — "Cet élève fait preuve de…" (pas de je/nous)</span>
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+          <input type="radio" name="nc-pronoun" value="je" checked style="accent-color:var(--accent)">
+          <span><strong>Je autorisé</strong> — "Je note que…", "Je l'encourage…" (rare et naturel)</span>
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+          <input type="radio" name="nc-pronoun" value="vous" style="accent-color:var(--accent)">
+          <span><strong>Vouvoiement</strong> — "Vous faites preuve de…", "Je vous encourage…"</span>
+        </label>
       </div>
-    </label>
+      <!-- keep hidden checkbox for backward compat -->
+      <input type="checkbox" id="nc-noje" style="display:none">
+    </div>
     <div class="mo-acts">
       <button class="btn btn-o" onclick="closeMo('mo-cls')">Annuler</button>
       <button class="btn btn-g" onclick="createClass()">Créer</button>
@@ -1199,6 +1211,9 @@ const CORE_BOXES = {
       {id:'pr3',l:'Résultats satisfaisants',v:'pos'},
       {id:'pr7',l:'Progression notable',v:'pos'},
       {id:'pr8',l:'Progression régulière',v:'pos'},
+      {id:'pr24',l:'Progression constante tout au long du trimestre',v:'pos'},
+      {id:'pr25',l:'Nette amélioration par rapport au trimestre précédent',v:'pos'},
+      {id:'pr26',l:'Évolution positive en comportement et en investissement',v:'pos'},
       {id:'pr19',l:'Résultats obtenus dans une classe à l\'ambiance difficile — mérite d\'être souligné',v:'pos'},
       {id:'pr20',l:'Redressement positif en fin de trimestre — à confirmer',v:'neutral'},
       {id:'pr21',l:'Sursaut encourageant en fin de trimestre',v:'neutral'},
@@ -1210,6 +1225,7 @@ const CORE_BOXES = {
       {id:'pr6',l:'Résultats très insuffisants',v:'neg'},
       {id:'pr11',l:'Légère régression',v:'neg'},
       {id:'pr12',l:'Régression notable',v:'neg'},
+      {id:'pr24',l:'Résultats en dessous des capacités réelles de l\'élève',v:'neg'},
       {id:'pr13',l:'En difficulté',v:'neg'},
       {id:'pr14',l:'Résultats ne reflétant pas le niveau réel — absences fréquentes',v:'neg'},
       {id:'pr22',l:'Absences fréquentes — suivi difficile',v:'neg'},
@@ -2559,17 +2575,25 @@ const SUBJECT_BOXES = {
 
 const CLASS_BOXES = {
   niveau:{label:'Niveau & Atmosphère',items:[
-    {id:'cn1',l:'Classe de bon niveau',v:'pos'},{id:'cn2',l:'Niveau hétérogène',v:'neutral'},
-    {id:'cn3',l:'Ambiance de travail sérieuse',v:'pos'},{id:'cn4',l:'Classe agréable et dynamique',v:'pos'},
+    {id:'cn1',l:'Classe de bon niveau',v:'pos'},
+    {id:'cn3',l:'Ambiance de travail sérieuse',v:'pos'},
+    {id:'cn4',l:'Classe agréable et dynamique',v:'pos'},
     {id:'cn7',l:'Classe motivée et impliquée',v:'pos'},
-    {id:'cn5',l:'Niveau insuffisant',v:'neg'},{id:'cn6',l:'Bonne cohésion',v:'pos'},
+    {id:'cn6',l:'Bonne cohésion',v:'pos'},
+    {id:'cn10',l:'Progression collective notable depuis le début de l\'année',v:'pos'},
+    {id:'cn11',l:'Nette amélioration par rapport au trimestre précédent',v:'pos'},
+    {id:'cn2',l:'Niveau hétérogène',v:'neutral'},
+    {id:'cn5',l:'Niveau insuffisant',v:'neg'},
     {id:'cn8',l:'Ambiance de classe difficile — perturbations récurrentes',v:'neg'},
     {id:'cn9',l:'Manque de cohésion',v:'neg'},
   ]},
   comportement:{label:'Comportement de groupe',items:[
-    {id:'cc1',l:'Comportement exemplaire',v:'pos'},{id:'cc2',l:'Perturbations récurrentes',v:'neg'},
-    {id:'cc3',l:'Respect mutuel établi',v:'pos'},{id:'cc4',l:'Bavardages trop fréquents',v:'neg'},
-    {id:'cc5',l:'Classe participative',v:'pos'},{id:'cc6',l:'Manque de concentration collective',v:'neg'},
+    {id:'cc1',l:'Comportement exemplaire',v:'pos'},
+    {id:'cc3',l:'Respect mutuel établi',v:'pos'},
+    {id:'cc5',l:'Classe participative',v:'pos'},
+    {id:'cc2',l:'Perturbations récurrentes',v:'neg'},
+    {id:'cc4',l:'Bavardages trop fréquents',v:'neg'},
+    {id:'cc6',l:'Manque de concentration collective',v:'neg'},
     {id:'cc7',l:'Classe peu participative — manque de dynamisme',v:'neg'},
   ]},
   forces:{label:'Points forts & faiblesses',items:[
@@ -3173,7 +3197,9 @@ function createClass(){
   const evalType=document.getElementById('nc-eval').value;
   const charLimit=parseInt(document.getElementById('nc-charlimit').value)||750;
   const useName=document.getElementById('nc-usename').checked;
-  const noJe=document.getElementById('nc-noje').checked;
+  const pronounSel=document.querySelector('input[name="nc-pronoun"]:checked');
+  const pronounStyle=pronounSel?pronounSel.value:'je';
+  const noJe=pronounStyle==='noje';
   const studentCount=parseInt(document.getElementById('nc-count').value)||0;
   const id='c'+Date.now();
   const students=[];
@@ -3182,7 +3208,7 @@ function createClass(){
       students.push({id:'s'+Date.now()+i,num:i,name:'',gender:'M',boxes:{},grade:'',level:'',comps:{},tone:null,orient:{on:false,level:1,path:'',note:''},comments:{}});
     }
   }
-  S.classes[id]={name,subject,langLevel,customLangName,classYear,periodType,schoolLevel,evalType,charLimit,useName,noJe,students,tone:'equilibre',classBoxes:{},classComments:{}};
+  S.classes[id]={name,subject,langLevel,customLangName,classYear,periodType,schoolLevel,evalType,charLimit,useName,noJe,pronounStyle,students,tone:'equilibre',classBoxes:{},classComments:{}};
   closeMo('mo-cls'); save(); renderSidebar(); selectClass(id); toast(`"${name}" créée — ${students.length} élève(s)`);
 }
 
@@ -3609,6 +3635,11 @@ function renderEditor(id){
           </div>
           <span style="font-size:.7rem;color:var(--muted);opacity:.6">${st.tone?'(personnalisé)':'(défaut classe)'}</span>
         </div>
+        ${S.period>1 && !((st.comments&&st.comments[S.period-1])) ? `
+        <div style="margin-top:10px">
+          <div style="font-size:.75rem;color:var(--muted);margin-bottom:4px">📋 Appréciation T${S.period-1} (optionnel — pour contextualiser T${S.period}) :</div>
+          <textarea class="mo-inp" rows="2" style="font-size:.75rem;resize:vertical;width:100%" placeholder="Collez ici l'appréciation du trimestre précédent si disponible…" onchange="setPrevComment('${id}',${S.period-1},this.value)">${(st.prevComments&&st.prevComments[S.period-1])||''}</textarea>
+        </div>` : ''}
         ${renderEvalInput(cls,st)}
       </div>
     </div>`;
@@ -3718,6 +3749,13 @@ function setSGender(id,g,btn){
   // update avatar colour in header
   document.querySelectorAll('.ed-av').forEach(av=>{av.className='ed-av '+(g==='M'?'av-m':'av-f');});
 }
+function setPrevComment(sid, period, val){
+  const st=getSt(sid); if(!st) return;
+  if(!st.prevComments) st.prevComments={};
+  st.prevComments[period]=val;
+  save();
+}
+
 function setSTone(tone,id,btn){const st=getSt(id);st.tone=tone;btn.closest('.tone-row').querySelectorAll('.tone-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');save();}
 function setSGrade(id,v){getSt(id).grade=v;save();}
 function setSLevel(id,v,btn){const st=getSt(id);st.level=v;btn.closest('.level-row').querySelectorAll('.lvl-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');save();}
@@ -3846,8 +3884,8 @@ function buildPromptMeta(st,cls){
       else checkedPos.push(item.l);
     }
   }));
-  Object.values(CORE_BOXES).forEach(sec=>sec.items.forEach(item=>{
-    if(st.boxes&&st.boxes[item.id]){
+  Object.entries(CORE_BOXES).forEach(([secKey,sec])=>sec.items.forEach(item=>{
+    if(st.boxes&&st.boxes[item.id]&&secKey!=='conseils'){
       if(item.v==='neg'&&!checkedNeg.includes(item.l)) checkedNeg.push(item.l);
       else if(item.v!=='neg'&&!checkedPos.includes(item.l)) checkedPos.push(item.l);
     }
@@ -3857,7 +3895,7 @@ function buildPromptMeta(st,cls){
 
 function buildPrompt(st,cls,period,seed,memSamp){
   const allBoxes=getSubjectBoxes(cls.subject, cls.langLevel);
-  const checkedPos=[], checkedNeg=[], checkedNeutral=[];
+  const checkedPos=[], checkedNeg=[], checkedNeutral=[], checkedConseils=[];
   const allNegLabels=[];
   // Collect from subject-specific boxes
   Object.values(allBoxes).forEach(sec=>sec.items.forEach(item=>{
@@ -3868,11 +3906,14 @@ function buildPrompt(st,cls,period,seed,memSamp){
       else checkedPos.push(item.l);
     }
   }));
-  // Collect from core boxes (shared)
-  Object.values(CORE_BOXES).forEach(sec=>sec.items.forEach(item=>{
+  // Collect from core boxes — separate conseils from observations
+  Object.entries(CORE_BOXES).forEach(([secKey,sec])=>sec.items.forEach(item=>{
     if(item.v==='neg') allNegLabels.push(item.l);
     if(st.boxes&&st.boxes[item.id]){
-      if(item.v==='neg'&&!checkedNeg.includes(item.l)) checkedNeg.push(item.l);
+      if(secKey==='conseils'){
+        // ALL conseils go to checkedConseils — they are advice, not observations
+        checkedConseils.push(item.l);
+      } else if(item.v==='neg'&&!checkedNeg.includes(item.l)) checkedNeg.push(item.l);
       else if(item.v==='neutral'&&!checkedNeutral.includes(item.l)) checkedNeutral.push(item.l);
       else if(item.v==='pos'&&!checkedPos.includes(item.l)) checkedPos.push(item.l);
     }
@@ -3982,8 +4023,8 @@ function buildPrompt(st,cls,period,seed,memSamp){
 
   // Previous appreciation context for continuity between terms
   let prevCtx='';
-  if(period>1 && st.comments){
-    const prevComment=st.comments[period-1];
+  if(period>1){
+    const prevComment=(st.comments&&st.comments[period-1]) || (st.prevComments&&st.prevComments[period-1]);
     if(prevComment && prevComment.trim()){
       const isPositiveProfile=checkedNeg.length<=1 && checkedPos.length>=4;
       const isDifficultProfile=checkedNeg.length>=3;
@@ -4126,8 +4167,10 @@ ${verdictCtx}
 PROFIL COMPLET (exhaustif — rien d'autre n'existe sur cet élève) :
 ${checked.length ? checked.map(i => '• ' + i).join('\n') : '• Profil standard'}
 ${checkedNeg.length
-  ? '\n⚠️ POINTS NÉGATIFS — DOIVENT APPARAÎTRE : '+checkedNeg.join(' | ')
+  ? '\n⚠️ POINTS NÉGATIFS — DOIVENT TOUS APPARAÎTRE : '+checkedNeg.join(' | ')
   : '\n⛔ AUCUN défaut coché → INTERDITS : bavardage, distraction, difficulté, lacune.'}
+${checkedNeutral.length ? '\n⚠️ OBSERVATIONS INTERMÉDIAIRES — DOIVENT APPARAÎTRE : '+checkedNeutral.join(' | ') : ''}
+${checkedConseils.length ? '\nCONSEILS À DONNER EN CONCLUSION (ce sont des conseils pour l\'élève, PAS des qualités qu\'il possède déjà) :\n'+checkedConseils.map(c=>'→ '+c).join('\n') : ''}
 ${isDiscreet ? '\n⛔ Discret/réservé → INTERDIRE : "participe activement", "participe régulièrement". Dire : "suit attentivement", "s\'implique discrètement".' : ''}
 ${checked.some(c=>c.toLowerCase().includes('régress')&&(isDiscreet||checkedNeg.length>=2)) ? '\n⚠️ RÉGRESSION + profil fragile : ne pas mentionner la régression brutalement. Dire plutôt : "des efforts supplémentaires permettront de retrouver une dynamique positive" ou "il lui faudra redoubler d\'efforts pour inverser la tendance". L\'objectif est d\'encourager, pas de décourager.' : ''}
 ${aeshCtx}${orientCtx}${classCtx}${prevCtx}${memCtx}
@@ -4146,7 +4189,12 @@ RÈGLES DE SYNTHÈSE — OBLIGATOIRES :
 2. PRÉNOM : 1 à 2 fois maximum. Varier les sujets : "${citetEleve}", "Son travail", "Ses résultats", connecteurs.
 3. CONNECTEURS VARIÉS : "Cependant,", "Toutefois,", "Par ailleurs,", "Néanmoins,", "C'est pourquoi,". Ne pas commencer 2 phrases consécutives par le même mot.
 4. MAX 2-3 adjectifs en début. RÉPÉTITIONS INTERDITES : "investie" dit → pas "engagement exemplaire". "Moteur" dit → pas "participe activement".
-5. Points négatifs sur profil positif : 1 phrase bienveillante EN FIN. Pas agressive.
+5. ${cls.pronounStyle==='noje'||cls.noJe
+  ? 'INTERDIT : "je", "nous", "j\'", "mon", "ma", "mes". Rédige entièrement à la 3e personne. Jamais "Je note que", "Nous avons observé", "J\'encourage". Dire : "Cet élève", "Il/Elle", le prénom.'
+  : cls.pronounStyle==='vous'
+  ? 'VOUVOIEMENT : l\'élève est vouvoyé(e). "Vous faites preuve de…", "Je vous encourage à…", "Vos résultats…". JAMAIS "tu", "il/elle" pour s\'adresser à l\'élève.'
+  : '"Je" autorisé mais rare et naturel. "J\'encourage", "Je note" — maximum 1-2 fois. Sinon 3e personne.'
+}
 6. Ton : ${toneDesc}. Félicitations seulement si excellent/très bon verdict. JAMAIS "félicitations du conseil de classe". Écrire : ${cls.noJe ? '"Félicitations."' : '"Félicitations." ou "Toutes mes félicitations."'}
 7. "son travail est régulier" pas "elle est régulière dans son travail". "elle maîtrise l'expression orale" pas "elle exprime une bonne maîtrise". "Cette élève" pas "Ceste élève". JAMAIS "satisfaisant" plus d'une fois.
 8. FUSION : 3 observations similaires (discret + participe peu + évite de prendre la parole) = UNE seule phrase courte et bienveillante. Ne pas les répéter en conclusion si déjà mentionnées.
