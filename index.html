@@ -3657,8 +3657,7 @@ function renderEditor(id){
     const customPills=getCustomPills(S.active,key);
     const isCollapsed=!!cls.collapsedSections[key];
     const hasSelected=sec.items.some(i=>st.boxes&&st.boxes[i.id]);
-    // Never collapse a section that has selected pills
-    const collapsed=isCollapsed&&!hasSelected;
+    const collapsed=isCollapsed; // Always respect collapsed state
     html+=`<div class="card">
       <div class="card-hd" style="cursor:pointer" onclick="toggleSection('${S.active}','${key}','${id}')">
         <span>${sec.label}${hasSelected?` <span style="background:var(--accent);color:#fff;font-size:.65em;padding:1px 6px;border-radius:999px;font-weight:700;margin-left:4px">${sec.items.filter(i=>st.boxes&&st.boxes[i.id]).length}</span>`:''}</span>
@@ -3781,9 +3780,29 @@ function setComp(id,key,v,btn){const st=getSt(id);if(!st.comps)st.comps={};st.co
 function toggleSection(cid, sectionKey, sid){
   const cls=S.classes[cid]; if(!cls) return;
   if(!cls.collapsedSections) cls.collapsedSections={};
-  cls.collapsedSections[sectionKey]=!cls.collapsedSections[sectionKey];
+  const isCollapsed=!!cls.collapsedSections[sectionKey];
+  // If expanding — just do it
+  // If collapsing with ticked pills — confirm
+  if(!isCollapsed){
+    const sec=getSubjectBoxes(cls.subject, cls.langLevel)[sectionKey]||Object.values(CORE_BOXES).find((_,i)=>Object.keys(CORE_BOXES)[i]===sectionKey);
+    const st=getSt(sid);
+    const hasTicked=st&&st.boxes&&(
+      (getSubjectBoxes(cls.subject,cls.langLevel)[sectionKey]||{items:[]}).items.some(i=>st.boxes[i.id])||
+      (CORE_BOXES[sectionKey]||{items:[]}).items.some(i=>st.boxes[i.id])
+    );
+    if(hasTicked&&!confirm('Cette catégorie contient des cases cochées. Réduire quand même ?')) return;
+  }
+  cls.collapsedSections[sectionKey]=!isCollapsed;
   save();
+  // Restore scroll position after re-render
+  const scroller=document.querySelector('.ed-scroll');
+  const scrollY=scroller?scroller.scrollTop:window.scrollY;
   renderMain();
+  requestAnimationFrame(()=>{
+    const s=document.querySelector('.ed-scroll');
+    if(s) s.scrollTop=scrollY;
+    else window.scrollTo(0,scrollY);
+  });
 }
 
 function togBox(sid,itemId,el){
