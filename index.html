@@ -1349,7 +1349,7 @@ const CORE_BOXES = {
       {id:'co18',l:"Réagit bien aux rappels mais ne s'autorégule pas encore",v:'neutral'},
       {id:'co19',l:'Attitude fluctuante — peut être investi(e) comme perturbateur/trice selon les séances',v:'neutral'},
       {id:'co20',l:"Comportement inégal — des séances sérieuses, d'autres à rappeler à l'ordre",v:'neutral'},
-      {id:'co5',l:'Manque de concentration',v:'neg'},
+      {id:'co5',l:'Manque de concentration',v:'neutral'},
       {id:'co6',l:'Bavarde parfois',v:'neg'},
       {id:'co7',l:'Bavardages incessants',v:'neg'},
       {id:'co8',l:'Parfois perturbateur/trice',v:'neg'},
@@ -1627,14 +1627,14 @@ const SUBJECT_BOXES = {
     connaissances: {
       label:'Connaissances & Repères',
       items:[
-        {id:'hk1',l:'Très bonnes connaissances historiques et géographiques',v:'pos'},
+        {id:'hk1',l:'Très bonnes connaissances',v:'pos'},
         {id:'hk2',l:'Solides repères chronologiques et spatiaux',v:'pos'},
         {id:'hk3',l:'Culture générale remarquable',v:'pos'},
         {id:'hk4',l:'Bonne maîtrise du vocabulaire disciplinaire',v:'pos'},
         {id:'hk5',l:'Connaissances satisfaisantes',v:'neutral'},
         {id:'hk6',l:'Repères en cours de consolidation',v:'neutral'},
         {id:'hk7',l:'Des lacunes dans les connaissances de base',v:'neg'},
-        {id:'hk8',l:'Repères chronologiques et géographiques insuffisants',v:'neg'},
+        {id:'hk8',l:'Repères insuffisants — lacunes chronologiques et spatiales',v:'neg'},
         {id:'hk9',l:'Vocabulaire disciplinaire à acquérir',v:'neg'},
       ]
     },
@@ -1699,7 +1699,7 @@ const SUBJECT_BOXES = {
     hexamen: {
       label:'Examens & Échéances',
       items:[
-        {id:'hex1',l:'Brevet — très bon niveau en histoire-géo',v:'pos'},
+        {id:'hex1',l:'Brevet — très bon niveau',v:'pos'},
         {id:'hex2',l:'Brevet — préparation encourageante',v:'neutral'},
         {id:'hex3',l:'Brevet — niveau insuffisant, révisions indispensables',v:'neg'},
         {id:'hex4',l:'Bac — excellent niveau pour l\'épreuve',v:'pos'},
@@ -3497,8 +3497,9 @@ function renderStudentList(){
 function selectStudent(id){S.student=id;save();renderStudentList();renderEditor(id);mobUpdateStudentNav();const es=document.getElementById('ed-scroll');if(es)es.scrollTop=0;}
 
 // ── EDITOR ────────────────────────────────────────────────────────────────────
-function getSubjectBoxes(subject, langLevel){
+function getSubjectBoxes(subject, langLevel, classYear){
   const type=SUBJECTS[subject]?.type||'academic';
+  const year=classYear||'';
 
   // Build lang_script lazily — same as lang but with script section added
   if(!SUBJECT_BOXES.lang_script){
@@ -3549,7 +3550,30 @@ function getSubjectBoxes(subject, langLevel){
   ordered.progression = CORE_BOXES.progression;
   ordered.travail      = CORE_BOXES.travail;
   ordered.participation= CORE_BOXES.participation;
-  Object.assign(ordered, subjectSections);
+
+  // Filter exam sections based on class year
+  const examSectionKeys=['fexamen','hexamen','mexamen','exam','lexamen'];
+  Object.entries(subjectSections).forEach(([key,sec])=>{
+    if(examSectionKeys.includes(key)){
+      // Only show exam section for relevant years
+      const is3e=year==='3e';
+      const is1ere=year==='1ère'||year==='1ere'||year==='première';
+      const isTerminale=year==='Terminale'||year==='terminale'||year==='Tle';
+      const isLycee=is1ere||isTerminale||year==='2nde';
+      // Filter items by year relevance
+      const filteredItems=sec.items.filter(item=>{
+        const l=item.l.toLowerCase();
+        if(l.includes('brevet')&&!is3e) return false;
+        if((l.includes('eaf')||l.includes('grand oral'))&&!is1ere&&!isTerminale) return false;
+        if(l.includes('bac ')&&!isTerminale&&!is1ere) return false;
+        return true;
+      });
+      if(filteredItems.length>0) ordered[key]={...sec, items:filteredItems};
+    } else {
+      ordered[key]=sec;
+    }
+  });
+
   ordered.qualites     = CORE_BOXES.qualites;
   ordered.comportement = CORE_BOXES.comportement;
   ordered.conseils     = CORE_BOXES.conseils;
@@ -3690,7 +3714,7 @@ function renderEditor(id){
 
 
   // SUBJECT-SPECIFIC + CORE BOXES
-  const allBoxes=getSubjectBoxes(cls.subject, cls.langLevel);
+  const allBoxes=getSubjectBoxes(cls.subject, cls.langLevel, cls.classYear);
   if(!cls.collapsedSections) cls.collapsedSections={};
   Object.entries(allBoxes).forEach(([key,sec])=>{
     const itemIds=sec.items.map(i=>i.id);
@@ -3824,10 +3848,10 @@ function toggleSection(cid, sectionKey, sid){
   // If expanding — just do it
   // If collapsing with ticked pills — confirm
   if(!isCollapsed){
-    const sec=getSubjectBoxes(cls.subject, cls.langLevel)[sectionKey]||Object.values(CORE_BOXES).find((_,i)=>Object.keys(CORE_BOXES)[i]===sectionKey);
+    const sec=getSubjectBoxes(cls.subject, cls.langLevel, cls.classYear)[sectionKey]||Object.values(CORE_BOXES).find((_,i)=>Object.keys(CORE_BOXES)[i]===sectionKey);
     const st=getSt(sid);
     const hasTicked=st&&st.boxes&&(
-      (getSubjectBoxes(cls.subject,cls.langLevel)[sectionKey]||{items:[]}).items.some(i=>st.boxes[i.id])||
+      (getSubjectBoxes(cls.subject, cls.langLevel, cls.classYear)[sectionKey]||{items:[]}).items.some(i=>st.boxes[i.id])||
       (CORE_BOXES[sectionKey]||{items:[]}).items.some(i=>st.boxes[i.id])
     );
     if(hasTicked&&!confirm('Cette catégorie contient des cases cochées. Réduire quand même ?')) return;
@@ -3960,7 +3984,7 @@ function submitQuickRate(id, rating, btn){
 
 // ── PROMPT BUILDERS ───────────────────────────────────────────────────────────
 function buildPromptMeta(st,cls){
-  const allBoxes=getSubjectBoxes(cls.subject, cls.langLevel);
+  const allBoxes=getSubjectBoxes(cls.subject, cls.langLevel, cls.classYear);
   const checkedNeg=[], checkedPos=[];
   Object.values(allBoxes).forEach(sec=>sec.items.forEach(item=>{
     if(st.boxes&&st.boxes[item.id]){
@@ -3978,7 +4002,7 @@ function buildPromptMeta(st,cls){
 }
 
 function buildPrompt(st,cls,period,seed,memSamp){
-  const allBoxes=getSubjectBoxes(cls.subject, cls.langLevel);
+  const allBoxes=getSubjectBoxes(cls.subject, cls.langLevel, cls.classYear);
   const checkedPos=[], checkedNeg=[], checkedNeutral=[], checkedConseils=[];
   const allNegLabels=[];
   // Collect from subject-specific boxes
@@ -4282,12 +4306,12 @@ RÈGLES DE SYNTHÈSE — OBLIGATOIRES :
 6. Ton : ${toneDesc}. Félicitations seulement si excellent/très bon verdict. JAMAIS "félicitations du conseil de classe". Écrire : ${cls.noJe ? '"Félicitations."' : '"Félicitations." ou "Toutes mes félicitations."'}
 7. "son travail est régulier" pas "elle est régulière dans son travail". "elle maîtrise l'expression orale" pas "elle exprime une bonne maîtrise". "Cette élève" pas "Ceste élève". JAMAIS "satisfaisant" plus d'une fois.
 8. FUSION : 3 observations similaires (discret + participe peu + évite de prendre la parole) = UNE seule phrase courte et bienveillante. Ne pas les répéter en conclusion si déjà mentionnées.
-8b. CLICHÉS INTERDITS — ne jamais écrire : "ambiance de classe", "bonne ambiance en classe", "atmosphère de classe" sauf si explicitement coché. Ne pas inventer de contexte sur la classe. INTERDIT aussi : "Il est désormais essentiel que", "Il est impératif que", "Il est indispensable que", "Il est nécessaire de/que", "Il est important de/que" — trop impersonnel et lourd. Préférer : "Il doit", "Il lui faudra", "Un effort s'impose", "La priorité est de", ou reformuler directement : "Revoir les bases permettra de progresser".
+8b. CLICHÉS INTERDITS — ne jamais écrire : "ambiance de classe", "bonne ambiance en classe", "atmosphère de classe" sauf si explicitement coché. Ne pas inventer de contexte sur la classe. INTERDIT aussi : "Il est désormais essentiel que", "Il est impératif que", "Il est indispensable que", "Il est nécessaire de/que", "Il est important de/que", "impérativement", "doit impérativement", "dès le prochain trimestre", "pour le prochain trimestre" — trop impersonnel et lourd. Préférer : "Il devra", "Il lui faudra", "Un effort s'impose", "La priorité est de", ou reformuler directement : "Revoir les bases permettra de progresser".
 8c. ÉLISION CORRECTE — "que" + consonne = "que" (pas "qu'"). "que Mathis", "que Marie", "que Léa". "qu'" uniquement devant voyelle : "qu'il", "qu'elle", "qu'un". JAMAIS "qu'Mathis", "qu'Léa".
 8d. INTENSITÉ PROPORTIONNELLE — respecter le degré exact de la pill cochée. "Bavarde parfois" = mention légère ("quelques bavardages ponctuels"). JAMAIS amplifier en "rappels fréquents", "perturbe régulièrement", "problème récurrent" si ce n'est pas coché. "Bavardages incessants" = mention forte. "Parfois perturbateur/trice" ≠ "très perturbateur". Ne jamais aggraver ce qui est coché.
 8e. COHÉRENCE ENTRE PILLS — si "Réagit bien aux rappels" est coché avec "Bavarde parfois" → dire "quelques bavardages, mais réagit bien quand on le signale" — les rappels ne sont PAS fréquents. Si coché avec "Bavardages incessants" ou "Très perturbateur" → "malgré des rappels fréquents nécessaires". La fréquence des rappels dépend de la sévérité du comportement coché.
-8f. PAS DE REDONDANCE — ne pas exprimer la même idée deux fois avec des mots différents. Si "travail sérieux et approfondi" est dit en phrase 1, ne pas redire "applique avec rigueur" ou "méthode rigoureuse" en phrase 2. Chaque phrase apporte une information nouvelle.
-8i. NE PAS COPIER LES LABELS — reformuler les observations avec des mots naturels. JAMAIS recopier mot pour mot le libellé d'une observation. Ex: "Très bonnes connaissances historiques et géographiques" → dire "Ses connaissances sont solides et bien ancrées" ou "Il maîtrise bien le programme". "Participation orale riche et pertinente" → "Il s'exprime avec aisance et apporte des contributions de qualité".
+8f. PAS DE REDONDANCE — ne pas exprimer la même idée deux fois avec des mots différents. Si "travail sérieux et approfondi" est dit en phrase 1, ne pas redire "applique avec rigueur" ou "méthode rigoureuse" en phrase 2. Chaque phrase apporte une information nouvelle. Ne jamais répéter le verdict dans le corps de l'appréciation — "Il est en difficulté et son travail est insuffisant" après un verdict "Trimestre insuffisant" est une répétition inutile.
+8i. NE PAS COPIER LES LABELS — reformuler les observations avec des mots naturels. JAMAIS recopier mot pour mot le libellé d'une observation. Ex: "Très bonnes connaissances" → dire "Ses connaissances sont solides et bien ancrées" ou "Il maîtrise bien le programme". "Participation orale riche et pertinente" → "Il s'exprime avec aisance et apporte des contributions de qualité".
 8g. BREVET / BAC / EXAMENS — ne jamais mentionner le Brevet, le Bac, ou tout examen sauf si une pill "Brevet" ou "Bac" est explicitement cochée. Même en 3e ou Terminale, ne pas inférer l'examen du niveau scolaire.
 8h. ENCOURAGEMENTS / FÉLICITATIONS — si "Encouragements" est coché → terminer par "Encouragements." ou "Bon courage !" ou "Des encouragements !" comme phrase finale distincte. Ne pas noyer dans une périphrase. Si "Félicitations" est coché → terminer par "Félicitations." seul, pas "je félicite" ou "mérite des félicitations". Si "Félicitations" ET "Continuer sur cette lancée" sont tous deux cochés → intégrer "continuer sur cette lancée" dans le corps du texte, pas comme deuxième phrase de conclusion.
 9. Répondre UNIQUEMENT avec l'appréciation, sans guillemets ni commentaire.`;}
