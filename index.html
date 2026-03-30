@@ -258,6 +258,8 @@ body{font-family:'DM Sans',sans-serif;font-weight:300;background:var(--bg);color
 }
 .pill:hover{border-color:#16a34a;color:#15803d;background:#dcfce7;transform:translateY(-1px);box-shadow:0 3px 8px rgba(22,163,74,.15);}
 .pill.sel{border-color:#16a34a;background:#dcfce7;color:#15803d;font-weight:600;box-shadow:0 2px 8px rgba(22,163,74,.25);transform:translateY(-1px);}
+.pill.suggested{border-color:#d97706;background:#fef3c7;color:#92400e;font-weight:600;border-style:dashed;animation:pulse-suggest 1.5s ease-in-out infinite;}
+@keyframes pulse-suggest{0%,100%{box-shadow:0 0 0 0 rgba(217,119,6,.3);}50%{box-shadow:0 0 0 4px rgba(217,119,6,.1);}}
 .pill.neg{border-color:#fecaca;background:#fff5f5;color:#9b6060;}
 .pill.neg:hover{border-color:#ef4444;color:#b91c1c;background:#fee2e2;transform:translateY(-1px);}
 .pill.neg.sel{border-color:#dc2626;background:#fee2e2;color:#b91c1c;font-weight:600;box-shadow:0 2px 8px rgba(220,38,38,.25);transform:translateY(-1px);}
@@ -3504,7 +3506,7 @@ function renderStudentsView(content){
       <div class="panel-head">
         <span class="panel-lbl">Élèves (<span id="sc">${cls.students.length}</span>)</span>
         <div style="display:flex;gap:4px">
-          <button class="btn btn-o btn-sm" onclick="openImportStudents()" title="Importer une liste">📥</button>
+          <button class="btn btn-o btn-sm" onclick="openImportStudents()" title="Importer une liste d'élèves">📥 Importer</button>
           <button class="btn btn-o btn-sm" onclick="togAddRow()">+ Ajouter</button>
         </div>
       </div>
@@ -3840,15 +3842,24 @@ function renderEditor(id){
       <div class="card-hd" style="cursor:pointer" onclick="toggleSection('${S.active}','${key}','${id}')">
         <span>${sec.label}${hasSelected?` <span style="background:var(--accent);color:#fff;font-size:.65em;padding:1px 6px;border-radius:999px;font-weight:700;margin-left:4px">${sec.items.filter(i=>st.boxes&&st.boxes[i.id]).length}</span>`:''}</span>
         <span style="display:flex;align-items:center;gap:6px">
-          <button onclick="event.stopPropagation();resetCategoryBoxes('${id}','${itemIds.join(',')}')" style="padding:1px 6px;border:1px solid var(--border);border-radius:3px;font-size:.58rem;font-family:'DM Mono',monospace;background:transparent;color:var(--muted);cursor:pointer;opacity:.5" title="Réinitialiser">↺</button>
+          <button onclick="event.stopPropagation();resetCategoryBoxes('${id}','${itemIds.join(',')}')" style="padding:1px 6px;border:1px solid var(--border);border-radius:3px;font-size:.58rem;font-family:'DM Mono',monospace;background:transparent;color:var(--muted);cursor:pointer;opacity:.5" title="Réinitialiser cette catégorie">↺ reset</button>
           <span style="font-size:.75rem;opacity:.5;transition:transform .2s;${collapsed?'':'transform:rotate(180deg)'}">${collapsed?'▸':'▾'}</span>
         </span>
       </div>
       <div class="pill-grid" style="display:${collapsed?'none':'flex'}">`;
     sec.items.forEach(item=>{
       const sel=!!(st.boxes&&st.boxes[item.id]);
+      const suggested=!sel&&!!(st.vtpSuggestions&&st.vtpSuggestions[item.id]);
       const cls2=item.v==='neg'?'neg':item.v==='neutral'?'neutral':'';
-      html+=`<span class="pill ${cls2} ${sel?'sel':''}" onclick="togBox('${id}','${item.id}',this)">${item.l}</span>`;
+      if(suggested){
+        html+=`<span class="pill ${cls2} suggested" title="Suggestion vocale — cliquez pour confirmer ou ignorer">
+          ${item.l}
+          <span onclick="event.stopPropagation();confirmVTPSuggestion('${id}','${item.id}',this.parentElement)" style="margin-left:6px;cursor:pointer" title="Confirmer">✓</span>
+          <span onclick="event.stopPropagation();rejectVTPSuggestion('${id}','${item.id}',this.parentElement)" style="margin-left:3px;cursor:pointer;opacity:.6" title="Ignorer">✕</span>
+        </span>`;
+      } else {
+        html+=`<span class="pill ${cls2} ${sel?'sel':''}" onclick="togBox('${id}','${item.id}',this)">${item.l}</span>`;
+      }
     });
     // Custom pills for this category
     customPills.forEach(item=>{
@@ -3875,10 +3886,11 @@ function renderEditor(id){
           </div>
           <button class="act-btn gen-btn" onclick="genOne('${id}')">↻ Générer</button>
           <span style="font-family:'DM Mono',monospace;font-size:.72rem;font-weight:700;color:var(--accent);background:var(--accent-l);border:1.5px solid var(--accent-b);padding:3px 8px;border-radius:6px;margin-left:2px;white-space:nowrap">Ctrl+↵</span>
-          <button class="act-btn" onclick="resetComment('${id}')" title="Effacer l'appréciation">🗑</button>
-          <button class="act-btn" id="voice-btn-${id}" onclick="toggleVoice('${id}')" title="Saisie vocale">🎙️</button>
+          <button class="act-btn" style="background:var(--purple-l);color:var(--purple);border-color:var(--purple-b);font-weight:600" onclick="startVoiceToPills('${id}')" id="vtp-btn-${id}" title="Décrivez oralement le profil de l'élève — l'IA coche les cases correspondantes">🎙️ Profil vocal</button>
+          <button class="act-btn" onclick="resetComment('${id}')" title="Effacer l'appréciation générée">🗑 Effacer</button>
+          <button class="act-btn" id="voice-btn-${id}" onclick="toggleVoice('${id}')" title="Dicter l'appréciation directement dans le champ texte">🎙️ Dicter</button>
           <button class="copy-btn" id="cpb-${id}" onclick="copyC('${id}')">📋 Copier</button>
-          <button class="act-btn" id="rate-btn-${id}" onclick="rateAppreciation('${id}')" title="Donner votre avis sur cette appréciation" style="font-size:.8rem;opacity:.5">★</button>
+          <button class="act-btn" id="rate-btn-${id}" onclick="rateAppreciation('${id}')" title="Donner votre avis sur cette appréciation" style="font-size:.8rem;opacity:.5">★ Avis</button>
         </div>
       </div>
       <div class="card-bd">
@@ -5008,7 +5020,7 @@ function renderBulkView(content){
         <textarea class="bulk-ta" id="bta-${st.id}" oninput="bulkSave('${st.id}',this.value)">${comment}</textarea>
         <div class="bulk-acts">
           <button class="copy-btn" onclick="copyOne('${st.id}')">📋</button>
-          <button class="act-btn" onclick="resetBulk('${st.id}')" title="Effacer">🗑</button>
+          <button class="act-btn" onclick="resetBulk('${st.id}')" title="Effacer cette appréciation">🗑 Effacer</button>
           <button class="act-btn" onclick="genBulk('${st.id}')">↻</button>
         </div>
       </div>
@@ -5374,6 +5386,201 @@ function stopVoice(){
     const btn=document.getElementById('voice-btn-'+voiceTargetId);
     if(btn){btn.textContent='🎙️';btn.style.background='';btn.style.color='';}
   }
+}
+
+// ── VOICE TO PILLS ────────────────────────────────────────────────────────────
+let vtpRecognition=null;
+let vtpActive=false;
+let vtpTargetId=null;
+let vtpTranscript='';
+
+function startVoiceToPills(sid){
+  if(!('webkitSpeechRecognition' in window)&&!('SpeechRecognition' in window)){
+    toast('❌ Saisie vocale non supportée — utilisez Chrome ou Edge');return;
+  }
+  vtpTargetId=sid;
+  vtpTranscript='';
+
+  // Show modal
+  const mo=document.createElement('div');
+  mo.className='mo'; mo.id='mo-vtp';
+  mo.innerHTML=`<div class="mo-box" style="max-width:480px">
+    <div class="mo-t" style="margin-bottom:4px">🎙️ Profil vocal</div>
+    <p style="font-size:.82rem;color:var(--muted);margin-bottom:16px;line-height:1.5">Décrivez oralement le profil de l'élève. Par exemple : <em>"Élève sérieux, bons résultats, mais bavarde parfois et manque de concentration."</em></p>
+    <div id="vtp-status" style="display:flex;align-items:center;gap:10px;background:var(--bg);border-radius:10px;padding:12px 14px;margin-bottom:12px">
+      <div id="vtp-dot" style="width:12px;height:12px;border-radius:50%;background:#dc2626;animation:pulse-suggest 1s infinite;flex-shrink:0"></div>
+      <span id="vtp-status-txt" style="font-size:.82rem;color:var(--ink)">En attente…</span>
+    </div>
+    <div id="vtp-transcript" style="min-height:60px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:.85rem;color:var(--ink2);line-height:1.6;margin-bottom:16px;font-style:italic">Parlez maintenant…</div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-g" id="vtp-stop-btn" onclick="stopAndAnalyseVTP()" style="flex:1">✓ Terminer et analyser</button>
+      <button class="btn btn-o" onclick="cancelVTP()">Annuler</button>
+    </div>
+  </div>`;
+  document.body.appendChild(mo);
+  mo.classList.add('open');
+
+  // Start recognition
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  vtpRecognition=new SR();
+  vtpRecognition.lang='fr-FR';
+  vtpRecognition.continuous=true;
+  vtpRecognition.interimResults=true;
+
+  vtpRecognition.onstart=()=>{
+    vtpActive=true;
+    document.getElementById('vtp-status-txt').textContent='🎙️ En cours d\'écoute — parlez maintenant';
+    document.getElementById('vtp-dot').style.background='#16a34a';
+  };
+
+  vtpRecognition.onresult=(e)=>{
+    let interim='', final='';
+    for(let i=e.resultIndex;i<e.results.length;i++){
+      if(e.results[i].isFinal) final+=e.results[i][0].transcript;
+      else interim+=e.results[i][0].transcript;
+    }
+    if(final) vtpTranscript+=final;
+    const ta=document.getElementById('vtp-transcript');
+    if(ta) ta.textContent=(vtpTranscript+(interim?' '+interim:'')).trim()||'Parlez maintenant…';
+  };
+
+  vtpRecognition.onerror=(e)=>{
+    document.getElementById('vtp-status-txt').textContent='❌ Erreur micro — '+e.error;
+  };
+
+  vtpRecognition.onend=()=>{
+    if(vtpActive&&document.getElementById('mo-vtp')){
+      // Auto-restart if still in modal (continuous mode sometimes stops)
+      try{vtpRecognition.start();}catch(e){}
+    }
+  };
+
+  vtpRecognition.start();
+}
+
+async function stopAndAnalyseVTP(){
+  if(vtpRecognition) vtpRecognition.stop();
+  vtpActive=false;
+
+  const transcript=vtpTranscript.trim();
+  if(!transcript){toast('Aucune parole détectée');cancelVTP();return;}
+
+  // Update modal to show analysis in progress
+  const stopBtn=document.getElementById('vtp-stop-btn');
+  if(stopBtn){stopBtn.disabled=true;stopBtn.textContent='⟳ Analyse en cours…';}
+  document.getElementById('vtp-status-txt').textContent='🤖 Analyse par l\'IA…';
+
+  const cls=S.classes[S.active];
+  const st=getSt(vtpTargetId);
+  if(!cls||!st){cancelVTP();return;}
+
+  // Build pill list for prompt
+  const allBoxes=getSubjectBoxes(cls.subject,cls.langLevel,cls.classYear);
+  const pillList=[];
+  Object.values(allBoxes).forEach(sec=>sec.items.forEach(item=>{
+    pillList.push({id:item.id,label:item.l,valence:item.v});
+  }));
+
+  // Currently ticked pills
+  const currentlyTicked=st.boxes?Object.keys(st.boxes).filter(k=>st.boxes[k]):[];
+
+  const prompt=`Tu es un assistant qui analyse la description orale d'un profil d'élève et sélectionnes les observations correspondantes dans une liste prédéfinie.
+
+DESCRIPTION ORALE DE L'ENSEIGNANT :
+"${transcript}"
+
+CASES DÉJÀ COCHÉES (ne pas décocher sauf contradiction explicite) :
+${currentlyTicked.length?currentlyTicked.map(id=>{const p=pillList.find(x=>x.id===id);return p?'• '+p.label:'';}).filter(Boolean).join('\n'):'(aucune)'}
+
+LISTE DES OBSERVATIONS DISPONIBLES (id → label) :
+${pillList.map(p=>`${p.id}: ${p.label}`).join('\n')}
+
+INSTRUCTIONS :
+1. Analyse la description et identifie les observations qui correspondent.
+2. Retourne un JSON avec ces clés :
+   - "tick": array d'IDs à cocher (correspondances claires)
+   - "suggest": array d'IDs possibles mais incertains (à surligner pour que l'enseignant confirme)
+   - "untick": array d'IDs à décocher car contradictoires avec la description (seulement si contradiction explicite)
+3. Ne décocher une case existante QUE si la description dit explicitement le contraire (ex: "excellents résultats" déjà coché + description dit "résultats très insuffisants").
+4. Préfère cocher trop peu plutôt que trop — mieux vaut suggérer que cocher à tort.
+5. Réponds UNIQUEMENT avec le JSON, sans explication ni backticks.
+
+Exemple de réponse : {"tick":["pr1","tr1"],"suggest":["co5"],"untick":[]}`;
+
+  try{
+    const res=await fetch('https://openrouter.ai/api/v1/chat/completions',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+_apiKey,'HTTP-Referer':'https://bulletinspro.github.io','X-Title':'BulletinsPro VTP'},
+      body:JSON.stringify({model:'anthropic/claude-sonnet-4-5',max_tokens:500,messages:[{role:'user',content:prompt}]})
+    });
+    const data=await res.json();
+    const raw=data.choices?.[0]?.message?.content?.trim()||'{}';
+    let result;
+    try{result=JSON.parse(raw);}catch{result={tick:[],suggest:[],untick:[]};}
+
+    applyVTPResults(vtpTargetId, result, transcript);
+    cancelVTP();
+
+    // Show summary toast
+    const nTick=(result.tick||[]).length;
+    const nSug=(result.suggest||[]).length;
+    const nUntick=(result.untick||[]).length;
+    let msg=`✅ ${nTick} case${nTick>1?'s':''} cochée${nTick>1?'s':''}`;
+    if(nSug>0) msg+=` · 🟡 ${nSug} suggestion${nSug>1?'s':''} à confirmer`;
+    if(nUntick>0) msg+=` · ↩ ${nUntick} contradiction${nUntick>1?'s':''} corrigée${nUntick>1?'s':''}`;
+    toast(msg);
+
+  }catch(e){
+    toast('❌ Erreur d\'analyse — réessayez');
+    cancelVTP();
+  }
+}
+
+function applyVTPResults(sid, result, transcript){
+  const st=getSt(sid); if(!st) return;
+  if(!st.boxes) st.boxes={};
+
+  // Tick confirmed ones
+  (result.tick||[]).forEach(id=>{ st.boxes[id]=true; });
+
+  // Untick contradictions
+  (result.untick||[]).forEach(id=>{ delete st.boxes[id]; });
+
+  // Mark suggestions (stored separately, not as ticked)
+  if(!st.vtpSuggestions) st.vtpSuggestions={};
+  st.vtpSuggestions={};
+  (result.suggest||[]).forEach(id=>{ st.vtpSuggestions[id]=true; });
+
+  // Store transcript for reference
+  st.vtpLastTranscript=transcript;
+  st.boxTs=Date.now();
+  save();
+  renderMain();
+}
+
+function cancelVTP(){
+  if(vtpRecognition){vtpRecognition.stop();vtpRecognition=null;}
+  vtpActive=false;
+  const mo=document.getElementById('mo-vtp');
+  if(mo)mo.remove();
+}
+
+function confirmVTPSuggestion(sid, itemId, el){
+  const st=getSt(sid); if(!st) return;
+  if(!st.boxes) st.boxes={};
+  st.boxes[itemId]=true;
+  if(st.vtpSuggestions) delete st.vtpSuggestions[itemId];
+  st.boxTs=Date.now();
+  el.classList.remove('suggested');
+  el.classList.add('sel');
+  save();
+}
+
+function rejectVTPSuggestion(sid, itemId, el){
+  const st=getSt(sid); if(!st) return;
+  if(st.vtpSuggestions) delete st.vtpSuggestions[itemId];
+  el.classList.remove('suggested');
+  save();
 }
 
 function toggleVoice(targetId){
