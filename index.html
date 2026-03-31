@@ -5661,7 +5661,7 @@ function startVoice(targetId){
       if(e.results[i].isFinal)final+=e.results[i][0].transcript;
     }
     if(final){
-      const ta=document.getElementById('cta-'+targetId)||document.getElementById('ppcta-'+targetId);
+      const ta=document.getElementById('cta-'+targetId)||document.getElementById('ppcta-'+targetId)||document.getElementById('cpecta-'+targetId);
       if(ta){
         ta.value=(ta.value?ta.value+' ':'')+final;
         ta.dispatchEvent(new Event('input'));
@@ -6793,6 +6793,7 @@ function renderCPEEditor(id){
         <div class="cmt-acts">
           <button class="act-btn gen-btn" onclick="cpeGenOne('${id}')">↻ Générer</button>
           <button class="act-btn" onclick="resetCPEComment('${id}')" title="Effacer">🗑 Effacer</button>
+          <button class="act-btn" id="voice-btn-${id}" onclick="toggleVoice('${id}')" title="Dicter le suivi directement dans le champ texte">🎙️ Dicter</button>
           <button class="copy-btn" onclick="copyCPE('${id}')">📋 Copier</button>
         </div>
       </div>
