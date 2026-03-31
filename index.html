@@ -5606,6 +5606,99 @@ function rejectVTPSuggestion(sid, itemId, el){
   save();
 }
 
+function confirmVTPSuggestion(sid, itemId, el, isPP=false){
+  const st=isPP?getPPSt(sid):getSt(sid); if(!st) return;
+  if(!st.boxes) st.boxes={};
+  st.boxes[itemId]=true;
+  if(st.vtpSuggestions) delete st.vtpSuggestions[itemId];
+  if(!isPP) st.boxTs=Date.now();
+  el.classList.remove('suggested');
+  el.classList.add('sel');
+  save();
+}
+
+function rejectVTPSuggestion(sid, itemId, el, isPP=false){
+  const st=isPP?getPPSt(sid):getSt(sid); if(!st) return;
+  if(st.vtpSuggestions) delete st.vtpSuggestions[itemId];
+  el.classList.remove('suggested');
+  save();
+}
+
+function resetAllPPBoxes(id){
+  const st=getPPSt(id);if(!st)return;
+  const ticked=st.boxes?Object.keys(st.boxes).filter(k=>st.boxes[k]).length:0;
+  if(ticked>0&&!confirm(`Réinitialiser les ${ticked} case(s) cochée(s) ?`))return;
+  st.boxes={};st.vtpSuggestions={};
+  save();renderPPEditor(id);toast('Cases réinitialisées');
+}
+
+function startVoiceToPillsPP(sid){
+  if(!('webkitSpeechRecognition' in window)&&!('SpeechRecognition' in window)){
+    toast('❌ Saisie vocale non supportée — utilisez Chrome ou Edge');return;
+  }
+  vtpTargetId=sid;vtpTranscript='';
+  const mo=document.createElement('div');
+  mo.className='mo';mo.id='mo-vtp';
+  mo.innerHTML=`<div class="mo-box" style="max-width:480px">
+    <div class="mo-t" style="margin-bottom:4px">🎙️ Profil vocal — PP</div>
+    <p style="font-size:.82rem;color:var(--muted);margin-bottom:16px;line-height:1.5">Décrivez oralement le bilan de l'élève. Ex : <em>"Élève sérieux, bonne intégration, quelques absences."</em></p>
+    <div id="vtp-status" style="display:flex;align-items:center;gap:10px;background:var(--bg);border-radius:10px;padding:12px 14px;margin-bottom:12px">
+      <div id="vtp-dot" style="width:12px;height:12px;border-radius:50%;background:#dc2626;animation:pulse-suggest 1s infinite;flex-shrink:0"></div>
+      <span id="vtp-status-txt" style="font-size:.82rem;color:var(--ink)">En attente…</span>
+    </div>
+    <div id="vtp-transcript" style="min-height:60px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:.85rem;color:var(--ink2);line-height:1.6;margin-bottom:16px;font-style:italic">Parlez maintenant…</div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-g" id="vtp-stop-btn" onclick="stopAndAnalyseVTPPP('${sid}')" style="flex:1">✓ Terminer et analyser</button>
+      <button class="btn btn-o" onclick="cancelVTP()">Annuler</button>
+    </div>
+  </div>`;
+  document.body.appendChild(mo);mo.classList.add('open');
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  vtpRecognition=new SR();vtpRecognition.lang='fr-FR';vtpRecognition.continuous=true;vtpRecognition.interimResults=true;
+  vtpRecognition.onstart=()=>{vtpActive=true;document.getElementById('vtp-status-txt').textContent='🎙️ En cours d\'écoute';document.getElementById('vtp-dot').style.background='#16a34a';};
+  vtpRecognition.onresult=(e)=>{
+    let interim='',final='';
+    for(let i=e.resultIndex;i<e.results.length;i++){if(e.results[i].isFinal)final+=e.results[i][0].transcript;else interim+=e.results[i][0].transcript;}
+    if(final)vtpTranscript+=final;
+    const ta=document.getElementById('vtp-transcript');
+    if(ta)ta.textContent=(vtpTranscript+(interim?' '+interim:'')).trim()||'Parlez maintenant…';
+  };
+  vtpRecognition.onerror=()=>{document.getElementById('vtp-status-txt').textContent='❌ Erreur micro';};
+  vtpRecognition.onend=()=>{if(vtpActive&&document.getElementById('mo-vtp')){try{vtpRecognition.start();}catch(e){}}};
+  vtpRecognition.start();
+}
+
+async function stopAndAnalyseVTPPP(sid){
+  if(vtpRecognition)vtpRecognition.stop();vtpActive=false;
+  const transcript=vtpTranscript.trim();
+  if(!transcript){toast('Aucune parole détectée');cancelVTP();return;}
+  const stopBtn=document.getElementById('vtp-stop-btn');
+  if(stopBtn){stopBtn.disabled=true;stopBtn.textContent='⟳ Analyse en cours…';}
+  const st=getPPSt(sid);if(!st){cancelVTP();return;}
+  const pillList=[];
+  Object.values(PP_BOXES).forEach(sec=>sec.items.forEach(item=>pillList.push({id:item.id,label:item.l})));
+  const currentlyTicked=st.boxes?Object.keys(st.boxes).filter(k=>st.boxes[k]):[];
+  const prompt=`Tu analyses la description d'un bilan PP et sélectionnes les observations correspondantes.
+DESCRIPTION : "${transcript}"
+CASES COCHÉES : ${currentlyTicked.length?currentlyTicked.map(id=>{const p=pillList.find(x=>x.id===id);return p?'• '+p.label:'';}).filter(Boolean).join('\n'):'(aucune)'}
+OBSERVATIONS :
+${pillList.map(p=>`${p.id}: ${p.label}`).join('\n')}
+Retourne UNIQUEMENT ce JSON : {"tick":[],"suggest":[],"untick":[]}`;
+  try{
+    const res=await fetch('https://openrouter.ai/api/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+_apiKey,'HTTP-Referer':'https://bulletinspro.github.io','X-Title':'BulletinsPro VTP PP'},body:JSON.stringify({model:'anthropic/claude-sonnet-4-5',max_tokens:400,messages:[{role:'user',content:prompt}]})});
+    const data=await res.json();
+    let result;try{result=JSON.parse(data.choices?.[0]?.message?.content?.trim()||'{}');}catch{result={tick:[],suggest:[],untick:[]};}
+    if(!st.boxes)st.boxes={};
+    (result.tick||[]).forEach(id=>{st.boxes[id]=true;});
+    (result.untick||[]).forEach(id=>{delete st.boxes[id];});
+    st.vtpSuggestions={};
+    (result.suggest||[]).forEach(id=>{st.vtpSuggestions[id]=true;});
+    save();cancelVTP();renderPPEditor(sid);
+    const nT=(result.tick||[]).length,nS=(result.suggest||[]).length;
+    toast(`✅ ${nT} case${nT>1?'s':''} cochée${nT>1?'s':''}${nS>0?` · 🟡 ${nS} suggestion${nS>1?'s':''}`:''}`);;
+  }catch(e){toast('❌ Erreur — réessayez');cancelVTP();}
+}
+
 function toggleVoice(targetId){
   if(voiceActive&&voiceTargetId===targetId){stopVoice();}
   else{if(voiceActive)stopVoice();startVoice(targetId);}
@@ -6552,6 +6645,7 @@ function renderPPLayout(content){
       <div class="pp-list-panel">
         <div class="panel-head">
           <span class="panel-lbl">Élèves (<span id="pp-sc">${pp.students.length}</span>)</span>
+          <button class="btn btn-o btn-sm" onclick="openImportPPStudents()" title="Importer une liste d'élèves">📥 Importer</button>
           <button class="btn btn-o btn-sm" onclick="togPPAddRow()">+ Ajouter</button>
         </div>
         <div class="add-row" id="pp-add-row" style="display:none">
@@ -6578,6 +6672,104 @@ function renderPPLayout(content){
 
 // ── PP STUDENTS ───────────────────────────────────────────────────────────────
 let ppNewG='M';
+function openImportPPStudents(){
+  let mo=document.getElementById('mo-import-pp-students');
+  if(!mo){
+    mo=document.createElement('div');
+    mo.className='mo';mo.id='mo-import-pp-students';
+    mo.innerHTML=`<div class="modal" style="width:460px">
+      <div class="mo-t">📥 Importer une liste d'élèves (PP)</div>
+      <p style="font-size:.82rem;color:var(--muted);margin-bottom:14px;line-height:1.6">
+        Importez un fichier <strong>CSV</strong> ou collez une liste directement.<br>
+        Format attendu : <code style="background:var(--bg);padding:1px 5px;border-radius:3px">Numéro,Prénom Nom,Genre</code>
+      </p>
+      <div class="mo-lbl">Option 1 — Fichier CSV/Excel</div>
+      <input type="file" id="imp-pp-file" accept=".csv,.txt,.xlsx" style="margin-bottom:12px;font-size:.8rem;width:100%" onchange="previewImportPPFile(event)">
+      <div class="mo-lbl">Option 2 — Coller une liste (un élève par ligne)</div>
+      <textarea id="imp-pp-text" class="mo-inp" rows="6" style="font-family:monospace;font-size:.78rem;resize:vertical" placeholder="1,Marie Dupont,F&#10;2,Lucas Martin,M&#10;3,Emma Bernard,F&#10;..."></textarea>
+      <div style="margin-top:8px;margin-bottom:4px;font-size:.8rem;color:var(--muted)">Ordre du nom dans la liste :</div>
+      <div style="display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap">
+        <label style="display:flex;align-items:center;gap:5px;font-size:.82rem;cursor:pointer">
+          <input type="radio" name="ppNameOrder" value="prenom_nom" checked> Prénom NOM
+        </label>
+        <label style="display:flex;align-items:center;gap:5px;font-size:.82rem;cursor:pointer">
+          <input type="radio" name="ppNameOrder" value="nom_prenom"> NOM Prénom (PRONOTE)
+        </label>
+        <label style="display:flex;align-items:center;gap:5px;font-size:.82rem;cursor:pointer">
+          <input type="radio" name="ppNameOrder" value="auto"> Détecter auto
+        </label>
+      </div>
+      <div id="imp-pp-preview" style="margin-top:10px;font-size:.78rem;color:var(--accent);font-family:'DM Mono',monospace"></div>
+      <div class="mo-acts">
+        <button class="btn btn-o" onclick="closeMo('mo-import-pp-students')">Annuler</button>
+        <button class="btn btn-g" onclick="doImportPPStudents()">Importer</button>
+      </div>
+    </div>`;
+    mo.addEventListener('click',e=>{if(e.target===mo)mo.classList.remove('open');});
+    document.body.appendChild(mo);
+  }
+  document.getElementById('imp-pp-text').value='';
+  document.getElementById('imp-pp-preview').textContent='';
+  mo.classList.add('open');
+}
+
+function previewImportPPFile(e){
+  const f=e.target.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=ev=>{
+    document.getElementById('imp-pp-text').value=ev.target.result;
+    const lines=ev.target.result.split('\n').filter(l=>l.trim()).length;
+    document.getElementById('imp-pp-preview').textContent=`✓ ${lines} lignes détectées`;
+  };
+  r.readAsText(f);
+}
+
+function doImportPPStudents(){
+  const pp=S.pp[activePP];if(!pp)return;
+  const raw=document.getElementById('imp-pp-text').value.trim();
+  if(!raw){toast('Aucune donnée à importer');return;}
+  const sel=document.querySelector('input[name="ppNameOrder"]:checked');
+  const nameOrder=sel?sel.value:'auto';
+  const lines=raw.split('\n').filter(l=>l.trim());
+  let added=0,skipped=0;
+  lines.forEach(line=>{
+    line=line.trim();if(!line)return;
+    // Reuse same parse logic as doImportStudents
+    let num=null,name='',gender='M';
+    const parts=line.split(/[,;\t]+/);
+    if(parts.length>=2){
+      const maybeNum=parseInt(parts[0]);
+      if(!isNaN(maybeNum)){num=maybeNum;parts.shift();}
+      const lastPart=parts[parts.length-1].trim();
+      if(lastPart==='M'||lastPart==='F'){gender=lastPart;parts.pop();}
+      name=parts.join(' ').trim();
+    } else {
+      name=line.replace(/^(\d+)[.\s]+/,'').trim();
+    }
+    if(!name){skipped++;return;}
+    if(nameOrder==='nom_prenom'||nameOrder==='auto'){
+      const words=name.split(' ');
+      if(nameOrder==='auto'){
+        const allCaps=words.filter(w=>w===w.toUpperCase()&&w.length>1);
+        if(allCaps.length>0){
+          const nom=allCaps.join(' ');
+          const prenom=words.filter(w=>w!==w.toUpperCase()||w.length<=1).join(' ');
+          name=prenom?`${prenom} ${nom}`:nom;
+        }
+      } else if(words.length>=2){
+        name=words.slice(1).join(' ')+' '+words[0];
+      }
+    }
+    if(!num)num=(pp.students.length||0)+added+1;
+    if(pp.students.find(s=>s.num===num)){skipped++;return;}
+    pp.students.push({id:'pp'+Date.now()+Math.random().toString(36).slice(2),num,name,gender,boxes:{},comments:{}});
+    added++;
+  });
+  save();
+  closeMo('mo-import-pp-students');
+  renderPPStudentList();
+  toast(`✓ ${added} élève(s) importé(s)${skipped?` · ${skipped} ignoré(s)`:''}`);}
+
 function togPPAddRow(){const r=document.getElementById('pp-add-row');r.style.display=r.style.display==='none'?'block':'none';if(r.style.display==='block')document.getElementById('pp-ns-num').focus();}
 function ppSelG(g){ppNewG=g;document.getElementById('pp-gb-m').classList.toggle('active',g==='M');document.getElementById('pp-gb-f').classList.toggle('active',g==='F');}
 
@@ -6644,8 +6836,14 @@ function renderPPEditor(id){
   let html=`
     <div class="ed-hdr">
       <div class="ed-av ${st.gender==='M'?'av-m':'av-f'}">${st.num}</div>
-      <div><div class="ed-name">Élève n°${st.num} <span style="font-size:.75rem;font-style:italic;color:var(--muted)">— bilan PP</span></div>
-      <div class="ed-sub">${st.gender==='M'?'Masculin':'Féminin'} · ${pLabel} · ${pp.name}</div></div>
+      <div style="flex:1;min-width:0">
+        <div class="ed-name">Élève n°${st.num} <span style="font-size:.75rem;font-style:italic;color:var(--muted)">— bilan PP</span></div>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:4px;flex-wrap:wrap">
+          <div class="ed-sub">${st.gender==='M'?'Masculin':'Féminin'} · ${pLabel} · ${pp.name}</div>
+          <button onclick="resetAllPPBoxes('${id}')" style="padding:3px 10px;border:1px solid rgba(255,255,255,.35);border-radius:6px;font-size:.65rem;font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.05em;background:rgba(255,255,255,.15);color:rgba(255,255,255,.9);cursor:pointer;transition:all .15s" onmouseover="this.style.background='rgba(255,255,255,.25)'" onmouseout="this.style.background='rgba(255,255,255,.15)'" title="Réinitialiser toutes les cases cochées">↺ Tout réinitialiser</button>
+          <button onclick="startVoiceToPillsPP('${id}')" style="padding:3px 10px;border:1px solid rgba(255,255,255,.5);border-radius:6px;font-size:.65rem;font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.05em;background:rgba(255,255,255,.2);color:#fff;cursor:pointer;transition:all .15s;font-weight:600" onmouseover="this.style.background='rgba(255,255,255,.35)'" onmouseout="this.style.background='rgba(255,255,255,.2)'" title="Décrivez oralement le profil — l'IA coche les cases">🎙️ Profil vocal</button>
+        </div>
+      </div>
     </div>
 
     <!-- TON -->
@@ -6688,8 +6886,17 @@ function renderPPEditor(id){
     html+=`<div class="pp-card"><div class="pp-card-hd">${sec.label}</div><div class="pill-grid">`;
     sec.items.forEach(item=>{
       const sel=!!(st.boxes&&st.boxes[item.id]);
+      const suggested=!sel&&!!(st.vtpSuggestions&&st.vtpSuggestions[item.id]);
       const cls2=item.v==='neg'?'neg':item.v==='neutral'?'neutral':'';
-      html+=`<span class="pill ${cls2} ${sel?'sel':''}" onclick="togPPBox('${id}','${item.id}',this)">${item.l}</span>`;
+      if(suggested){
+        html+=`<span class="pill ${cls2} suggested" title="Suggestion vocale — cliquez pour confirmer ou ignorer">
+          ${item.l}
+          <span onclick="event.stopPropagation();confirmVTPSuggestion('${id}','${item.id}',this.parentElement,true)" style="margin-left:6px;cursor:pointer" title="Confirmer">✓</span>
+          <span onclick="event.stopPropagation();rejectVTPSuggestion('${id}','${item.id}',this.parentElement,true)" style="margin-left:3px;cursor:pointer;opacity:.6" title="Ignorer">✕</span>
+        </span>`;
+      } else {
+        html+=`<span class="pill ${cls2} ${sel?'sel':''}" onclick="togPPBox('${id}','${item.id}',this)">${item.l}</span>`;
+      }
     });
     html+=`</div></div>`;
   });
