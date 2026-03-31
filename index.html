@@ -487,8 +487,8 @@ body{font-family:'DM Sans',sans-serif;font-weight:300;background:var(--bg);color
 .pp-freetext{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:6px;font-family:'DM Sans',sans-serif;font-size:.84rem;line-height:1.6;background:var(--bg);outline:none;resize:vertical;min-height:70px;}
 .cpe-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;background:var(--cpe-l);border:1px solid var(--cpe-b);border-radius:5px;font-family:'DM Mono',monospace;font-size:.58rem;text-transform:uppercase;letter-spacing:.07em;color:var(--cpe);}
 .cpe-item{padding:9px 14px;border-radius:8px;cursor:pointer;display:flex;align-items:center;gap:8px;transition:all .12s;margin-bottom:3px;}
-.cpe-item:hover{background:var(--cpe-l);}
-.cpe-item.active{background:var(--cpe-l);border-left:3px solid var(--cpe);padding-left:10px;}
+.cpe-item:hover{background:rgba(217,119,6,.08);}
+.cpe-item.active{background:rgba(217,119,6,.1);border-left:3px solid rgba(217,119,6,.7);padding-left:10px;}
 .cpe-item-name{font-size:.84rem;font-weight:500;color:var(--ink);flex:1;}
 .cpe-st-row{display:flex;align-items:center;gap:10px;padding:9px 14px;cursor:pointer;border-radius:8px;transition:all .12s;margin-bottom:2px;}
 .cpe-st-row:hover{background:var(--cpe-l);}
@@ -770,9 +770,9 @@ body{font-family:'DM Sans',sans-serif;font-weight:300;background:var(--bg);color
     <div class="sb-divider"><div class="sb-div-line"></div><span class="sb-div-lbl">Prof. Principal</span><div class="sb-div-line"></div></div>
     <div id="pp-list"></div>
     <button class="add-pp-btn" onclick="openNewPP()">+ Nouvelle classe PP</button>
-    <div class="sb-divider"><div class="sb-div-line"></div><span class="sb-div-lbl" style="color:var(--cpe)">CPE</span><div class="sb-div-line"></div></div>
+    <div class="sb-divider"><div class="sb-div-line"></div><span class="sb-div-lbl" style="color:rgba(217,119,6,.7)">CPE</span><div class="sb-div-line"></div></div>
     <div id="cpe-list"></div>
-    <button class="add-pp-btn" style="border-color:var(--cpe-b);color:var(--cpe)" onclick="openNewCPE()">+ Nouveau suivi CPE</button>
+    <button class="add-pp-btn" style="background:rgba(217,119,6,.06);border-color:rgba(217,119,6,.35);color:rgba(217,119,6,.85)" onmouseover="this.style.borderColor='#d97706';this.style.color='#fff';this.style.background='rgba(217,119,6,.15)'" onmouseout="this.style.borderColor='rgba(217,119,6,.35)';this.style.color='rgba(217,119,6,.85)';this.style.background='rgba(217,119,6,.06)'" onclick="openNewCPE()">+ Nouveau suivi CPE</button>
   </div>
   <div class="sb-foot">
     <button class="sb-fbtn" onclick="exportAll()">⬇ Export</button>
