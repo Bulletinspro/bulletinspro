@@ -703,6 +703,15 @@ body{font-family:'DM Sans',sans-serif;font-weight:300;background:var(--bg);color
   .cls-title{font-size:.82rem;max-width:130px;}
 }
 </style>
+
+<!-- Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-8MM04N2Z6M"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-8MM04N2Z6M');
+</script>
 </head>
 <body>
 <!-- LOGIN SCREEN -->
@@ -4688,6 +4697,7 @@ function getGenCount(){
 }
 
 function incrementGenCount(n=1){
+  if(typeof gtag!=='undefined') gtag('event','appreciation_generated',{event_category:'engagement',event_label:'app',value:n});
   const c=getGenCount()+n;
   localStorage.setItem(GEN_COUNT_KEY,String(c));
   localStorage.setItem(GEN_YEAR_KEY,String(getSchoolYear()));
@@ -4737,6 +4747,7 @@ function checkGenLimit(needed=1){
 }
 
 function showGenLimitModal(){
+  if(typeof gtag!=='undefined') gtag('event','limit_reached',{event_category:'conversion',event_label:hasPaidAccess()?'paid':'free'});
   const existing = document.getElementById('gen-limit-modal');
   if(existing) { existing.classList.add('open'); return; }
   const isPaid = hasPaidAccess();
@@ -5435,7 +5446,8 @@ function exportPDF(){
     .header{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
     thead tr{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
   }
-</style></head><body>
+</style>
+</head><body>
 
 <button class="print-btn" onclick="window.print()">🖨️ Imprimer / Enregistrer PDF</button>
 
@@ -5931,11 +5943,13 @@ function activateCodeFromModal(){
     localStorage.setItem(OWNER_KEY,'true');
     document.querySelector('.mo')?.remove();
     toast('✅ Accès propriétaire — illimité !');
+    if(typeof gtag!=='undefined') gtag('event','code_activated',{event_category:'conversion',event_label:'owner'});
     updateGenCounter();
   } else if(VALID_CODES.includes(code)){
     localStorage.setItem(BETA_KEY,'true');
     document.querySelector('.mo')?.remove();
     toast('✅ Accès bêta activé — 200 générations !');
+    if(typeof gtag!=='undefined') gtag('event','code_activated',{event_category:'conversion',event_label:'beta'});
     updateGenCounter();
   } else {
     toast('❌ Code invalide');
