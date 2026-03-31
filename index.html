@@ -1159,6 +1159,65 @@ body{font-family:'DM Sans',sans-serif;font-weight:300;background:var(--bg);color
 
 
 <!-- CPE MODAL -->
+<!-- EDIT PP MODAL -->
+<div class="mo" id="mo-edit-pp">
+  <div class="modal">
+    <div class="mo-t">Modifier la classe PP</div>
+    <div class="mo-lbl">Nom de la classe</div>
+    <input class="mo-inp" id="epp-name" placeholder="ex: 3ème A...">
+    <div class="mo-lbl">Niveau scolaire</div>
+    <select class="mo-sel" id="epp-year">
+      <option value="">— Sélectionner —</option>
+      <optgroup label="Collège">
+        <option value="6e">6e</option><option value="5e">5e</option>
+        <option value="4e">4e</option><option value="3e">3e</option>
+      </optgroup>
+      <optgroup label="Lycée">
+        <option value="2nde">2nde</option><option value="1ere">1ère</option>
+        <option value="tle">Terminale</option>
+      </optgroup>
+    </select>
+    <div class="mo-lbl">Périodes</div>
+    <div class="mo-radio">
+      <label><input type="radio" name="epp-period" value="trimestre"> Trimestres (3)</label>
+      <label><input type="radio" name="epp-period" value="semestre"> Semestres (2)</label>
+    </div>
+    <div class="mo-acts">
+      <button class="btn btn-o" onclick="closeMo('mo-edit-pp')">Annuler</button>
+      <button class="btn btn-g" onclick="saveEditPP()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT CPE MODAL -->
+<div class="mo" id="mo-edit-cpe">
+  <div class="modal">
+    <div class="mo-t">Modifier le suivi CPE</div>
+    <div class="mo-lbl">Nom de la classe</div>
+    <input class="mo-inp" id="ecpe-name" placeholder="ex: 3ème A...">
+    <div class="mo-lbl">Niveau scolaire</div>
+    <select class="mo-sel" id="ecpe-year">
+      <option value="">— Sélectionner —</option>
+      <optgroup label="Collège">
+        <option value="6e">6e</option><option value="5e">5e</option>
+        <option value="4e">4e</option><option value="3e">3e</option>
+      </optgroup>
+      <optgroup label="Lycée">
+        <option value="2nde">2nde</option><option value="1ere">1ère</option>
+        <option value="tle">Terminale</option>
+      </optgroup>
+    </select>
+    <div class="mo-lbl">Périodes</div>
+    <div class="mo-radio">
+      <label><input type="radio" name="ecpe-period" value="trimestre"> Trimestres (3)</label>
+      <label><input type="radio" name="ecpe-period" value="semestre"> Semestres (2)</label>
+    </div>
+    <div class="mo-acts">
+      <button class="btn btn-o" onclick="closeMo('mo-edit-cpe')">Annuler</button>
+      <button class="btn btn-g" onclick="saveEditCPE()">Enregistrer</button>
+    </div>
+  </div>
+</div>
 <div class="mo" id="mo-cpe">
   <div class="modal">
     <div class="mo-t">Nouveau suivi CPE</div>
@@ -6469,10 +6528,51 @@ function renderCPESidebar(){
     const div=document.createElement('div');
     div.className='cpe-item'+(activeCPE===id?' active':'');
     div.onclick=()=>selectCPE(id);
-    div.innerHTML=`<span class="cpe-item-name">${c.name}</span>
-      <button class="del-x" onclick="delCPE('${id}',event)">✕</button>`;
+    div.innerHTML=`<div class="pp-dot" style="background:rgba(217,119,6,.3)"></div><div class="cls-info"><div class="cls-name">${c.name}</div><div class="cls-meta">CPE${c.classYear?' · '+(YEAR_LABELS[c.classYear]||c.classYear):''} · ${c.periodType==='semestre'?'Sem.':'Trim.'}</div></div><span class="cls-n">${c.students.length}</span><button class="sb-edit" title="Modifier" onclick="event.stopPropagation();openEditCPE('${id}')">✎</button><button class="sb-del" title="Supprimer" onclick="event.stopPropagation();delCPE('${id}',event)">✕</button>`;
     el.appendChild(div);
   });
+}
+
+function openEditPP(id){
+  const p=S.pp[id]; if(!p)return;
+  S._editingPP=id;
+  document.getElementById('epp-name').value=p.name;
+  document.getElementById('epp-year').value=p.classYear||'';
+  document.querySelectorAll('input[name="epp-period"]').forEach(r=>r.checked=r.value===p.periodType);
+  document.getElementById('mo-edit-pp').classList.add('open');
+}
+function saveEditPP(){
+  const id=S._editingPP; if(!id)return;
+  const p=S.pp[id]; if(!p)return;
+  const name=document.getElementById('epp-name').value.trim(); if(!name)return;
+  p.name=name;
+  p.classYear=document.getElementById('epp-year').value||'';
+  p.periodType=document.querySelector('input[name="epp-period"]:checked')?.value||'trimestre';
+  S._editingPP=null;
+  closeMo('mo-edit-pp'); save(); renderPPSidebar();
+  if(activePP===id)renderPPMain();
+  toast(`✓ "${name}" mis à jour`);
+}
+
+function openEditCPE(id){
+  const c=S.cpe[id]; if(!c)return;
+  S._editingCPE=id;
+  document.getElementById('ecpe-name').value=c.name;
+  document.getElementById('ecpe-year').value=c.classYear||'';
+  document.querySelectorAll('input[name="ecpe-period"]').forEach(r=>r.checked=r.value===c.periodType);
+  document.getElementById('mo-edit-cpe').classList.add('open');
+}
+function saveEditCPE(){
+  const id=S._editingCPE; if(!id)return;
+  const c=S.cpe[id]; if(!c)return;
+  const name=document.getElementById('ecpe-name').value.trim(); if(!name)return;
+  c.name=name;
+  c.classYear=document.getElementById('ecpe-year').value||'';
+  c.periodType=document.querySelector('input[name="ecpe-period"]:checked')?.value||'trimestre';
+  S._editingCPE=null;
+  closeMo('mo-edit-cpe'); save(); renderCPESidebar();
+  if(activeCPE===id)renderCPEMain();
+  toast(`✓ "${name}" mis à jour`);
 }
 
 function openNewCPE(){
@@ -7380,9 +7480,7 @@ function renderPPSidebar(){
     const d=document.createElement('div');
     d.className='pp-item'+(id===activePP?' active':'');
     d.onclick=()=>selectPP(id);
-    d.innerHTML=`<div class="pp-dot"></div><div class="cls-info"><div class="cls-name">${p.name}</div><div class="cls-meta">PP · ${p.periodType==='semestre'?'Sem.':'Trim.'}</div></div><span class="cls-n">${p.students.length}</span><button class="sb-del" title="Supprimer">✕</button>`;
-    const pbtn=d.querySelector('.sb-del');
-    pbtn.addEventListener('click',e=>{e.stopPropagation();deletePP(id);});
+    d.innerHTML=`<div class="pp-dot"></div><div class="cls-info"><div class="cls-name">${p.name}</div><div class="cls-meta">PP${p.classYear?' · '+(YEAR_LABELS[p.classYear]||p.classYear):''} · ${p.periodType==='semestre'?'Sem.':'Trim.'}</div></div><span class="cls-n">${p.students.length}</span><button class="sb-edit" title="Modifier" onclick="event.stopPropagation();openEditPP('${id}')">✎</button><button class="sb-del" title="Supprimer" onclick="event.stopPropagation();deletePP('${id}')">✕</button>`;
     el.appendChild(d);
   });
 }
