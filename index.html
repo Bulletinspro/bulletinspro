@@ -20,6 +20,7 @@
   --purple:#7c3aed; --purple-l:#f5f3ff; --purple-b:#c4b5fd;
   --sidebar:#171220; --r:12px;
   --teal:#0d9488; --teal-l:#f0fdfa; --teal-b:#99f6e4;
+  --cpe:#b45309; --cpe-l:#fffbeb; --cpe-b:#fde68a;
   --gradient:linear-gradient(135deg, #6B2FD9 0%, #A855F7 100%);
   --ed-font-size: 13px;
 }
@@ -32,6 +33,7 @@ body.dark-mode {
   --blue-l:#0f1e2a; --blue-b:#1e3a5a;
   --purple-l:#1e1530; --purple-b:#4a2a7a;
   --teal-l:#0a1e1c; --teal-b:#0a4a44;
+  --cpe:#f59e0b; --cpe-l:#1c1500; --cpe-b:#3d2d00;
 }
 /* Topbar */
 body.dark-mode .topbar{background:linear-gradient(135deg,#3d1a8a 0%,#6b2fd9 100%);}
@@ -483,6 +485,19 @@ body{font-family:'DM Sans',sans-serif;font-weight:300;background:var(--bg);color
 .pp-card{background:var(--surface);border:1px solid var(--teal-b);border-radius:var(--r);margin-bottom:10px;overflow:hidden;}
 .pp-card-hd{padding:9px 14px;background:var(--teal-l);border-bottom:1px solid var(--teal-b);font-family:'DM Mono',monospace;font-size:.58rem;text-transform:uppercase;letter-spacing:.09em;color:var(--teal);}
 .pp-freetext{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:6px;font-family:'DM Sans',sans-serif;font-size:.84rem;line-height:1.6;background:var(--bg);outline:none;resize:vertical;min-height:70px;}
+.cpe-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;background:var(--cpe-l);border:1px solid var(--cpe-b);border-radius:5px;font-family:'DM Mono',monospace;font-size:.58rem;text-transform:uppercase;letter-spacing:.07em;color:var(--cpe);}
+.cpe-item{padding:9px 14px;border-radius:8px;cursor:pointer;display:flex;align-items:center;gap:8px;transition:all .12s;margin-bottom:3px;}
+.cpe-item:hover{background:var(--cpe-l);}
+.cpe-item.active{background:var(--cpe-l);border-left:3px solid var(--cpe);padding-left:10px;}
+.cpe-item-name{font-size:.84rem;font-weight:500;color:var(--ink);flex:1;}
+.cpe-st-row{display:flex;align-items:center;gap:10px;padding:9px 14px;cursor:pointer;border-radius:8px;transition:all .12s;margin-bottom:2px;}
+.cpe-st-row:hover{background:var(--cpe-l);}
+.cpe-st-row.active{background:var(--cpe-l);border-left:3px solid var(--cpe);padding-left:10px;}
+.cpe-st-dot{width:8px;height:8px;border-radius:50%;background:var(--border);flex-shrink:0;}
+.cpe-st-dot.done{background:var(--cpe);}
+.cpe-card{background:var(--surface);border:1px solid var(--cpe-b);border-radius:var(--r);margin-bottom:10px;overflow:hidden;}
+.cpe-card-hd{padding:9px 14px;background:var(--cpe-l);border-bottom:1px solid var(--cpe-b);font-family:'DM Mono',monospace;font-size:.68rem;text-transform:uppercase;letter-spacing:.09em;color:var(--cpe);font-weight:600;}
+.cpe-ed-hdr{display:flex;align-items:center;gap:14px;margin-bottom:20px;background:linear-gradient(135deg,#b45309,#d97706);border-radius:16px;padding:16px;color:#fff;}
 .pp-freetext:focus{border-color:var(--teal);background:#fff;}
 .pp-vsco-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:10px 14px;}
 .pp-vsco-item{display:flex;flex-direction:column;gap:4px;}
@@ -755,9 +770,9 @@ body{font-family:'DM Sans',sans-serif;font-weight:300;background:var(--bg);color
     <div class="sb-divider"><div class="sb-div-line"></div><span class="sb-div-lbl">Prof. Principal</span><div class="sb-div-line"></div></div>
     <div id="pp-list"></div>
     <button class="add-pp-btn" onclick="openNewPP()">+ Nouvelle classe PP</button>
-    <div class="sb-divider"><div class="sb-div-line"></div><span class="sb-div-lbl">CPE</span><div class="sb-div-line"></div></div>
+    <div class="sb-divider"><div class="sb-div-line"></div><span class="sb-div-lbl" style="color:var(--cpe)">CPE</span><div class="sb-div-line"></div></div>
     <div id="cpe-list"></div>
-    <button class="add-pp-btn" onclick="openNewCPE()">+ Nouveau suivi CPE</button>
+    <button class="add-pp-btn" style="border-color:var(--cpe-b);color:var(--cpe)" onclick="openNewCPE()">+ Nouveau suivi CPE</button>
   </div>
   <div class="sb-foot">
     <button class="sb-fbtn" onclick="exportAll()">⬇ Export</button>
@@ -6447,9 +6462,9 @@ function renderCPESidebar(){
   ids.forEach(id=>{
     const c=S.cpe[id];
     const div=document.createElement('div');
-    div.className='pp-item'+(activeCPE===id?' active':'');
+    div.className='cpe-item'+(activeCPE===id?' active':'');
     div.onclick=()=>selectCPE(id);
-    div.innerHTML=`<span class="pp-item-name">${c.name}</span>
+    div.innerHTML=`<span class="cpe-item-name">${c.name}</span>
       <button class="del-x" onclick="delCPE('${id}',event)">✕</button>`;
     el.appendChild(div);
   });
@@ -6487,12 +6502,10 @@ function delCPE(id,e){
 }
 
 function renderCPEMain(){
-  const main=document.getElementById('main'); if(!main)return;
   const c=S.cpe&&S.cpe[activeCPE]; if(!c)return;
   const periods=c.periodType==='semestre'?2:3;
   const labels=c.periodType==='semestre'?['S1','S2']:['T1','T2','T3'];
 
-  // Use standard topbar elements like PP
   document.getElementById('cls-title').innerHTML=`<span style="font-family:'Lora',serif">${c.name}</span> <span class="pp-badge" style="background:var(--teal);color:#fff">CPE</span>`;
 
   const pr=document.getElementById('period-row');
@@ -6528,6 +6541,7 @@ function renderCPEMain(){
         <div class="add-row" id="cpe-add-row" style="display:none">
           <div class="add-form">
             <input class="add-inp" id="cpe-ns-num" type="number" min="1" max="38" placeholder="N°" style="width:55px">
+            <input class="add-inp" id="cpe-ns-name" placeholder="Prénom Nom" style="flex:1;min-width:80px" onkeydown="if(event.key==='Enter')addCPEStudent()">
             <div class="gender-tog">
               <button class="gbtn m active" id="cpe-gb-m" onclick="cpeSelG('M')">M</button>
               <button class="gbtn f" id="cpe-gb-f" onclick="cpeSelG('F')">F</button>
@@ -6559,11 +6573,14 @@ function togCPEAddRow(){const r=document.getElementById('cpe-add-row');r.style.d
 function addCPEStudent(){
   const c=S.cpe[activeCPE]; if(!c)return;
   const numEl=document.getElementById('cpe-ns-num');
+  const nameEl=document.getElementById('cpe-ns-name');
   const num=parseInt(numEl.value); if(isNaN(num)||num<1)return;
   if(c.students.find(s=>s.num===num)){toast('Ce numéro existe déjà');return;}
-  c.students.push({id:'cs'+Date.now()+Math.random().toString(36).slice(2),num,name:'',gender:cpeNewG,boxes:{},comments:{}});
+  const name=(nameEl?nameEl.value.trim():'');
+  c.students.push({id:'cs'+Date.now()+Math.random().toString(36).slice(2),num,name,gender:cpeNewG,boxes:{},comments:{}});
   c.students.sort((a,b)=>a.num-b.num);
-  numEl.value=''; save(); renderCPEStudentList();
+  numEl.value=''; if(nameEl)nameEl.value='';
+  save(); renderCPEStudentList();
   const sc=document.getElementById('cpe-sc'); if(sc)sc.textContent=c.students.length;
 }
 
@@ -6578,7 +6595,7 @@ function renderCPEStudentList(){
   c.students.forEach(s=>{
     const done=!!(s.comments&&s.comments[activeCPEPeriod]);
     const d=document.createElement('div');
-    d.className='pp-st-row'+(s.id===activeCPEStudent?' active':'');
+    d.className='cpe-st-row'+(s.id===activeCPEStudent?' active':'');
     d.onclick=()=>selectCPEStudent(s.id);
     d.innerHTML=`
       <div class="st-avatar ${s.gender==='M'?'av-m':'av-f'}">${s.num}</div>
@@ -6586,7 +6603,7 @@ function renderCPEStudentList(){
         <div class="st-name">${s.name||'Élève n°'+s.num}</div>
         <div class="st-meta">${s.gender==='M'?'M':'F'}</div>
       </div>
-      <div class="pp-st-dot ${done?'done':''}"></div>
+      <div class="cpe-st-dot ${done?'done':''}"></div>
       <button class="del-x" onclick="delCPEStudent('${s.id}',event)">✕</button>`;
     scroll.appendChild(d);
   });
@@ -6611,8 +6628,8 @@ function renderCPEEditor(id){
   const comment=(st.comments&&st.comments[activeCPEPeriod])||'';
 
   let html=`
-    <div class="ed-hdr">
-      <div class="ed-av ${st.gender==='M'?'av-m':'av-f'}">${st.num}</div>
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:20px;background:linear-gradient(135deg,#b45309,#d97706);border-radius:16px;padding:16px;color:#fff">
+      <div class="ed-av" style="background:rgba(255,255,255,.2);color:#fff">${st.num}</div>
       <div style="flex:1;min-width:0">
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
           <div class="ed-name">${st.name||'Élève n°'+st.num}</div>
@@ -6632,7 +6649,7 @@ function renderCPEEditor(id){
 
   // Pill sections
   Object.entries(CPE_BOXES).forEach(([key,sec])=>{
-    html+=`<div class="pp-card"><div class="pp-card-hd">${sec.label}</div><div class="pill-grid">`;
+    html+=`<div class="cpe-card"><div class="cpe-card-hd">${sec.label}</div><div class="pill-grid">`;
     sec.items.forEach(item=>{
       const sel=!!(st.boxes&&st.boxes[item.id]);
       const suggested=!sel&&!!(st.vtpSuggestions&&st.vtpSuggestions[item.id]);
@@ -7438,6 +7455,7 @@ function renderPPLayout(content){
         <div class="add-row" id="pp-add-row" style="display:none">
           <div class="add-form">
             <input class="add-inp" id="pp-ns-num" type="number" min="1" max="38" placeholder="N°" style="width:55px">
+            <input class="add-inp" id="pp-ns-name" placeholder="Prénom Nom" style="flex:1;min-width:80px" onkeydown="if(event.key==='Enter')addPPStudent()">
             <div class="gender-tog">
               <button class="gbtn m active" id="pp-gb-m" onclick="ppSelG('M')">M</button>
               <button class="gbtn f" id="pp-gb-f" onclick="ppSelG('F')">F</button>
@@ -7562,14 +7580,17 @@ function ppSelG(g){ppNewG=g;document.getElementById('pp-gb-m').classList.toggle(
 
 function addPPStudent(){
   const numEl=document.getElementById('pp-ns-num');
+  const nameEl=document.getElementById('pp-ns-name');
   const num=parseInt(numEl.value)||0;
   if(num<1||num>38){toast('Numéro invalide');return;}
   const pp=S.pp[activePP];
   if(pp.students.find(s=>s.num===num)){toast('Numéro déjà utilisé');return;}
   const id='pps'+Date.now();
-  pp.students.push({id,num,gender:ppNewG,boxes:{},viesco:{absences:'',retards:'',demipen:''},notes:'',orient:{on:false,level:1,path:'',note:''},comments:{}});
+  const name=(nameEl?nameEl.value.trim():'');
+  pp.students.push({id,num,name,gender:ppNewG,boxes:{},viesco:{absences:'',retards:'',demipen:''},notes:'',orient:{on:false,level:1,path:'',note:''},comments:{}});
   pp.students.sort((a,b)=>a.num-b.num);
-  numEl.value=''; save(); renderPPStudentList();
+  numEl.value=''; if(nameEl)nameEl.value='';
+  save(); renderPPStudentList();
   document.getElementById('pp-sc').textContent=pp.students.length;
   selectPPStudent(id);
 }
@@ -7679,7 +7700,7 @@ function renderPPEditor(id){
 
   // PILL BOXES
   Object.entries(PP_BOXES).forEach(([,sec])=>{
-    html+=`<div class="pp-card"><div class="pp-card-hd">${sec.label}</div><div class="pill-grid">`;
+    html+=`<div class="cpe-card"><div class="cpe-card-hd">${sec.label}</div><div class="pill-grid">`;
     sec.items.forEach(item=>{
       const sel=!!(st.boxes&&st.boxes[item.id]);
       const suggested=!sel&&!!(st.vtpSuggestions&&st.vtpSuggestions[item.id]);
