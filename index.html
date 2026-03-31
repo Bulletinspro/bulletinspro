@@ -264,8 +264,8 @@ body{font-family:'DM Sans',sans-serif;font-weight:300;background:var(--bg);color
 .pill.neg:hover{border-color:#ef4444;color:#b91c1c;background:#fee2e2;transform:translateY(-1px);}
 .pill.neg.sel{border-color:#dc2626;background:#fee2e2;color:#b91c1c;font-weight:600;box-shadow:0 2px 8px rgba(220,38,38,.25);transform:translateY(-1px);}
 .pill.neutral{border-color:#fed7aa;background:#fff8f0;color:#9b7b50;}
-.pill.neutral:hover{border-color:#ea580c;color:#c2410c;background:#ffedd5;transform:translateY(-1px);}
-.pill.neutral.sel{border-color:#ea580c;background:#ffedd5;color:#c2410c;font-weight:600;box-shadow:0 2px 8px rgba(234,88,12,.25);transform:translateY(-1px);}
+.pill.neutral:hover{border-color:#d97706;color:#b45309;background:#fef3c7;transform:translateY(-1px);}
+.pill.neutral.sel{border-color:#d97706;background:#fef3c7;color:#92400e;font-weight:600;box-shadow:0 2px 8px rgba(217,119,6,.25);transform:translateY(-1px);}
 
 /* WELCOME SCREEN */
 .welcome-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;padding:30px;text-align:center;}
@@ -746,6 +746,9 @@ body{font-family:'DM Sans',sans-serif;font-weight:300;background:var(--bg);color
     <div class="sb-divider"><div class="sb-div-line"></div><span class="sb-div-lbl">Prof. Principal</span><div class="sb-div-line"></div></div>
     <div id="pp-list"></div>
     <button class="add-pp-btn" onclick="openNewPP()">+ Nouvelle classe PP</button>
+    <div class="sb-divider"><div class="sb-div-line"></div><span class="sb-div-lbl">CPE</span><div class="sb-div-line"></div></div>
+    <div id="cpe-list"></div>
+    <button class="add-pp-btn" onclick="openNewCPE()">+ Nouveau suivi CPE</button>
   </div>
   <div class="sb-foot">
     <button class="sb-fbtn" onclick="exportAll()">⬇ Export</button>
@@ -1067,6 +1070,33 @@ body{font-family:'DM Sans',sans-serif;font-weight:300;background:var(--bg);color
         <div style="font-size:.75rem;color:var(--muted);margin-top:2px">L'appréciation parle de l'élève à la 3e personne. Ex : "Cet élève fait preuve de…" plutôt que "Je note que…"</div>
       </div>
     </label>
+    <div class="mo-lbl">Style d'adresse</div>
+    <div class="mo-radio" style="margin-bottom:14px">
+      <label><input type="radio" name="ec-pronoun" value="je" checked> 3e personne — "Il/Elle fait preuve de…", "Je note que…"</label>
+      <label><input type="radio" name="ec-pronoun" value="vous"> Vouvoiement — "Vous faites preuve de…", "Je vous encourage…"</label>
+      <label><input type="radio" name="ec-pronoun" value="noje"> Sans "je" — 3e personne uniquement, jamais de "je"</label>
+    </div>
+    <div class="mo-lbl">Pronom d'adresse</div>
+    <div class="mo-radio" style="margin-bottom:14px">
+      <label><input type="radio" name="ec-pronoun" value="je" checked> Neutre / "je" — "Je félicite…"</label>
+      <label><input type="radio" name="ec-pronoun" value="vous"> Vouvoiement — "Vous faites preuve de…"</label>
+      <label><input type="radio" name="ec-pronoun" value="noje"> Sans "je" — 3e personne uniquement</label>
+    </div>
+    <div class="mo-lbl">Style de l'appréciation</div>
+    <div class="mo-radio" style="flex-direction:column;gap:6px;margin-bottom:14px">
+      <label style="display:flex;align-items:flex-start;gap:8px;cursor:pointer">
+        <input type="radio" name="ec-pronoun" value="je" style="accent-color:var(--accent);margin-top:2px"> 
+        <span style="font-size:.82rem"><strong>Sans vouvoiement</strong> — "Je note que…", "Il/elle fait preuve de…"</span>
+      </label>
+      <label style="display:flex;align-items:flex-start;gap:8px;cursor:pointer">
+        <input type="radio" name="ec-pronoun" value="vous" style="accent-color:var(--accent);margin-top:2px">
+        <span style="font-size:.82rem"><strong>Vouvoiement</strong> — "Vous faites preuve de…", "Je vous encourage…"</span>
+      </label>
+      <label style="display:flex;align-items:flex-start;gap:8px;cursor:pointer">
+        <input type="radio" name="ec-pronoun" value="noje" style="accent-color:var(--accent);margin-top:2px">
+        <span style="font-size:.82rem"><strong>3e personne uniquement</strong> — "Cet élève fait preuve de…" (jamais "je")</span>
+      </label>
+    </div>
     <div style="background:var(--warn-l);border:1px solid var(--warn-b);border-radius:8px;padding:8px 12px;margin-bottom:14px;font-size:.75rem;color:var(--warn)">
       ⚠️ Les élèves, leurs notes et appréciations sont conservés.
     </div>
@@ -1103,6 +1133,39 @@ body{font-family:'DM Sans',sans-serif;font-weight:300;background:var(--bg);color
   </div>
 </div>
 
+
+<!-- CPE MODAL -->
+<div class="mo" id="mo-cpe">
+  <div class="modal">
+    <div class="mo-t">Nouveau suivi CPE</div>
+    <div class="mo-lbl">Nom de la classe</div>
+    <input class="mo-inp" id="cpe-name" placeholder="ex: 3ème A, 2nde B..." onkeydown="if(event.key==='Enter')createCPE()">
+    <div class="mo-lbl">Niveau scolaire</div>
+    <select class="mo-sel" id="cpe-year">
+      <option value="">— Sélectionner —</option>
+      <optgroup label="Collège">
+        <option value="6e">6e</option>
+        <option value="5e">5e</option>
+        <option value="4e">4e</option>
+        <option value="3e">3e</option>
+      </optgroup>
+      <optgroup label="Lycée">
+        <option value="2nde">2nde</option>
+        <option value="1ere">1ère</option>
+        <option value="tle">Terminale</option>
+      </optgroup>
+    </select>
+    <div class="mo-lbl">Périodes</div>
+    <div class="mo-radio">
+      <label><input type="radio" name="cpe-period" value="trimestre" checked> Trimestres (3)</label>
+      <label><input type="radio" name="cpe-period" value="semestre"> Semestres (2)</label>
+    </div>
+    <div class="mo-acts">
+      <button class="btn btn-o" onclick="closeMo('mo-cpe')">Annuler</button>
+      <button class="btn btn-g" onclick="createCPE()">Créer</button>
+    </div>
+  </div>
+</div>
 
 <!-- CONFIRM MODAL -->
 <div class="mo" id="mo-confirm">
@@ -1221,6 +1284,8 @@ const CORE_BOXES = {
       {id:'pr27',l:'Progression constante tout au long du trimestre',v:'pos'},
       {id:'pr25',l:'Nette amélioration par rapport au trimestre précédent',v:'pos'},
       {id:'pr26',l:'Évolution positive en comportement et en investissement',v:'pos'},
+      {id:'pr28',l:'Bases globalement acquises',v:'pos'},
+      {id:'pr29',l:'Notions bien maîtrisées dans l\'ensemble',v:'pos'},
       {id:'pr19',l:'Résultats obtenus dans une classe à l\'ambiance difficile — mérite d\'être souligné',v:'pos'},
       {id:'pr20',l:'Redressement positif en fin de trimestre — à confirmer',v:'neutral'},
       {id:'pr21',l:'Sursaut encourageant en fin de trimestre',v:'neutral'},
@@ -2588,11 +2653,30 @@ const SUBJECT_BOXES = {
       label:'Engagement & Vie collective',
       items:[
         {id:'vc1',l:'Participe activement à la vie de la classe',v:'pos'},
-        {id:'vc2',l:'Prise d\'initiatives remarquable — force de proposition',v:'pos'},
-        {id:'vc3',l:'Très bon esprit collectif',v:'pos'},
-        {id:'vc4',l:'Participation satisfaisante',v:'neutral'},
-        {id:'vc5',l:'Pourrait s\'impliquer davantage dans la vie de classe',v:'neg'},
-        {id:'vc6',l:'Peu impliqué(e) dans la vie collective',v:'neg'},
+        {id:'vc2',l:'Force de proposition — prise d\'initiatives remarquable',v:'pos'},
+        {id:'vc3',l:'Excellent esprit collectif et solidarité',v:'pos'},
+        {id:'vc7',l:'Délégué(e) de classe — rôle bien tenu',v:'pos'},
+        {id:'vc8',l:'Contribue positivement à l\'ambiance de la classe',v:'pos'},
+        {id:'vc9',l:'Respectueux(se) envers ses camarades et les adultes',v:'pos'},
+        {id:'vc4',l:'Participation satisfaisante à la vie de classe',v:'neutral'},
+        {id:'vc10',l:'Intégration correcte dans le groupe',v:'neutral'},
+        {id:'vc11',l:'Attitude variable selon les situations',v:'neutral'},
+        {id:'vc5',l:'Pourrait s\'impliquer davantage dans la vie collective',v:'neg'},
+        {id:'vc6',l:'Peu impliqué(e) — en retrait du groupe',v:'neg'},
+        {id:'vc12',l:'Comportement parfois perturbateur pour le groupe',v:'neg'},
+        {id:'vc13',l:'Difficultés relationnelles avec certains camarades',v:'neg'},
+        {id:'vc14',l:'Doit apprendre à respecter les règles de vie collective',v:'neg'},
+      ]
+    },
+    integration: {
+      label:'Intégration & Climat de classe',
+      items:[
+        {id:'vi1',l:'Très bien intégré(e) dans la classe',v:'pos'},
+        {id:'vi2',l:'Ambiance de classe agréable et constructive',v:'pos'},
+        {id:'vi3',l:'Fait preuve de bienveillance envers ses camarades',v:'pos'},
+        {id:'vi4',l:'Intégration en cours — des progrès à faire',v:'neutral'},
+        {id:'vi5',l:'Doit travailler sa relation avec le groupe',v:'neg'},
+        {id:'vi6',l:'Tensions à résoudre au sein du groupe',v:'neg'},
       ]
     },
     orientation: {
@@ -2600,8 +2684,11 @@ const SUBJECT_BOXES = {
       items:[
         {id:'vo1',l:'Projet d\'orientation clair et réfléchi',v:'pos'},
         {id:'vo2',l:'Très bonne réflexion sur son avenir',v:'pos'},
+        {id:'vo5',l:'Motivé(e) et déterminé(e) dans son projet',v:'pos'},
         {id:'vo3',l:'Projet en cours de construction',v:'neutral'},
-        {id:'vo4',l:'Doit approfondir sa réflexion sur l\'orientation',v:'neg'},
+        {id:'vo6',l:'Doit commencer à réfléchir à son orientation',v:'neutral'},
+        {id:'vo4',l:'Doit approfondir et affiner sa réflexion',v:'neg'},
+        {id:'vo7',l:'Projet encore flou — accompagnement nécessaire',v:'neg'},
       ]
     },
   },
@@ -2610,38 +2697,63 @@ const SUBJECT_BOXES = {
       label:'Assiduité & Ponctualité',
       items:[
         {id:'cpe1',l:'Assiduité et ponctualité irréprochables',v:'pos'},
-        {id:'cpe2',l:'Très bonne assiduité',v:'pos'},
-        {id:'cpe3',l:'Quelques retards ponctuels',v:'neutral'},
+        {id:'cpe2',l:'Très bonne assiduité sur le trimestre',v:'pos'},
+        {id:'cpe9',l:'Efforts réels pour améliorer sa ponctualité',v:'pos'},
+        {id:'cpe3',l:'Quelques retards ponctuels — à surveiller',v:'neutral'},
         {id:'cpe4',l:'Assiduité globalement satisfaisante',v:'neutral'},
-        {id:'cpe5',l:'Retards fréquents à régulariser',v:'neg'},
+        {id:'cpe10',l:'Quelques absences justifiées — situation suivie',v:'neutral'},
+        {id:'cpe5',l:'Retards fréquents à régulariser d\'urgence',v:'neg'},
         {id:'cpe6',l:'Absences répétées — situation préoccupante',v:'neg'},
         {id:'cpe7',l:'Absences injustifiées — famille contactée',v:'neg'},
-        {id:'cpe8',l:'Décrochage scolaire à surveiller',v:'neg'},
+        {id:'cpe11',l:'Nombreuses absences perturbant la scolarité',v:'neg'},
+        {id:'cpe8',l:'Risque de décrochage scolaire',v:'neg'},
       ]
     },
     comportement: {
-      label:'Comportement & Intégration',
+      label:'Comportement & Respect du règlement',
       items:[
         {id:'cpb1',l:'Comportement exemplaire — élève respectueux(se)',v:'pos'},
-        {id:'cpb2',l:'Très bonne intégration dans l\'établissement',v:'pos'},
-        {id:'cpb3',l:'Comportement satisfaisant',v:'neutral'},
-        {id:'cpb4',l:'Quelques incidents mineurs signalés',v:'neutral'},
-        {id:'cpb5',l:'Comportement à améliorer',v:'neg'},
+        {id:'cpb2',l:'Très bonne intégration et respect des règles',v:'pos'},
+        {id:'cpb9',l:'Attitude mature et responsable',v:'pos'},
+        {id:'cpb10',l:'Fait preuve de civisme et de respect',v:'pos'},
+        {id:'cpb3',l:'Comportement globalement satisfaisant',v:'neutral'},
+        {id:'cpb4',l:'Quelques incidents mineurs — avertissement donné',v:'neutral'},
+        {id:'cpb11',l:'Des efforts notables mais des progrès encore nécessaires',v:'neutral'},
+        {id:'cpb5',l:'Comportement à améliorer de manière significative',v:'neg'},
         {id:'cpb6',l:'Incidents disciplinaires répétés',v:'neg'},
         {id:'cpb7',l:'Difficultés relationnelles avec les camarades',v:'neg'},
         {id:'cpb8',l:'Irrespect envers les adultes — inacceptable',v:'neg'},
+        {id:'cpb12',l:'Exclusions de cours à répétition',v:'neg'},
+        {id:'cpb13',l:'Conseil de discipline envisagé',v:'neg'},
       ]
     },
     suivi: {
       label:'Suivi & Accompagnement',
       items:[
-        {id:'cps1',l:'Aucun signalement ce trimestre',v:'pos'},
+        {id:'cps1',l:'Aucun signalement particulier ce trimestre',v:'pos'},
         {id:'cps2',l:'Bonne évolution depuis le début de l\'année',v:'pos'},
+        {id:'cps8',l:'Élève avec qui le dialogue est constructif',v:'pos'},
+        {id:'cps9',l:'Progrès encourageants depuis le dernier trimestre',v:'pos'},
         {id:'cps3',l:'Suivi en cours — des progrès notables',v:'neutral'},
-        {id:'cps4',l:'Suivi mis en place ce trimestre',v:'neutral'},
+        {id:'cps4',l:'Entretien réalisé ce trimestre',v:'neutral'},
+        {id:'cps10',l:'Médiation mise en place avec les camarades',v:'neutral'},
+        {id:'cps11',l:'Contact établi avec la famille',v:'neutral'},
         {id:'cps5',l:'Suivi renforcé nécessaire',v:'neg'},
-        {id:'cps6',l:'Famille contactée',v:'neg'},
-        {id:'cps7',l:'Équipe éducative mobilisée',v:'neg'},
+        {id:'cps6',l:'Famille convoquée — entretien urgent',v:'neg'},
+        {id:'cps7',l:'Équipe éducative mobilisée — situation complexe',v:'neg'},
+        {id:'cps12',l:'Signalement effectué — partenaires extérieurs impliqués',v:'neg'},
+      ]
+    },
+    conclusion: {
+      label:'Conclusion & Décision',
+      items:[
+        {id:'cpc1',l:'Félicitations pour le comportement exemplaire',v:'pos'},
+        {id:'cpc2',l:'Encouragements — continuer sur cette voie',v:'pos'},
+        {id:'cpc3',l:'Des progrès réels — à poursuivre',v:'neutral'},
+        {id:'cpc4',l:'Passage conditionnel — amélioration attendue',v:'neutral'},
+        {id:'cpc5',l:'Un sursaut est indispensable',v:'neg'},
+        {id:'cpc6',l:'La situation doit impérativement s\'améliorer',v:'neg'},
+        {id:'cpc7',l:'Exclusion définitive envisagée si aucune amélioration',v:'neg'},
       ]
     },
   },
@@ -3004,9 +3116,11 @@ async function gdLoadFromDrive(){
       }
 
       S=remote;
+      if(!S.cpe)S.cpe={};
       save();
-      renderSidebar();renderPPSidebar();
+      renderSidebar();renderPPSidebar();renderCPESidebar();
       if(S.active&&S.classes[S.active])selectClass(S.active);
+      else if(S.activeCPE&&S.cpe&&S.cpe[S.activeCPE]){activeCPE=S.activeCPE;renderCPEMain();}
       else if(S.activePP&&S.pp&&S.pp[S.activePP]){activePP=S.activePP;renderPPMain();}
       else renderWelcomeScreen();
       GD.lastSync=new Date().toISOString();
@@ -3278,6 +3392,10 @@ function openEditClass(id){
   document.getElementById('ec-charlimit').value=cls.charLimit||750;
   document.getElementById('ec-usename').checked=!!cls.useName;
   document.getElementById('ec-noje').checked=!!cls.noJe;
+  // Restore pronoun style
+  const pronounVal = cls.pronounStyle||'je';
+  const pronounRadio = document.querySelector(`input[name="ec-pronoun"][value="${pronounVal}"]`);
+  if(pronounRadio) pronounRadio.checked=true;
   const sel=document.getElementById('ec-subj');
   sel.innerHTML='';
   Object.entries(SUBJECTS).forEach(([k,v])=>{
@@ -3319,6 +3437,11 @@ function saveEditClass(){
   cls.charLimit=parseInt(document.getElementById('ec-charlimit').value)||750;
   cls.useName=document.getElementById('ec-usename').checked;
   cls.noJe=document.getElementById('ec-noje').checked;
+  const ecPronoun=document.querySelector('input[name="ec-pronoun"]:checked');
+  if(ecPronoun){
+    cls.pronounStyle=ecPronoun.value;
+    cls.noJe=ecPronoun.value==='noje';
+  }
   S._editingClass=null;
   closeMo('mo-edit-cls');
   save(); renderSidebar();
@@ -3443,6 +3566,7 @@ function setPeriod(n,btn){
 // ── MAIN RENDER ───────────────────────────────────────────────────────────────
 function renderMain(){
   // If PP is active instead of a class, route to PP renderer
+  if(!S.active && activeCPE && S.cpe&&S.cpe[activeCPE]){renderCPEMain();return;}
   if(!S.active && activePP && S.pp&&S.pp[activePP]){renderPPMain();return;}
   const cls=S.classes[S.active]; if(!cls)return;
   document.getElementById('cls-title').textContent=cls.name;
@@ -3654,6 +3778,14 @@ function getSubjectBoxes(subject, langLevel, classYear){
 
   const subjectSections=SUBJECT_BOXES[effectiveType]||SUBJECT_BOXES.academic;
   const ordered={};
+
+  // CPE (vieScolaire) and vie de classe only get their own sections — no generic CORE_BOXES
+  const noCoreSubjects=['vieScolaire','vieClasse','pfmp'];
+  if(noCoreSubjects.includes(effectiveType)){
+    Object.assign(ordered, subjectSections);
+    return ordered;
+  }
+
   ordered.progression = CORE_BOXES.progression;
   ordered.travail      = CORE_BOXES.travail;
   ordered.participation= CORE_BOXES.participation;
@@ -4388,6 +4520,53 @@ ATTENTION : si le niveau est "fragile" ou "insuffisant", ou si une régression e
   const citetEleve = st.gender==='F' ? 'cette élève' : 'cet élève';
 
   const isDiscreet=[...checkedNeg,...checkedNeutral].some(s=>s.toLowerCase().includes('discret')||s.toLowerCase().includes('réservé')||s.toLowerCase().includes('exprime peu'));
+
+  // CPE-specific prompt — completely different persona and focus
+  if(cls.subject==='vieScolaire'){
+    const cpeChecked=checked.join(' | ')||'Profil standard';
+    return `Tu es un Conseiller Principal d'Éducation (CPE) rédigeant une appréciation de bulletin scolaire.
+${pLabel} — ${schoolLevelCtx}
+
+ÉLÈVE : ${gender}. Accords au ${accord}.
+${studentRef}
+${verdictCtx}
+
+OBSERVATIONS CPE :
+${checked.length ? checked.map(i=>'• '+i).join('\n') : '• Élève sans signalement particulier'}
+${checkedNeg.length ? '\n⚠️ POINTS À MENTIONNER : '+checkedNeg.join(' | ') : ''}
+
+RÈGLES STRICTES :
+1. Tu es CPE, PAS un professeur de matière. INTERDIT : tout commentaire sur les résultats scolaires, le travail en cours, la participation aux cours.
+2. Tu traites UNIQUEMENT : assiduité, ponctualité, comportement, intégration dans l'établissement, suivi éducatif.
+3. Longueur : 2-3 phrases maximum. L'appréciation CPE est courte et factuelle.
+4. Ton : professionnel, factuel, bienveillant mais direct si nécessaire.
+5. ${cls.pronounStyle==='noje'||cls.noJe?'Jamais de "je" — 3e personne uniquement.':cls.pronounStyle==='vous'?'Vouvoiement : "Vous…", "Votre…"':'3e personne ou "je note que", "nous avons observé".'}
+6. INTERDITS : "trimestre", "résultats", "notes", "matières", "cours", "travail scolaire", "participation en classe".
+
+Génère uniquement l'appréciation CPE, sans guillemets ni explication.`;
+  }
+
+  // Vie de classe — short, focused on collective life
+  if(cls.subject==='vieClasse'){
+    return `Tu es un professeur référent rédigeant une appréciation de Vie de Classe pour le bulletin scolaire.
+${pLabel}
+
+ÉLÈVE : ${gender}. Accords au ${accord}.
+${studentRef}
+${verdictCtx}
+
+OBSERVATIONS :
+${checked.length ? checked.map(i=>'• '+i).join('\n') : '• Profil standard'}
+${checkedNeg.length ? '\n⚠️ POINTS À MENTIONNER : '+checkedNeg.join(' | ') : ''}
+
+RÈGLES STRICTES :
+1. UNIQUEMENT : attitude collective, intégration dans la classe, esprit de groupe, orientation si pertinent.
+2. INTERDIT : résultats, notes, travail scolaire, participation aux cours de matières.
+3. Longueur : 2-3 phrases maximum. Concis et ciblé.
+4. ${cls.pronounStyle==='noje'||cls.noJe?'Jamais de "je" — 3e personne uniquement.':cls.pronounStyle==='vous'?'Vouvoiement.':'3e personne ou "je".'}
+
+Génère uniquement l'appréciation, sans guillemets.`;
+  }
 
   return `Tu es un professeur français rédigeant une appréciation de bulletin scolaire.
 Niveau : ${schoolLevelCtx} | ${pLabel} — ${periodCtx}${langLevelCtx}${langNameCtx}${examCtx}${frenchLevelCtx}${histoLevelCtx}${mathsLevelCtx}${scienceLevelCtx}${philoCtx}${sesCtx}${frenchQualityCtx}
@@ -5457,24 +5636,34 @@ function startVoiceToPills(sid){
   };
 
   vtpRecognition.onresult=(e)=>{
-    let interim='', final='';
+    // Only process new results using resultIndex to avoid repetition on restart
     for(let i=e.resultIndex;i<e.results.length;i++){
-      if(e.results[i].isFinal) final+=e.results[i][0].transcript;
-      else interim+=e.results[i][0].transcript;
+      if(e.results[i].isFinal){
+        vtpTranscript+=e.results[i][0].transcript+' ';
+      }
     }
-    if(final) vtpTranscript+=final;
+    // Show interim (last non-final result only) alongside accumulated finals
+    let interim='';
+    for(let i=e.results.length-1;i>=e.resultIndex;i--){
+      if(!e.results[i].isFinal){interim=e.results[i][0].transcript;break;}
+    }
     const ta=document.getElementById('vtp-transcript');
-    if(ta) ta.textContent=(vtpTranscript+(interim?' '+interim:'')).trim()||'Parlez maintenant…';
+    if(ta) ta.textContent=(vtpTranscript+(interim?interim:'')).trim()||'Parlez maintenant…';
   };
 
   vtpRecognition.onerror=(e)=>{
+    if(e.error==='no-speech') return; // ignore silence
     document.getElementById('vtp-status-txt').textContent='❌ Erreur micro — '+e.error;
   };
 
   vtpRecognition.onend=()=>{
+    // Only restart if still active and modal open — with small delay to avoid rapid cycling
     if(vtpActive&&document.getElementById('mo-vtp')){
-      // Auto-restart if still in modal (continuous mode sometimes stops)
-      try{vtpRecognition.start();}catch(e){}
+      setTimeout(()=>{
+        if(vtpActive&&document.getElementById('mo-vtp')){
+          try{vtpRecognition.start();}catch(e){}
+        }
+      }, 300);
     }
   };
 
@@ -5657,14 +5846,18 @@ function startVoiceToPillsPP(sid){
   vtpRecognition=new SR();vtpRecognition.lang='fr-FR';vtpRecognition.continuous=true;vtpRecognition.interimResults=true;
   vtpRecognition.onstart=()=>{vtpActive=true;document.getElementById('vtp-status-txt').textContent='🎙️ En cours d\'écoute';document.getElementById('vtp-dot').style.background='#16a34a';};
   vtpRecognition.onresult=(e)=>{
-    let interim='',final='';
-    for(let i=e.resultIndex;i<e.results.length;i++){if(e.results[i].isFinal)final+=e.results[i][0].transcript;else interim+=e.results[i][0].transcript;}
-    if(final)vtpTranscript+=final;
+    for(let i=e.resultIndex;i<e.results.length;i++){
+      if(e.results[i].isFinal) vtpTranscript+=e.results[i][0].transcript+' ';
+    }
+    let interim='';
+    for(let i=e.results.length-1;i>=e.resultIndex;i--){
+      if(!e.results[i].isFinal){interim=e.results[i][0].transcript;break;}
+    }
     const ta=document.getElementById('vtp-transcript');
-    if(ta)ta.textContent=(vtpTranscript+(interim?' '+interim:'')).trim()||'Parlez maintenant…';
+    if(ta)ta.textContent=(vtpTranscript+(interim?interim:'')).trim()||'Parlez maintenant…';
   };
-  vtpRecognition.onerror=()=>{document.getElementById('vtp-status-txt').textContent='❌ Erreur micro';};
-  vtpRecognition.onend=()=>{if(vtpActive&&document.getElementById('mo-vtp')){try{vtpRecognition.start();}catch(e){}}};
+  vtpRecognition.onerror=(e)=>{if(e.error==='no-speech')return;document.getElementById('vtp-status-txt').textContent='❌ Erreur micro';};
+  vtpRecognition.onend=()=>{if(vtpActive&&document.getElementById('mo-vtp')){setTimeout(()=>{if(vtpActive&&document.getElementById('mo-vtp')){try{vtpRecognition.start();}catch(e){}}},300);}};
   vtpRecognition.start();
 }
 
@@ -6166,6 +6359,539 @@ function renderOnboardStep(){
   next.textContent=onboardStep===total-1?"C'est parti ! 🚀":'Suivant →';
 }
 
+// ── CPE MODULE ────────────────────────────────────────────────────────────────
+const CPE_BOXES = {
+  assiduite: {
+    label:'Assiduité & Ponctualité',
+    items:[
+      {id:'cpe1',l:'Assiduité et ponctualité irréprochables',v:'pos'},
+      {id:'cpe2',l:'Très bonne assiduité sur le trimestre',v:'pos'},
+      {id:'cpe9',l:'Efforts réels pour améliorer sa ponctualité',v:'pos'},
+      {id:'cpe3',l:'Quelques retards ponctuels — à surveiller',v:'neutral'},
+      {id:'cpe4',l:'Assiduité globalement satisfaisante',v:'neutral'},
+      {id:'cpe10',l:'Quelques absences justifiées — situation suivie',v:'neutral'},
+      {id:'cpe5',l:'Retards fréquents à régulariser d\'urgence',v:'neg'},
+      {id:'cpe6',l:'Absences répétées — situation préoccupante',v:'neg'},
+      {id:'cpe7',l:'Absences injustifiées — famille contactée',v:'neg'},
+      {id:'cpe11',l:'Nombreuses absences perturbant la scolarité',v:'neg'},
+      {id:'cpe8',l:'Risque de décrochage scolaire',v:'neg'},
+    ]
+  },
+  comportement: {
+    label:'Comportement & Respect du règlement',
+    items:[
+      {id:'cpb1',l:'Comportement exemplaire — élève respectueux(se)',v:'pos'},
+      {id:'cpb2',l:'Très bonne intégration et respect des règles de vie',v:'pos'},
+      {id:'cpb9',l:'Attitude mature et responsable',v:'pos'},
+      {id:'cpb10',l:'Fait preuve de civisme et de respect',v:'pos'},
+      {id:'cpb3',l:'Comportement globalement satisfaisant',v:'neutral'},
+      {id:'cpb4',l:'Quelques incidents mineurs — avertissement donné',v:'neutral'},
+      {id:'cpb11',l:'Des progrès notables mais des efforts encore nécessaires',v:'neutral'},
+      {id:'cpb5',l:'Comportement à améliorer de manière significative',v:'neg'},
+      {id:'cpb6',l:'Incidents disciplinaires répétés',v:'neg'},
+      {id:'cpb7',l:'Difficultés relationnelles avec les camarades',v:'neg'},
+      {id:'cpb8',l:'Irrespect envers les adultes — inacceptable',v:'neg'},
+      {id:'cpb12',l:'Exclusions de cours à répétition',v:'neg'},
+    ]
+  },
+  suivi: {
+    label:'Suivi & Accompagnement',
+    items:[
+      {id:'cps1',l:'Aucun signalement particulier ce trimestre',v:'pos'},
+      {id:'cps2',l:'Bonne évolution depuis le début de l\'année',v:'pos'},
+      {id:'cps8',l:'Dialogue constructif avec le service vie scolaire',v:'pos'},
+      {id:'cps9',l:'Progrès encourageants depuis le dernier trimestre',v:'pos'},
+      {id:'cps3',l:'Suivi en cours — des progrès notables',v:'neutral'},
+      {id:'cps4',l:'Entretien réalisé ce trimestre',v:'neutral'},
+      {id:'cps10',l:'Contact établi avec la famille',v:'neutral'},
+      {id:'cps5',l:'Suivi renforcé nécessaire',v:'neg'},
+      {id:'cps6',l:'Famille convoquée — entretien urgent',v:'neg'},
+      {id:'cps7',l:'Équipe éducative mobilisée — situation complexe',v:'neg'},
+    ]
+  },
+  conclusion: {
+    label:'Conclusion & Décision',
+    items:[
+      {id:'cpc1',l:'Félicitations pour le comportement exemplaire',v:'pos'},
+      {id:'cpc2',l:'Encouragements — continuer sur cette voie',v:'pos'},
+      {id:'cpc3',l:'Des progrès réels et encourageants',v:'neutral'},
+      {id:'cpc4',l:'Un travail sur soi est attendu au prochain trimestre',v:'neutral'},
+      {id:'cpc5',l:'Un sursaut est indispensable',v:'neg'},
+      {id:'cpc6',l:'La situation doit impérativement s\'améliorer',v:'neg'},
+    ]
+  },
+};
+
+let activeCPE = null;
+let activeCPEStudent = null;
+let activeCPEPeriod = 1;
+
+function renderCPESidebar(){
+  const el=document.getElementById('cpe-list'); if(!el)return;
+  const ids=Object.keys(S.cpe||{});
+  el.innerHTML='';
+  ids.forEach(id=>{
+    const c=S.cpe[id];
+    const div=document.createElement('div');
+    div.className='pp-item'+(activeCPE===id?' active':'');
+    div.onclick=()=>selectCPE(id);
+    div.innerHTML=`<span class="pp-item-name">${c.name}</span>
+      <button class="del-x" onclick="delCPE('${id}',event)">✕</button>`;
+    el.appendChild(div);
+  });
+}
+
+function openNewCPE(){
+  document.getElementById('cpe-name').value='';
+  document.getElementById('cpe-year').value='';
+  document.getElementById('mo-cpe').classList.add('open');
+  setTimeout(()=>document.getElementById('cpe-name').focus(),80);
+}
+
+function createCPE(){
+  const name=document.getElementById('cpe-name').value.trim(); if(!name)return;
+  const classYear=document.getElementById('cpe-year').value||'';
+  const periodType=document.querySelector('input[name="cpe-period"]:checked')?.value||'trimestre';
+  const id='cpe'+Date.now();
+  if(!S.cpe) S.cpe={};
+  S.cpe[id]={name,classYear,periodType,students:[],tone:'equilibre'};
+  closeMo('mo-cpe'); save(); renderCPESidebar(); selectCPE(id);
+}
+
+function selectCPE(id){
+  activeCPE=id; S.activeCPE=id; S.active=null; activePP=null; S.activePP=null;
+  save(); renderSidebar(); renderPPSidebar(); renderCPESidebar(); renderCPEMain();
+}
+
+function delCPE(id,e){
+  e.stopPropagation();
+  if(!confirm(`Supprimer ce suivi CPE ?`))return;
+  delete S.cpe[id];
+  if(activeCPE===id){activeCPE=null;S.activeCPE=null;activeCPEStudent=null;}
+  save(); renderCPESidebar();
+  if(!activeCPE) document.getElementById('main').innerHTML='<div class="empty" style="height:100%"><div class="empty-icon">📋</div><div class="empty-t">Sélectionnez une classe</div></div>';
+}
+
+function renderCPEMain(){
+  const main=document.getElementById('main'); if(!main)return;
+  const c=S.cpe&&S.cpe[activeCPE]; if(!c)return;
+  const periods=c.periodType==='semestre'?2:3;
+  const labels=c.periodType==='semestre'?['S1','S2']:['T1','T2','T3'];
+
+  // Use standard topbar elements like PP
+  document.getElementById('cls-title').innerHTML=`<span style="font-family:'Lora',serif">${c.name}</span> <span class="pp-badge" style="background:var(--teal);color:#fff">CPE</span>`;
+
+  const pr=document.getElementById('period-row');
+  pr.style.display='flex'; pr.innerHTML='';
+  for(let i=1;i<=periods;i++){
+    const b=document.createElement('button');
+    b.className='pb'+(activeCPEPeriod===i?' active':'');
+    b.textContent=labels[i-1];
+    const n=i;
+    b.onclick=function(){setCPEPeriod(n);document.querySelectorAll('.period-row .pb').forEach(x=>x.classList.remove('active'));this.classList.add('active');};
+    pr.appendChild(b);
+  }
+
+  const tr=document.getElementById('topbar-r');
+  tr.style.display='flex';
+  tr.innerHTML=`
+    <span id="gen-counter-badge" style="font-size:.72rem;font-weight:600;margin-left:4px;padding:3px 8px;border-radius:999px;border:1px solid var(--border);background:var(--bg)"></span>
+    <button class="btn btn-sm" style="background:var(--teal);color:#fff" onclick="cpeGenAll()">⚡ Générer tout</button>`;
+  updateGenCounter();
+
+  document.getElementById('view-tabs').style.display='none';
+  document.getElementById('dbar').style.display='none';
+
+  const content=document.getElementById('content');
+  content.innerHTML=`
+    <div class="pp-layout">
+      <div class="pp-list-panel">
+        <div class="panel-head">
+          <span class="panel-lbl">Élèves (<span id="cpe-sc">${c.students.length}</span>)</span>
+          <button class="btn btn-o btn-sm" onclick="openImportCPEStudents()">📥 Importer</button>
+          <button class="btn btn-o btn-sm" onclick="togCPEAddRow()">+ Ajouter</button>
+        </div>
+        <div class="add-row" id="cpe-add-row" style="display:none">
+          <div class="add-form">
+            <input class="add-inp" id="cpe-ns-num" type="number" min="1" max="38" placeholder="N°" style="width:55px">
+            <div class="gender-tog">
+              <button class="gbtn m active" id="cpe-gb-m" onclick="cpeSelG('M')">M</button>
+              <button class="gbtn f" id="cpe-gb-f" onclick="cpeSelG('F')">F</button>
+            </div>
+            <button class="btn btn-g btn-sm" onclick="addCPEStudent()">OK</button>
+          </div>
+        </div>
+        <div class="st-scroll" id="cpe-st-scroll"></div>
+      </div>
+      <div class="pp-ed-panel">
+        <div class="pp-ed-scroll" id="cpe-ed-scroll">
+          <div class="empty"><div class="empty-icon">📋</div><div class="empty-t">Sélectionnez un élève</div><p class="empty-s">Le CPE rédige un suivi comportemental et d'assiduité pour chaque élève.</p></div>
+        </div>
+      </div>
+    </div>`;
+  renderCPEStudentList();
+}
+
+function setCPEPeriod(n){
+  activeCPEPeriod=n;
+  save(); renderCPEStudentList();
+  if(activeCPEStudent)renderCPEEditor(activeCPEStudent);
+}
+
+let cpeNewG='M';
+function cpeSelG(g){cpeNewG=g;document.getElementById('cpe-gb-m').classList.toggle('active',g==='M');document.getElementById('cpe-gb-f').classList.toggle('active',g==='F');}
+function togCPEAddRow(){const r=document.getElementById('cpe-add-row');r.style.display=r.style.display==='none'?'block':'none';if(r.style.display==='block')document.getElementById('cpe-ns-num').focus();}
+
+function addCPEStudent(){
+  const c=S.cpe[activeCPE]; if(!c)return;
+  const numEl=document.getElementById('cpe-ns-num');
+  const num=parseInt(numEl.value); if(isNaN(num)||num<1)return;
+  if(c.students.find(s=>s.num===num)){toast('Ce numéro existe déjà');return;}
+  c.students.push({id:'cs'+Date.now()+Math.random().toString(36).slice(2),num,name:'',gender:cpeNewG,boxes:{},comments:{}});
+  c.students.sort((a,b)=>a.num-b.num);
+  numEl.value=''; save(); renderCPEStudentList();
+  const sc=document.getElementById('cpe-sc'); if(sc)sc.textContent=c.students.length;
+}
+
+function getCPESt(id){return S.cpe[activeCPE].students.find(s=>s.id===id);}
+function setCPESName(id,val){const st=getCPESt(id);if(!st)return;st.name=val;save();renderCPEStudentList();}
+function setCPEGender(id,g){const st=getCPESt(id);if(!st)return;st.gender=g;save();renderCPEStudentList();renderCPEEditor(id);}
+
+function renderCPEStudentList(){
+  const c=S.cpe[activeCPE]; if(!c)return;
+  const scroll=document.getElementById('cpe-st-scroll'); if(!scroll)return;
+  scroll.innerHTML='';
+  c.students.forEach(s=>{
+    const done=!!(s.comments&&s.comments[activeCPEPeriod]);
+    const d=document.createElement('div');
+    d.className='pp-st-row'+(s.id===activeCPEStudent?' active':'');
+    d.onclick=()=>selectCPEStudent(s.id);
+    d.innerHTML=`
+      <div class="st-avatar ${s.gender==='M'?'av-m':'av-f'}">${s.num}</div>
+      <div class="st-info">
+        <div class="st-name">${s.name||'Élève n°'+s.num}</div>
+        <div class="st-meta">${s.gender==='M'?'M':'F'}</div>
+      </div>
+      <div class="pp-st-dot ${done?'done':''}"></div>
+      <button class="del-x" onclick="delCPEStudent('${s.id}',event)">✕</button>`;
+    scroll.appendChild(d);
+  });
+}
+
+function selectCPEStudent(id){activeCPEStudent=id;save();renderCPEStudentList();renderCPEEditor(id);}
+
+function delCPEStudent(id,e){
+  e.stopPropagation();
+  const c=S.cpe[activeCPE]; if(!c)return;
+  c.students=c.students.filter(s=>s.id!==id);
+  if(activeCPEStudent===id){activeCPEStudent=null;document.getElementById('cpe-ed-scroll').innerHTML='<div class="empty"><div class="empty-icon">📋</div><div class="empty-t">Sélectionnez un élève</div></div>';}
+  save(); renderCPEStudentList();
+  const sc=document.getElementById('cpe-sc'); if(sc)sc.textContent=c.students.length;
+}
+
+function renderCPEEditor(id){
+  const c=S.cpe[activeCPE];
+  const st=getCPESt(id); if(!st)return;
+  const scroll=document.getElementById('cpe-ed-scroll'); if(!scroll)return;
+  const pLabel=c.periodType==='semestre'?`Semestre ${activeCPEPeriod}`:`Trimestre ${activeCPEPeriod}`;
+  const comment=(st.comments&&st.comments[activeCPEPeriod])||'';
+
+  let html=`
+    <div class="ed-hdr">
+      <div class="ed-av ${st.gender==='M'?'av-m':'av-f'}">${st.num}</div>
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <div class="ed-name">${st.name||'Élève n°'+st.num}</div>
+          <input value="${(st.name||'').replace(/"/g,'&quot;')}" placeholder="Ajouter un nom…" onchange="setCPESName('${id}',this.value)" style="padding:2px 7px;border:1px solid rgba(255,255,255,.35);border-radius:4px;font-size:.75rem;background:rgba(255,255,255,.15);outline:none;color:#fff;width:150px">
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:4px;flex-wrap:wrap">
+          <div class="gender-tog">
+            <button class="gbtn m ${st.gender==='M'?'active':''}" onclick="setCPEGender('${id}','M')">♂ M</button>
+            <button class="gbtn f ${st.gender==='F'?'active':''}" onclick="setCPEGender('${id}','F')">♀ F</button>
+          </div>
+          <div class="ed-sub">${pLabel} · CPE · ${c.name}</div>
+          <button onclick="resetAllCPEBoxes('${id}')" style="padding:3px 10px;border:1px solid rgba(255,255,255,.35);border-radius:6px;font-size:.65rem;font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.05em;background:rgba(255,255,255,.15);color:rgba(255,255,255,.9);cursor:pointer" title="Réinitialiser">↺ Reset</button>
+          <button onclick="startVoiceToPillsCPE('${id}')" style="padding:3px 10px;border:1px solid rgba(255,255,255,.5);border-radius:6px;font-size:.65rem;font-family:'DM Mono',monospace;text-transform:uppercase;background:rgba(255,255,255,.2);color:#fff;cursor:pointer;font-weight:600" title="Profil vocal">🎙️ Profil vocal</button>
+        </div>
+      </div>
+    </div>`;
+
+  // Pill sections
+  Object.entries(CPE_BOXES).forEach(([key,sec])=>{
+    html+=`<div class="pp-card"><div class="pp-card-hd">${sec.label}</div><div class="pill-grid">`;
+    sec.items.forEach(item=>{
+      const sel=!!(st.boxes&&st.boxes[item.id]);
+      const suggested=!sel&&!!(st.vtpSuggestions&&st.vtpSuggestions[item.id]);
+      const cls2=item.v==='neg'?'neg':item.v==='neutral'?'neutral':'';
+      if(suggested){
+        html+=`<span class="pill ${cls2} suggested" title="Suggestion vocale">
+          ${item.l}
+          <span onclick="event.stopPropagation();confirmCPESuggestion('${id}','${item.id}',this.parentElement)" style="margin-left:6px;cursor:pointer" title="Confirmer">✓</span>
+          <span onclick="event.stopPropagation();rejectCPESuggestion('${id}','${item.id}',this.parentElement)" style="margin-left:3px;cursor:pointer;opacity:.6" title="Ignorer">✕</span>
+        </span>`;
+      } else {
+        html+=`<span class="pill ${cls2} ${sel?'sel':''}" onclick="togCPEBox('${id}','${item.id}',this)">${item.l}</span>`;
+      }
+    });
+    html+=`</div></div>`;
+  });
+
+  // Appreciation area
+  html+=`
+    <div class="card">
+      <div class="cmt-hd">
+        <span class="cmt-lbl">Suivi CPE — ${pLabel}</span>
+      </div>
+      <div class="cmt-acts">
+        <button class="act-btn gen-btn" onclick="cpeGenOne('${id}')">↻ Générer</button>
+        <button class="act-btn" onclick="resetCPEComment('${id}')">🗑 Effacer</button>
+        <button class="copy-btn" onclick="copyCPE('${id}')">📋 Copier</button>
+      </div>
+      <div class="card-bd">
+        <textarea class="cmt-ta appre-ta" id="cpecta-${id}" placeholder="Cliquez sur Générer ou rédigez manuellement…" oninput="cpeOnCI('${id}',this.value)">${comment}</textarea>
+      </div>
+    </div>`;
+
+  scroll.innerHTML=html;
+}
+
+function togCPEBox(sid,itemId,el){
+  const st=getCPESt(sid);if(!st)return;
+  if(!st.boxes)st.boxes={};
+  st.boxes[itemId]=!st.boxes[itemId];
+  if(st.boxes[itemId])el.classList.add('sel');else el.classList.remove('sel');
+  save();
+}
+
+function resetAllCPEBoxes(id){
+  const st=getCPESt(id);if(!st)return;
+  const ticked=st.boxes?Object.keys(st.boxes).filter(k=>st.boxes[k]).length:0;
+  if(ticked>0&&!confirm(`Réinitialiser les ${ticked} case(s) ?`))return;
+  st.boxes={};st.vtpSuggestions={};
+  save();renderCPEEditor(id);
+}
+
+function resetCPEComment(id){
+  const st=getCPESt(id);if(!st)return;
+  if(!st.comments)st.comments={};
+  st.comments[activeCPEPeriod]='';
+  save();renderCPEEditor(id);
+}
+
+function cpeOnCI(id,val){
+  const st=getCPESt(id);if(!st)return;
+  if(!st.comments)st.comments={};
+  st.comments[activeCPEPeriod]=val;
+  save();
+}
+
+function copyCPE(id){
+  const ta=document.getElementById('cpecta-'+id);
+  if(!ta||!ta.value)return;
+  navigator.clipboard.writeText(ta.value).then(()=>toast('📋 Copié !'));
+}
+
+function confirmCPESuggestion(sid,itemId,el){
+  const st=getCPESt(sid);if(!st)return;
+  if(!st.boxes)st.boxes={};
+  st.boxes[itemId]=true;
+  if(st.vtpSuggestions)delete st.vtpSuggestions[itemId];
+  el.classList.remove('suggested');el.classList.add('sel');
+  save();
+}
+
+function rejectCPESuggestion(sid,itemId,el){
+  const st=getCPESt(sid);if(!st)return;
+  if(st.vtpSuggestions)delete st.vtpSuggestions[itemId];
+  el.classList.remove('suggested');save();
+}
+
+async function cpeGenOne(sid){
+  if(!checkGenLimit(1)) return;
+  const c=S.cpe[activeCPE]; const st=getCPESt(sid); if(!st)return;
+  const ta=document.getElementById('cpecta-'+sid); if(!ta)return;
+  ta.classList.add('gen'); ta.value='Rédaction en cours…';
+  const pLabel=c.periodType==='semestre'?`Semestre ${activeCPEPeriod}`:`Trimestre ${activeCPEPeriod}`;
+  const obs=[];
+  Object.entries(CPE_BOXES).forEach(([,sec])=>{
+    sec.items.forEach(item=>{if(st.boxes&&st.boxes[item.id])obs.push(item.l);});
+  });
+  const pronoun=st.gender==='F'?'elle':'il';
+  const prompt=`Tu es un Conseiller Principal d'Éducation (CPE) rédigeant un suivi comportemental et d'assiduité pour un bulletin scolaire en français.
+
+CLASSE : ${c.name}${c.classYear?' ('+c.classYear+')':''}
+PÉRIODE : ${pLabel}
+GENRE : ${st.gender==='F'?'Féminin':'Masculin'} (utiliser "${pronoun}", "cet élève" ou le prénom si disponible)
+${st.name?'PRÉNOM : '+st.name:''}
+
+OBSERVATIONS COCHÉES :
+${obs.length?obs.map(o=>'• '+o).join('\n'):'(aucune observation cochée — rédiger un bilan neutre)'}
+
+RÈGLES STRICTES :
+1. Ton CPE uniquement — PAS de mention de résultats scolaires, notes, matières.
+2. Focus : assiduité, ponctualité, comportement, vie scolaire, suivi.
+3. 200-350 caractères maximum — court et précis.
+4. Ton professionnel et factuel, sans jugement de valeur sur la personne.
+5. Pas de "je" — parler à la 3e personne ou directement à l'élève/famille.
+6. INTERDIT : "il est essentiel", "il est important", "il est nécessaire".
+7. Terminer par une décision ou une attente concrète si négatif.
+
+Génère uniquement le suivi CPE, sans guillemets ni explication.`;
+
+  try{
+    const txt=await callClaude(prompt);
+    incrementGenCount(1);
+    ta.classList.remove('gen'); ta.value=txt;
+    cpeOnCI(sid,txt);updateGenCounter();
+  }catch(e){ta.classList.remove('gen');ta.value='';toast('Erreur de génération');}
+}
+
+async function cpeGenAll(){
+  const c=S.cpe[activeCPE]; if(!c||!c.students.length)return;
+  if(!checkGenLimit(c.students.length)) return;
+  toast('Génération en cours…');
+  for(let i=0;i<c.students.length;i++){
+    await cpeGenOne(c.students[i].id);
+    if(activeCPEStudent===c.students[i].id)renderCPEEditor(c.students[i].id);
+    toast(`${i+1}/${c.students.length} suivis rédigés…`);
+  }
+  toast(`✓ ${c.students.length} suivis CPE générés !`);
+}
+
+function startVoiceToPillsCPE(sid){
+  if(!('webkitSpeechRecognition' in window)&&!('SpeechRecognition' in window)){
+    toast('❌ Saisie vocale non supportée — utilisez Chrome ou Edge');return;
+  }
+  vtpTargetId=sid;vtpTranscript='';
+  const mo=document.createElement('div');
+  mo.className='mo';mo.id='mo-vtp';
+  mo.innerHTML=`<div class="mo-box" style="max-width:480px">
+    <div class="mo-t" style="margin-bottom:4px">🎙️ Profil vocal — CPE</div>
+    <p style="font-size:.82rem;color:var(--muted);margin-bottom:16px;line-height:1.5">Décrivez le suivi de l'élève : absences, comportement, incidents, progrès…</p>
+    <div id="vtp-status" style="display:flex;align-items:center;gap:10px;background:var(--bg);border-radius:10px;padding:12px 14px;margin-bottom:12px">
+      <div id="vtp-dot" style="width:12px;height:12px;border-radius:50%;background:#dc2626;animation:pulse-suggest 1s infinite;flex-shrink:0"></div>
+      <span id="vtp-status-txt" style="font-size:.82rem;color:var(--ink)">En attente…</span>
+    </div>
+    <div id="vtp-transcript" style="min-height:60px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:.85rem;color:var(--ink2);line-height:1.6;margin-bottom:16px;font-style:italic">Parlez maintenant…</div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-g" id="vtp-stop-btn" onclick="stopAndAnalyseVTPCPE('${sid}')" style="flex:1">✓ Terminer et analyser</button>
+      <button class="btn btn-o" onclick="cancelVTP()">Annuler</button>
+    </div>
+  </div>`;
+  document.body.appendChild(mo);mo.classList.add('open');
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  vtpRecognition=new SR();vtpRecognition.lang='fr-FR';vtpRecognition.continuous=true;vtpRecognition.interimResults=true;
+  vtpRecognition.onstart=()=>{vtpActive=true;document.getElementById('vtp-status-txt').textContent='🎙️ En cours d\'écoute';document.getElementById('vtp-dot').style.background='#16a34a';};
+  vtpRecognition.onresult=(e)=>{
+    for(let i=e.resultIndex;i<e.results.length;i++){if(e.results[i].isFinal)vtpTranscript+=e.results[i][0].transcript+' ';}
+    let interim='';for(let i=e.results.length-1;i>=e.resultIndex;i--){if(!e.results[i].isFinal){interim=e.results[i][0].transcript;break;}}
+    const ta=document.getElementById('vtp-transcript');
+    if(ta)ta.textContent=(vtpTranscript+interim).trim()||'Parlez maintenant…';
+  };
+  vtpRecognition.onerror=(e)=>{if(e.error==='no-speech')return;document.getElementById('vtp-status-txt').textContent='❌ Erreur micro';};
+  vtpRecognition.onend=()=>{if(vtpActive&&document.getElementById('mo-vtp')){setTimeout(()=>{if(vtpActive&&document.getElementById('mo-vtp')){try{vtpRecognition.start();}catch(e){}}},300);}};
+  vtpRecognition.start();
+}
+
+async function stopAndAnalyseVTPCPE(sid){
+  if(vtpRecognition)vtpRecognition.stop();vtpActive=false;
+  const transcript=vtpTranscript.trim();
+  if(!transcript){toast('Aucune parole détectée');cancelVTP();return;}
+  const stopBtn=document.getElementById('vtp-stop-btn');
+  if(stopBtn){stopBtn.disabled=true;stopBtn.textContent='⟳ Analyse en cours…';}
+  const st=getCPESt(sid);if(!st){cancelVTP();return;}
+  const pillList=[];
+  Object.values(CPE_BOXES).forEach(sec=>sec.items.forEach(item=>pillList.push({id:item.id,label:item.l})));
+  const currentlyTicked=st.boxes?Object.keys(st.boxes).filter(k=>st.boxes[k]):[];
+  const prompt=`Analyse la description CPE et sélectionne les observations correspondantes.
+DESCRIPTION : "${transcript}"
+CASES COCHÉES : ${currentlyTicked.length?currentlyTicked.map(id=>{const p=pillList.find(x=>x.id===id);return p?'• '+p.label:'';}).filter(Boolean).join('\n'):'(aucune)'}
+OBSERVATIONS :
+${pillList.map(p=>`${p.id}: ${p.label}`).join('\n')}
+Retourne UNIQUEMENT : {"tick":[],"suggest":[],"untick":[]}`;
+  try{
+    const res=await fetch('https://openrouter.ai/api/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+_apiKey,'HTTP-Referer':'https://bulletinspro.github.io','X-Title':'BulletinsPro CPE'},body:JSON.stringify({model:'anthropic/claude-sonnet-4-5',max_tokens:300,messages:[{role:'user',content:prompt}]})});
+    const data=await res.json();
+    let result;try{result=JSON.parse(data.choices?.[0]?.message?.content?.trim()||'{}');}catch{result={tick:[],suggest:[],untick:[]};}
+    if(!st.boxes)st.boxes={};
+    (result.tick||[]).forEach(id=>{st.boxes[id]=true;});
+    (result.untick||[]).forEach(id=>{delete st.boxes[id];});
+    st.vtpSuggestions={};
+    (result.suggest||[]).forEach(id=>{st.vtpSuggestions[id]=true;});
+    save();cancelVTP();renderCPEEditor(sid);
+    const nT=(result.tick||[]).length,nS=(result.suggest||[]).length;
+    toast(`✅ ${nT} case${nT>1?'s':''} cochée${nT>1?'s':''}${nS>0?` · 🟡 ${nS} suggestion${nS>1?'s':''}`:''}`);;
+  }catch(e){toast('❌ Erreur — réessayez');cancelVTP();}
+}
+
+function openImportCPEStudents(){
+  let mo=document.getElementById('mo-import-cpe-students');
+  if(!mo){
+    mo=document.createElement('div');mo.className='mo';mo.id='mo-import-cpe-students';
+    mo.innerHTML=`<div class="modal" style="width:460px">
+      <div class="mo-t">📥 Importer une liste d'élèves (CPE)</div>
+      <div class="mo-lbl">Option 1 — Fichier CSV</div>
+      <input type="file" id="imp-cpe-file" accept=".csv,.txt" style="margin-bottom:12px;font-size:.8rem;width:100%" onchange="previewImportCPEFile(event)">
+      <div class="mo-lbl">Option 2 — Coller une liste</div>
+      <textarea id="imp-cpe-text" class="mo-inp" rows="6" style="font-family:monospace;font-size:.78rem;resize:vertical" placeholder="1,Marie Dupont,F&#10;2,Lucas Martin,M&#10;..."></textarea>
+      <div style="margin-top:8px;margin-bottom:8px;font-size:.8rem;color:var(--muted)">Ordre du nom :</div>
+      <div style="display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap">
+        <label style="font-size:.82rem;cursor:pointer"><input type="radio" name="cpeNameOrder" value="prenom_nom" checked> Prénom NOM</label>
+        <label style="font-size:.82rem;cursor:pointer"><input type="radio" name="cpeNameOrder" value="nom_prenom"> NOM Prénom (PRONOTE)</label>
+        <label style="font-size:.82rem;cursor:pointer"><input type="radio" name="cpeNameOrder" value="auto"> Détecter auto</label>
+      </div>
+      <div id="imp-cpe-preview" style="font-size:.78rem;color:var(--accent);font-family:'DM Mono',monospace"></div>
+      <div class="mo-acts">
+        <button class="btn btn-o" onclick="closeMo('mo-import-cpe-students')">Annuler</button>
+        <button class="btn btn-g" onclick="doImportCPEStudents()">Importer</button>
+      </div>
+    </div>`;
+    mo.addEventListener('click',e=>{if(e.target===mo)mo.classList.remove('open');});
+    document.body.appendChild(mo);
+  }
+  document.getElementById('imp-cpe-text').value='';
+  document.getElementById('imp-cpe-preview').textContent='';
+  mo.classList.add('open');
+}
+
+function previewImportCPEFile(e){
+  const f=e.target.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=ev=>{document.getElementById('imp-cpe-text').value=ev.target.result;document.getElementById('imp-cpe-preview').textContent=`✓ ${ev.target.result.split('\n').filter(l=>l.trim()).length} lignes`;};
+  r.readAsText(f);
+}
+
+function doImportCPEStudents(){
+  const c=S.cpe[activeCPE];if(!c)return;
+  const raw=document.getElementById('imp-cpe-text').value.trim();if(!raw){toast('Aucune donnée');return;}
+  const sel=document.querySelector('input[name="cpeNameOrder"]:checked');
+  const nameOrder=sel?sel.value:'auto';
+  const lines=raw.split('\n').filter(l=>l.trim());
+  let added=0,skipped=0;
+  lines.forEach(line=>{
+    line=line.trim();if(!line)return;
+    let num=null,name='',gender='M';
+    const parts=line.split(/[,;\t]+/);
+    if(parts.length>=2){
+      const maybeNum=parseInt(parts[0]);
+      if(!isNaN(maybeNum)){num=maybeNum;parts.shift();}
+      const last=parts[parts.length-1].trim();
+      if(last==='M'||last==='F'){gender=last;parts.pop();}
+      name=parts.join(' ').trim();
+    }else{name=line.replace(/^(\d+)[.\s]+/,'').trim();}
+    if(!name){skipped++;return;}
+    if(nameOrder==='nom_prenom'&&name.split(' ').length>=2){const w=name.split(' ');name=w.slice(1).join(' ')+' '+w[0];}
+    else if(nameOrder==='auto'){const words=name.split(' ');const allCaps=words.filter(w=>w===w.toUpperCase()&&w.length>1);if(allCaps.length){const nom=allCaps.join(' ');const prenom=words.filter(w=>w!==w.toUpperCase()||w.length<=1).join(' ');name=prenom?`${prenom} ${nom}`:nom;}}
+    if(!num)num=(c.students.length||0)+added+1;
+    if(c.students.find(s=>s.num===num)){skipped++;return;}
+    c.students.push({id:'cs'+Date.now()+Math.random().toString(36).slice(2),num,name,gender,boxes:{},comments:{}});
+    added++;
+  });
+  save();closeMo('mo-import-cpe-students');renderCPEStudentList();
+  const sc=document.getElementById('cpe-sc');if(sc)sc.textContent=c.students.length;
+  toast(`✓ ${added} élève(s) importé(s)${skipped?` · ${skipped} ignoré(s)`:''}`);;
+}
+
 // ── DARK MODE ─────────────────────────────────────────────────────────────────
 function getAutoDark(){
   // 1. Check system OS preference
@@ -6445,24 +7171,33 @@ document.querySelectorAll('.mo').forEach(el=>el.addEventListener('click',e=>{if(
 
 const PP_BOXES = {
   themes: {
-    label: 'Thèmes récurrents signalés par les professeurs',
+    label: 'Bilan global — observations partagées',
     items: [
-      {id:'th1',l:'Investissement salué par plusieurs professeurs',v:'pos'},
-      {id:'th2',l:'Sérieux et régularité reconnus par l\'équipe',v:'pos'},
-      {id:'th3',l:'Attitude positive relevée en général',v:'pos'},
-      {id:'th4',l:'Bonne progression d\'ensemble',v:'pos'},
-      {id:'th5',l:'Élève apprécié(e) de l\'équipe pédagogique',v:'pos'},
+      {id:'th1',l:'Investissement souligné par plusieurs professeurs',v:'pos'},
+      {id:'th2',l:'Sérieux et régularité reconnus dans plusieurs disciplines',v:'pos'},
+      {id:'th3',l:'Attitude positive relevée par plusieurs enseignants',v:'pos'},
+      {id:'th4',l:'Bonne progression globale remarquée',v:'pos'},
+      {id:'th16',l:'À l\'aise dans l\'ensemble des disciplines',v:'pos'},
+      {id:'th17',l:'Fait partie des élèves moteurs de la classe',v:'pos'},
+      {id:'th18',l:'Élève discret(e) mais sérieux(se) et appliqué(e)',v:'pos'},
+      {id:'th25',l:'Élève qui donne le meilleur d\'elle/lui-même',v:'pos'},
       {id:'th14',l:'Profil littéraire marqué',v:'pos'},
       {id:'th15',l:'Profil scientifique marqué',v:'pos'},
-      {id:'th16',l:'Polyvalent(e) — à l\'aise dans toutes les disciplines',v:'pos'},
       {id:'th6',l:'Résultats hétérogènes selon les matières',v:'neutral'},
-      {id:'th7',l:'Efforts insuffisants relevés par plusieurs professeurs',v:'neutral'},
       {id:'th8',l:'Implication variable selon les disciplines',v:'neutral'},
-      {id:'th9',l:'Manque de travail signalé par l\'ensemble',v:'neg'},
-      {id:'th10',l:'Comportement perturbateur noté par plusieurs',v:'neg'},
+      {id:'th19',l:'Bilan contrasté — des points forts et des axes de progrès',v:'neutral'},
+      {id:'th20',l:'Excellente culture générale, propos pertinents à l\'oral',v:'neutral'},
+      {id:'th21',l:'Manque d\'approfondissement à l\'écrit noté dans plusieurs matières',v:'neutral'},
+      {id:'th26',l:'Des capacités réelles pas encore pleinement exploitées',v:'neutral'},
+      {id:'th7',l:'Efforts insuffisants relevés dans plusieurs matières',v:'neg'},
+      {id:'th9',l:'Manque de travail signalé par plusieurs enseignants',v:'neg'},
+      {id:'th10',l:'Comportement perturbateur signalé dans plusieurs cours',v:'neg'},
       {id:'th11',l:'Devoirs non rendus de manière répétée',v:'neg'},
-      {id:'th12',l:'Concentration insuffisante signalée en général',v:'neg'},
-      {id:'th13',l:'Bavardages signalés par plusieurs enseignants',v:'neg'},
+      {id:'th12',l:'Manque de concentration signalé dans plusieurs disciplines',v:'neg'},
+      {id:'th13',l:'Bavardages signalés dans plusieurs cours',v:'neg'},
+      {id:'th22',l:'Manque de méthode et de rigueur signalé',v:'neg'},
+      {id:'th23',l:'Doit gagner en maturité et en sérieux',v:'neg'},
+      {id:'th24',l:'Trop dans l\'amusement — doit étendre sa concentration',v:'neg'},
     ]
   },
   competences: {
@@ -6476,26 +7211,51 @@ const PP_BOXES = {
       {id:'cp6',l:'Grande autonomie dans le travail',v:'pos'},
       {id:'cp14',l:'Esprit critique développé',v:'pos'},
       {id:'cp15',l:'Curiosité intellectuelle remarquable',v:'pos'},
-      {id:'cp7',l:'Difficultés en raisonnement',v:'neg'},
+      {id:'cp16',l:'Fait preuve d\'initiative',v:'pos'},
+      {id:'cp18',l:'N\'hésite pas à participer et à s\'investir',v:'pos'},
+      {id:'cp7',l:'Difficultés de raisonnement',v:'neg'},
       {id:'cp8',l:'Difficultés à l\'expression orale',v:'neg'},
       {id:'cp9',l:'Difficultés à l\'expression écrite',v:'neg'},
       {id:'cp10',l:'Difficultés de mémorisation',v:'neg'},
       {id:'cp11',l:'Participation orale insuffisante',v:'neg'},
       {id:'cp12',l:'Manque d\'autonomie',v:'neg'},
       {id:'cp13',l:'Difficultés de concentration',v:'neg'},
+      {id:'cp17',l:'Manque de méthode dans l\'organisation du travail',v:'neg'},
+      {id:'cp19',l:'Manque d\'approfondissement dans le passage à l\'écrit',v:'neg'},
     ]
   },
   progression: {
-    label: 'Progression générale ce trimestre',
+    label: 'Progression & Résultats globaux',
     items: [
       {id:'pg1',l:'Très belle progression d\'ensemble',v:'pos'},
       {id:'pg2',l:'Progression encourageante',v:'pos'},
       {id:'pg3',l:'Résultats en progrès régulier',v:'pos'},
+      {id:'pg9',l:'Progression constante grâce à un travail régulier',v:'pos'},
+      {id:'pg14',l:'C\'est un très bon trimestre dans l\'ensemble',v:'pos'},
+      {id:'pg15',l:'Bases globalement acquises',v:'pos'},
       {id:'pg4',l:'Trimestre stable',v:'neutral'},
-      {id:'pg5',l:'Bilan mitigé',v:'neutral'},
+      {id:'pg5',l:'Bilan mitigé et très contrasté',v:'neutral'},
+      {id:'pg11',l:'Résultats globalement satisfaisants, un peu justes dans certaines disciplines',v:'neutral'},
+      {id:'pg16',l:'Trimestre juste convenable',v:'neutral'},
+      {id:'pg10',l:'Des capacités réelles pas encore pleinement exploitées',v:'neutral'},
       {id:'pg6',l:'Trimestre en deçà des attentes',v:'neg'},
       {id:'pg7',l:'Régression préoccupante',v:'neg'},
       {id:'pg8',l:'Situation urgente à redresser',v:'neg'},
+      {id:'pg12',l:'Les absences ne permettent pas une évaluation correcte',v:'neg'},
+      {id:'pg13',l:'Connaissances et compétences non acquises',v:'neg'},
+    ]
+  },
+  besoins: {
+    label: 'Besoins spécifiques & Accompagnement',
+    items: [
+      {id:'bs1',l:'Bénéficie d\'un accompagnement AESH — aide bénéfique',v:'pos'},
+      {id:'bs8',l:'Fait de son mieux malgré ses difficultés',v:'pos'},
+      {id:'bs2',l:'PAP / PPS mis en place et suivi',v:'neutral'},
+      {id:'bs3',l:'Doit gagner en autonomie en approfondissant son travail personnel',v:'neutral'},
+      {id:'bs4',l:'Suivi particulier mis en place ce trimestre',v:'neutral'},
+      {id:'bs9',l:'Doit s\'appuyer davantage sur les aides disponibles',v:'neutral'},
+      {id:'bs6',l:'Difficultés persistantes malgré le soutien',v:'neg'},
+      {id:'bs7',l:'Entretien avec la famille recommandé',v:'neg'},
     ]
   },
   orientation: {
@@ -6503,8 +7263,10 @@ const PP_BOXES = {
     items: [
       {id:'or1',l:'Projet d\'orientation clair, réaliste et motivant',v:'pos'},
       {id:'or2',l:'Très bonne maturité dans la réflexion sur l\'avenir',v:'pos'},
+      {id:'or7',l:'Conscient(e) des enjeux — se donne les moyens de réussir',v:'pos'},
       {id:'or3',l:'Projet en cours de construction — accompagnement en place',v:'neutral'},
       {id:'or4',l:'Doit affiner son projet d\'orientation',v:'neutral'},
+      {id:'or8',l:'Des enjeux importants à saisir cette année',v:'neutral'},
       {id:'or5',l:'Orientation non encore définie — travail à engager',v:'neg'},
       {id:'or6',l:'Projet d\'orientation incompatible avec les résultats actuels',v:'neg'},
     ]
@@ -6515,29 +7277,39 @@ const PP_BOXES = {
       {id:'vs1',l:'Ponctualité exemplaire',v:'pos'},
       {id:'vs2',l:'Assiduité irréprochable',v:'pos'},
       {id:'vs9',l:'Bonne intégration dans la classe',v:'pos'},
-      {id:'vs10',l:'Élève discret(e) et respectueux(se)',v:'pos'},
-      {id:'vs3',l:'Retards réguliers à surveiller',v:'neg'},
+      {id:'vs10',l:'Attitude respectueuse et sérieuse',v:'pos'},
+      {id:'vs12',l:'Comportement adapté et respectueux',v:'pos'},
+      {id:'vs15',l:'Participe positivement à la vie de la classe',v:'pos'},
+      {id:'vs3',l:'Quelques retards à surveiller',v:'neutral'},
+      {id:'vs13',l:'Quelques absences — à suivre',v:'neutral'},
+      {id:'vs16',l:'Attitude fluctuante selon les cours',v:'neutral'},
       {id:'vs4',l:'Absences répétées — suivi nécessaire',v:'neg'},
       {id:'vs5',l:'Absences injustifiées — situation préoccupante',v:'neg'},
+      {id:'vs14',l:'Nombreuses absences nuisant aux apprentissages',v:'neg'},
       {id:'vs7',l:'Difficultés relationnelles avec certains camarades',v:'neg'},
-      {id:'vs8',l:'A fait l\'objet d\'un suivi particulier ce trimestre',v:'neutral'},
       {id:'vs11',l:'Incident(s) disciplinaire(s) à noter',v:'neg'},
     ]
   },
   conseils: {
-    label: 'Conclusion & Conseils du professeur principal',
+    label: 'Conclusion & Décision du conseil',
     items: [
-      {id:'ca1',l:'Félicitations — résultats remarquables',v:'pos'},
+      {id:'ca1',l:'Félicitations du conseil de classe',v:'pos'},
       {id:'ca2',l:'Encouragements — continuer sur cette voie',v:'pos'},
-      {id:'ca9',l:'Conseil de classe très satisfait',v:'pos'},
+      {id:'ca9',l:'Conseil de classe très satisfait des résultats',v:'pos'},
+      {id:'ca12',l:'Courage — vous en êtes capable',v:'pos'},
+      {id:'ca13',l:'Nul ne doute de vos capacités — à vous de le montrer',v:'pos'},
+      {id:'ca16',l:'C\'est très bien — félicitations',v:'pos'},
       {id:'ca3',l:'Doit maintenir ses efforts',v:'neutral'},
-      {id:'ca4',l:'Doit consolider son travail',v:'neutral'},
+      {id:'ca4',l:'Doit consolider son travail et gagner en régularité',v:'neutral'},
       {id:'ca10',l:'Passage dans la classe supérieure accordé',v:'neutral'},
+      {id:'ca14',l:'Un travail sérieux et une assiduité sont attendus au prochain trimestre',v:'neutral'},
+      {id:'ca17',l:'Doit gagner en régularité et en rigueur dans toutes les disciplines',v:'neutral'},
       {id:'ca5',l:'Redoubler d\'efforts est indispensable',v:'neg'},
       {id:'ca6',l:'Un sursaut est nécessaire et urgent',v:'neg'},
       {id:'ca7',l:'Entretien avec la famille souhaitable',v:'neg'},
       {id:'ca8',l:'Suivi renforcé mis en place',v:'neg'},
       {id:'ca11',l:'Passage conditionnel — situation à surveiller',v:'neg'},
+      {id:'ca15',l:'Il ne faudra plus être dans l\'amusement',v:'neg'},
     ]
   },
 };
@@ -6588,12 +7360,13 @@ function createPP(){
   const count=parseInt(document.getElementById('pp-count').value)||0;
   const id='pp'+Date.now();
   if(!S.pp)S.pp={};
+  if(!S.cpe)S.cpe={};
   const students=[];
   for(let i=1;i<=count;i++){
     students.push({id:'pps'+Date.now()+i,num:i,gender:'M',boxes:{},viesco:{absences:'',retards:'',demipen:''},notes:'',orient:{on:false,level:1,path:'',note:''},comments:{}});
   }
   S.pp[id]={name,periodType,tone:'equilibre',students,comments:{}};
-  closeMo('mo-pp'); save(); renderPPSidebar(); selectPP(id);
+  closeMo('mo-pp'); save(); renderPPSidebar(); renderCPESidebar(); selectPP(id);
   toast(`PP "${name}" créée${count?' — '+count+' élèves ajoutés':''}`);
 }
 
@@ -6808,7 +7581,7 @@ function renderPPStudentList(){
     d.innerHTML=`
       <div class="st-avatar ${s.gender==='M'?'av-m':'av-f'}">${s.num}</div>
       <div class="st-info">
-        <div class="st-name">Élève n°${s.num}</div>
+        <div class="st-name">${s.name||'Élève n°'+s.num}</div>
         <div class="st-meta">${s.gender==='M'?'M':'F'}${hasO?` <span class="mini-badge ob-purple">Orient. N${s.orient.level}</span>`:''}
         </div>
       </div>
@@ -6821,6 +7594,8 @@ function renderPPStudentList(){
 function selectPPStudent(id){activePPStudent=id;save();renderPPStudentList();renderPPEditor(id);}
 
 function getPPSt(id){return S.pp[activePP].students.find(s=>s.id===id);}
+function setPPSName(id,val){const st=getPPSt(id);if(!st)return;st.name=val;save();renderPPStudentList();}
+function setPPGender(id,g,btn){const st=getPPSt(id);if(!st)return;st.gender=g;save();renderPPStudentList();renderPPEditor(id);}
 
 // ── PP EDITOR ─────────────────────────────────────────────────────────────────
 function renderPPEditor(id){
@@ -6837,11 +7612,18 @@ function renderPPEditor(id){
     <div class="ed-hdr">
       <div class="ed-av ${st.gender==='M'?'av-m':'av-f'}">${st.num}</div>
       <div style="flex:1;min-width:0">
-        <div class="ed-name">Élève n°${st.num} <span style="font-size:.75rem;font-style:italic;color:var(--muted)">— bilan PP</span></div>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <div class="ed-name">${st.name||'Élève n°'+st.num}</div>
+          <input value="${(st.name||'').replace(/"/g,'&quot;').replace(/'/g,'&#39;')}" placeholder="Ajouter un nom…" onchange="setPPSName('${st.id}',this.value)" style="padding:2px 7px;border:1px solid rgba(255,255,255,.35);border-radius:4px;font-size:.75rem;background:rgba(255,255,255,.15);outline:none;color:#fff;width:150px;placeholder-color:rgba(255,255,255,.5)">
+        </div>
         <div style="display:flex;align-items:center;gap:8px;margin-top:4px;flex-wrap:wrap">
-          <div class="ed-sub">${st.gender==='M'?'Masculin':'Féminin'} · ${pLabel} · ${pp.name}</div>
+          <div class="gender-tog">
+            <button class="gbtn m ${st.gender==='M'?'active':''}" onclick="setPPGender('${st.id}','M',this)">♂ M</button>
+            <button class="gbtn f ${st.gender==='F'?'active':''}" onclick="setPPGender('${st.id}','F',this)">♀ F</button>
+          </div>
+          <div class="ed-sub">${pLabel} · ${pp.name}</div>
           <button onclick="resetAllPPBoxes('${id}')" style="padding:3px 10px;border:1px solid rgba(255,255,255,.35);border-radius:6px;font-size:.65rem;font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.05em;background:rgba(255,255,255,.15);color:rgba(255,255,255,.9);cursor:pointer;transition:all .15s" onmouseover="this.style.background='rgba(255,255,255,.25)'" onmouseout="this.style.background='rgba(255,255,255,.15)'" title="Réinitialiser toutes les cases cochées">↺ Tout réinitialiser</button>
-          <button onclick="startVoiceToPillsPP('${id}')" style="padding:3px 10px;border:1px solid rgba(255,255,255,.5);border-radius:6px;font-size:.65rem;font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.05em;background:rgba(255,255,255,.2);color:#fff;cursor:pointer;transition:all .15s;font-weight:600" onmouseover="this.style.background='rgba(255,255,255,.35)'" onmouseout="this.style.background='rgba(255,255,255,.2)'" title="Décrivez oralement le profil — l'IA coche les cases">🎙️ Profil vocal</button>
+          <button onclick="startVoiceToPillsPP('${id}')" style="padding:3px 10px;border:1px solid rgba(255,255,255,.5);border-radius:6px;font-size:.65rem;font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.05em;background:rgba(255,255,255,.2);color:#fff;cursor:pointer;transition:all .15s;font-weight:600" onmouseover="this.style.background='rgba(255,255,255,.35)'" onmouseout="this.style.background='rgba(255,255,255,.2)'" title="Profil vocal">🎙️ Profil vocal</button>
         </div>
       </div>
     </div>
@@ -7060,7 +7842,7 @@ async function ppGenAll(){
     html+=`<div class="bulk-card">
       <div class="bulk-hd">
         <div class="st-avatar ${st.gender==='M'?'av-m':'av-f'}" style="width:26px;height:26px;font-size:.75rem;flex-shrink:0">${st.num}</div>
-        <span class="bulk-name">Élève n°${st.num}</span>
+        <span class="bulk-name">${st.name||'Élève n°'+st.num}</span>
         <span class="bulk-meta">${st.gender}${st.orient?.on?` · Orient. N${st.orient.level}`:''}</span>
         <span class="cchar ${comment.length>750?'over':comment.length>0?'teal':''}" id="ppbcc-${st.id}">${comment.length}/750</span>
       </div>
@@ -7125,12 +7907,18 @@ function ppDoCSV(){
 // ── FULL BOOT — runs after all functions are defined ─────────────────────────
 if (!S.pp) S.pp = {};
 if (!S.activePP) S.activePP = null;
-activePP = S.activePP; // restore PP selection across reloads
+activePP = S.activePP;
+if (!S.cpe) S.cpe = {};
+if (!S.activeCPE) S.activeCPE = null;
+activeCPE = S.activeCPE;
 renderSidebar();
 renderPPSidebar();
+renderCPESidebar();
 updateGenCounter();
 if (S.active && S.classes[S.active]) {
   selectClass(S.active);
+} else if (activeCPE && S.cpe[activeCPE]) {
+  renderCPEMain();
 } else if (activePP && S.pp[activePP]) {
   renderPPMain();
 } else {
