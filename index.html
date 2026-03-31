@@ -379,7 +379,7 @@ body{font-family:'DM Sans',sans-serif;font-weight:300;background:var(--bg);color
 /* MODAL */
 .mo{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000;align-items:center;justify-content:center;}
 .mo.open{display:flex;}
-.modal{background:#fff;border-radius:12px;padding:26px;width:400px;max-width:92vw;box-shadow:0 24px 70px rgba(0,0,0,.18);}
+.modal{background:#fff;border-radius:12px;padding:26px;width:400px;max-width:92vw;max-height:90vh;overflow-y:auto;box-shadow:0 24px 70px rgba(0,0,0,.18);}
 .mo-t{font-family:'Lora',serif;font-size:1.2rem;margin-bottom:18px;}
 .mo-lbl{font-family:'DM Mono',monospace;font-size:.58rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:5px;}
 .mo-inp{width:100%;padding:8px 11px;border:1px solid var(--border);border-radius:7px;font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none;margin-bottom:12px;}
@@ -3659,6 +3659,10 @@ function getSubjectBoxes(subject, langLevel, classYear){
 
   // Filter exam sections based on class year
   const examSectionKeys=['fexamen','hexamen','mexamen','exam','lexamen','pbac','examen','speExamen'];
+  const is3e=year==='3e';
+  const is1ere=year==='1ère'||year==='1ere'||year==='première';
+  const isTerminale=year==='Terminale'||year==='terminale'||year==='Tle';
+  const isLycee=is1ere||isTerminale||year==='2nde';
   Object.entries(subjectSections).forEach(([key,sec])=>{
     if(examSectionKeys.includes(key)){
       // Hide hexamen for standard histoire (CC subject, no final exam)
@@ -3671,11 +3675,6 @@ function getSubjectBoxes(subject, langLevel, classYear){
       if(key==='exam' && effectiveType==='philo'){
         ordered[key]=sec; return;
       }
-      // Only show exam section for relevant years
-      const is3e=year==='3e';
-      const is1ere=year==='1ère'||year==='1ere'||year==='première';
-      const isTerminale=year==='Terminale'||year==='terminale'||year==='Tle';
-      const isLycee=is1ere||isTerminale||year==='2nde';
       // Filter items by year relevance
       const filteredItems=sec.items.filter(item=>{
         const l=item.l.toLowerCase();
@@ -3712,7 +3711,7 @@ function renderEditor(id){
       <div style="flex:1;min-width:0">
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
           <div class="ed-name">${st.name||'Élève n°'+st.num}</div>
-          <input value="${st.name||''}" placeholder="Ajouter un nom…" onchange="setSName('${st.id}',this.value)" style="padding:2px 7px;border:1px solid var(--border);border-radius:4px;font-size:.75rem;background:var(--bg);outline:none;color:var(--muted);width:150px">
+          <input value="${(st.name||'').replace(/"/g,'&quot;').replace(/'/g,'&#39;')}" placeholder="Ajouter un nom…" onchange="setSName('${st.id}',this.value)" style="padding:2px 7px;border:1px solid var(--border);border-radius:4px;font-size:.75rem;background:var(--bg);outline:none;color:var(--muted);width:150px">
         </div>
         <div style="display:flex;align-items:center;gap:8px;margin-top:4px;flex-wrap:wrap">
           <div class="gender-tog">
