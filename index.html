@@ -40,6 +40,8 @@ body.dark-mode .topbar{background:linear-gradient(135deg,#3d1a8a 0%,#6b2fd9 100%
 /* Cards */
 body.dark-mode .card{background:#1e1b30;border:1px solid #2d2a3e;box-shadow:0 2px 12px rgba(0,0,0,.4);}
 body.dark-mode .card-hd{background:#171428;border-bottom:1px solid #2d2a3e;color:#a78bfa;}
+body.dark-mode .pp-card-hd{background:#171428;border-bottom:1px solid #2d2a3e;color:#a78bfa;}
+body.dark-mode .cpe-card-hd{background:#171428;border-bottom:1px solid #2d2a3e;color:#a78bfa;}
 body.dark-mode .card-bd{background:#1e1b30;}
 /* Pills */
 body.dark-mode .pill{background:#0f2419;border-color:#166534;color:#86efac;}
@@ -483,7 +485,7 @@ body{font-family:'DM Sans',sans-serif;font-weight:300;background:var(--bg);color
 .pp-st-dot{width:7px;height:7px;border-radius:50%;background:var(--border);flex-shrink:0;}
 .pp-st-dot.done{background:var(--teal);}
 .pp-card{background:var(--surface);border:1px solid var(--teal-b);border-radius:var(--r);margin-bottom:10px;overflow:hidden;}
-.pp-card-hd{padding:9px 14px;background:var(--teal-l);border-bottom:1px solid var(--teal-b);font-family:'DM Mono',monospace;font-size:.58rem;text-transform:uppercase;letter-spacing:.09em;color:var(--teal);}
+.pp-card-hd{padding:11px 16px;border-bottom:1px solid #f1f0f5;font-family:'DM Mono',monospace;font-size:.68rem;text-transform:uppercase;letter-spacing:.09em;color:var(--ink2);font-weight:600;display:flex;justify-content:space-between;align-items:center;background:#faf9fd;}
 .pp-freetext{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:6px;font-family:'DM Sans',sans-serif;font-size:.84rem;line-height:1.6;background:var(--bg);outline:none;resize:vertical;min-height:70px;}
 .cpe-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;background:var(--cpe-l);border:1px solid var(--cpe-b);border-radius:5px;font-family:'DM Mono',monospace;font-size:.58rem;text-transform:uppercase;letter-spacing:.07em;color:var(--cpe);}
 .cpe-item{padding:9px 10px;border-radius:7px;cursor:pointer;display:flex;align-items:center;gap:8px;margin:2px 7px;transition:background .13s;color:rgba(255,255,255,.52);}
@@ -496,7 +498,7 @@ body{font-family:'DM Sans',sans-serif;font-weight:300;background:var(--bg);color
 .cpe-st-dot{width:8px;height:8px;border-radius:50%;background:var(--border);flex-shrink:0;}
 .cpe-st-dot.done{background:var(--cpe);}
 .cpe-card{background:var(--surface);border:1px solid var(--cpe-b);border-radius:var(--r);margin-bottom:10px;overflow:hidden;}
-.cpe-card-hd{padding:9px 14px;background:var(--cpe-l);border-bottom:1px solid var(--cpe-b);font-family:'DM Mono',monospace;font-size:.68rem;text-transform:uppercase;letter-spacing:.09em;color:var(--cpe);font-weight:600;}
+.cpe-card-hd{padding:11px 16px;border-bottom:1px solid #f1f0f5;font-family:'DM Mono',monospace;font-size:.68rem;text-transform:uppercase;letter-spacing:.09em;color:var(--ink2);font-weight:600;display:flex;justify-content:space-between;align-items:center;background:#faf9fd;}
 .cpe-ed-hdr{display:flex;align-items:center;gap:14px;margin-bottom:20px;background:linear-gradient(135deg,#b45309,#d97706);border-radius:16px;padding:16px;color:#fff;}
 .pp-freetext:focus{border-color:var(--teal);background:#fff;}
 .pp-vsco-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:10px 14px;}
@@ -934,7 +936,7 @@ body{font-family:'DM Sans',sans-serif;font-weight:300;background:var(--bg);color
     </select>
     <div class="mo-lbl">Nombre d'élèves (génération automatique des numéros)</div>
     <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px">
-      <input class="mo-inp" id="nc-count" type="number" min="1" max="38" placeholder="ex: 28" style="margin:0;width:90px">
+      <input class="mo-inp" id="nc-count" type="number" min="1" max="40" placeholder="ex: 28" style="margin:0;width:90px">
       <span style="font-size:.8rem;color:var(--muted)">élèves — ou laissez vide pour ajouter un par un</span>
     </div>
     <div class="mo-lbl">Limite de caractères par appréciation</div>
@@ -1140,7 +1142,7 @@ body{font-family:'DM Sans',sans-serif;font-weight:300;background:var(--bg);color
     <div class="mo-row">
       <div style="flex:1">
         <div class="mo-lbl">Nombre d'élèves</div>
-        <input class="mo-inp" id="pp-count" type="number" min="1" max="38" placeholder="ex: 28" style="width:90px;margin:0">
+        <input class="mo-inp" id="pp-count" type="number" min="1" max="40" placeholder="ex: 28" style="width:90px;margin:0">
       </div>
       <div style="flex:1">
         <div class="mo-lbl">Périodes</div>
@@ -3735,7 +3737,7 @@ function renderStudentsView(content){
       </div>
       <div class="add-row" id="add-row" style="display:none">
         <div class="add-form">
-          <input class="add-inp" id="ns-num" type="number" min="1" max="38" placeholder="N°" style="width:50px">
+          <input class="add-inp" id="ns-num" type="number" min="1" max="40" placeholder="N°" style="width:50px">
           <input class="add-inp" id="ns-name" placeholder="Prénom (optionnel)" style="flex:1">
           <div class="gender-tog">
             <button class="gbtn m active" id="gb-m" onclick="selG('M')">M</button>
@@ -5911,6 +5913,16 @@ function resetAllPPBoxes(id){
   st.boxes={};st.vtpSuggestions={};
   save();renderPPEditor(id);toast('Cases réinitialisées');
 }
+function resetPPCategoryBoxes(sid,itemIdsStr){
+  const st=getPPSt(sid);if(!st||!st.boxes)return;
+  itemIdsStr.split(',').forEach(iid=>{delete st.boxes[iid];if(st.vtpSuggestions)delete st.vtpSuggestions[iid];});
+  save();renderPPEditor(sid);
+}
+function resetCPECategoryBoxes(sid,itemIdsStr){
+  const st=getCPESt(sid);if(!st||!st.boxes)return;
+  itemIdsStr.split(',').forEach(iid=>{delete st.boxes[iid];if(st.vtpSuggestions)delete st.vtpSuggestions[iid];});
+  save();renderCPEEditor(sid);
+}
 
 function startVoiceToPillsPP(sid){
   if(!('webkitSpeechRecognition' in window)&&!('SpeechRecognition' in window)){
@@ -6645,7 +6657,7 @@ function renderCPEMain(){
         </div>
         <div class="add-row" id="cpe-add-row" style="display:none">
           <div class="add-form">
-            <input class="add-inp" id="cpe-ns-num" type="number" min="1" max="38" placeholder="N°" style="width:55px">
+            <input class="add-inp" id="cpe-ns-num" type="number" min="1" max="40" placeholder="N°" style="width:55px">
             <input class="add-inp" id="cpe-ns-name" placeholder="Prénom Nom" style="flex:1;min-width:80px" onkeydown="if(event.key==='Enter')addCPEStudent()">
             <div class="gender-tog">
               <button class="gbtn m active" id="cpe-gb-m" onclick="cpeSelG('M')">M</button>
@@ -6754,7 +6766,8 @@ function renderCPEEditor(id){
 
   // Pill sections
   Object.entries(CPE_BOXES).forEach(([key,sec])=>{
-    html+=`<div class="cpe-card"><div class="cpe-card-hd">${sec.label}</div><div class="pill-grid">`;
+    const itemIds=sec.items.map(i=>i.id).join(',');
+    html+=`<div class="cpe-card"><div class="cpe-card-hd">${sec.label}<button onclick="event.stopPropagation();resetCPECategoryBoxes('${id}','${itemIds}')" style="padding:1px 6px;border:1px solid var(--border);border-radius:3px;font-size:.58rem;font-family:'DM Mono',monospace;background:transparent;color:var(--muted);cursor:pointer;opacity:.5" title="Réinitialiser cette catégorie">↺ reset</button></div><div class="pill-grid">`;
     sec.items.forEach(item=>{
       const sel=!!(st.boxes&&st.boxes[item.id]);
       const suggested=!sel&&!!(st.vtpSuggestions&&st.vtpSuggestions[item.id]);
@@ -6777,11 +6790,11 @@ function renderCPEEditor(id){
     <div class="card">
       <div class="cmt-hd">
         <span class="cmt-lbl">Suivi CPE — ${pLabel}</span>
-      </div>
-      <div class="cmt-acts">
-        <button class="act-btn gen-btn" onclick="cpeGenOne('${id}')">↻ Générer</button>
-        <button class="act-btn" onclick="resetCPEComment('${id}')">🗑 Effacer</button>
-        <button class="copy-btn" onclick="copyCPE('${id}')">📋 Copier</button>
+        <div class="cmt-acts">
+          <button class="act-btn gen-btn" onclick="cpeGenOne('${id}')">↻ Générer</button>
+          <button class="act-btn" onclick="resetCPEComment('${id}')" title="Effacer">🗑 Effacer</button>
+          <button class="copy-btn" onclick="copyCPE('${id}')">📋 Copier</button>
+        </div>
       </div>
       <div class="card-bd">
         <textarea class="cmt-ta appre-ta" id="cpecta-${id}" placeholder="Cliquez sur Générer ou rédigez manuellement…" oninput="cpeOnCI('${id}',this.value)">${comment}</textarea>
@@ -7557,7 +7570,7 @@ function renderPPLayout(content){
         </div>
         <div class="add-row" id="pp-add-row" style="display:none">
           <div class="add-form">
-            <input class="add-inp" id="pp-ns-num" type="number" min="1" max="38" placeholder="N°" style="width:55px">
+            <input class="add-inp" id="pp-ns-num" type="number" min="1" max="40" placeholder="N°" style="width:55px">
             <input class="add-inp" id="pp-ns-name" placeholder="Prénom Nom" style="flex:1;min-width:80px" onkeydown="if(event.key==='Enter')addPPStudent()">
             <div class="gender-tog">
               <button class="gbtn m active" id="pp-gb-m" onclick="ppSelG('M')">M</button>
@@ -7802,8 +7815,9 @@ function renderPPEditor(id){
     </div>`;
 
   // PILL BOXES
-  Object.entries(PP_BOXES).forEach(([,sec])=>{
-    html+=`<div class="cpe-card"><div class="cpe-card-hd">${sec.label}</div><div class="pill-grid">`;
+  Object.entries(PP_BOXES).forEach(([key,sec])=>{
+    const itemIds=sec.items.map(i=>i.id).join(',');
+    html+=`<div class="pp-card"><div class="pp-card-hd">${sec.label}<button onclick="event.stopPropagation();resetPPCategoryBoxes('${id}','${itemIds}')" style="padding:1px 6px;border:1px solid var(--border);border-radius:3px;font-size:.58rem;font-family:'DM Mono',monospace;background:transparent;color:var(--muted);cursor:pointer;opacity:.5" title="Réinitialiser cette catégorie">↺ reset</button></div><div class="pill-grid">`;
     sec.items.forEach(item=>{
       const sel=!!(st.boxes&&st.boxes[item.id]);
       const suggested=!sel&&!!(st.vtpSuggestions&&st.vtpSuggestions[item.id]);
@@ -7865,12 +7879,13 @@ function renderPPEditor(id){
     <!-- OUTPUT -->
     <div class="card">
       <div class="cmt-hd">
-        <span class="cmt-lbl" style="color:var(--teal)">Bilan PP — ${pLabel}</span>
+        <span class="cmt-lbl">Bilan PP — ${pLabel}</span>
         <div class="cmt-acts">
           <span class="cchar ${comment.length>750?'over':comment.length>0?'teal':''}" id="ppcc-${id}">${comment.length}/750</span>
-          <button class="act-btn" onclick="ppGenOne('${id}')">↻ Générer</button>
-          <button class="act-btn" id="voice-btn-${id}" onclick="toggleVoice('${id}')" title="Saisie vocale">🎙️</button>
-          <button class="copy-btn" id="ppcpb-${id}" onclick="ppCopy('${id}')">Copier</button>
+          <button class="act-btn gen-btn" onclick="ppGenOne('${id}')">↻ Générer</button>
+          <button class="act-btn" onclick="resetPPComment('${id}')" title="Effacer le bilan">🗑 Effacer</button>
+          <button class="act-btn" id="voice-btn-${id}" onclick="toggleVoice('${id}')" title="Dicter le bilan directement">🎙️ Dicter</button>
+          <button class="copy-btn" id="ppcpb-${id}" onclick="ppCopy('${id}')">📋 Copier</button>
         </div>
       </div>
       <div class="card-bd">
@@ -7890,6 +7905,7 @@ function togPPOrient(id,btn){const st=getPPSt(id);if(!st.orient)st.orient={on:fa
 function setPPOL(id,level,btn){const st=getPPSt(id);st.orient.level=level;btn.closest('.olevel-row').querySelectorAll('.olbtn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');document.getElementById('ppod-'+id).textContent=ORIENT_DESCS[level];const show=level>=2;document.getElementById('ppop-'+id).style.display=show?'block':'none';document.getElementById('ppon-'+id).style.display=show?'block':'none';save();renderPPStudentList();}
 function setPPOP(id,path,btn){getPPSt(id).orient.path=path;btn.closest('.opath-row').querySelectorAll('.opbtn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');save();}
 function setPPON(id,v){getPPSt(id).orient.note=v;save();}
+function resetPPComment(id){const st=getPPSt(id);if(!st)return;if(!st.comments)st.comments={};st.comments[activePPPeriod]='';save();renderPPEditor(id);toast('🗑 Bilan effacé');}
 function ppOnCI(id,val){const pp=S.pp[activePP];const st=getPPSt(id);if(!st.comments)st.comments={};st.comments[activePPPeriod]=val;save();renderPPStudentList();const el=document.getElementById('ppcc-'+id);if(el){el.textContent=`${val.length}/750`;el.className='cchar'+(val.length>750?' over':val.length>0?' teal':'');}}
 function ppCopy(id){const ta=document.getElementById('ppcta-'+id);if(!ta?.value)return;navigator.clipboard.writeText(ta.value).then(()=>{const b=document.getElementById('ppcpb-'+id);b.textContent='✓ Copié';b.classList.add('copied');setTimeout(()=>{b.textContent='Copier';b.classList.remove('copied');},1800);});}
 
