@@ -754,6 +754,7 @@ body{font-family:'DM Sans',sans-serif;font-weight:300;background:var(--bg);color
     <button class="sb-fbtn" onclick="showCodeAccess()">🔑 Code</button>
     <button class="sb-fbtn" onclick="showFeedback()" style="position:relative">💬 Avis<span id="avis-dot" style="position:absolute;top:3px;right:3px;width:6px;height:6px;background:#f87171;border-radius:50%;animation:pulse 1.5s infinite"></span></button>
     <button class="sb-fbtn" onclick="showOnboarding(true)" title="Aide">❓ Aide</button>
+    <a href="privacy.html" target="_blank" class="sb-fbtn" style="text-decoration:none;display:flex;align-items:center;justify-content:center;gap:3px">🔒 Confidentialité</a>
     <input type="file" id="imp-inp" accept=".json" style="display:none" onchange="doImport(event)">
   </div>
   <!-- GOOGLE DRIVE SYNC BAR -->
@@ -4575,13 +4576,13 @@ function showGenLimitModal(){
     <div style="background:var(--accent-l);border:1.5px solid var(--accent-b);border-radius:10px;padding:14px;margin-bottom:14px;text-align:left">
       <div style="font-weight:700;font-size:.9rem;color:var(--ink);margin-bottom:6px">⬆️ Passer au plan Pro</div>
       <div style="font-size:.83rem;color:var(--muted);margin-bottom:10px">Accédez à 1500 générations/an pour seulement 15€ de plus.</div>
-      <a href="mailto:contact@bulletinspro.fr?subject=Upgrade Standard vers Pro" class="btn btn-g" style="display:block;text-align:center;text-decoration:none;font-size:.85rem">Passer au Pro — 15€ →</a>
+      <a href="mailto:bulletins.pro.app@gmail.com?subject=Upgrade Standard vers Pro" class="btn btn-g" style="display:block;text-align:center;text-decoration:none;font-size:.85rem">Passer au Pro — 15€ →</a>
     </div>` : ''}
     ${isPaid && !isStandardPlan ? `
     <div style="background:var(--purple-l);border:1.5px solid var(--purple-b);border-radius:10px;padding:14px;margin-bottom:14px;text-align:left">
       <div style="font-weight:700;font-size:.9rem;color:var(--ink);margin-bottom:6px">➕ Pack de générations supplémentaires</div>
       <div style="font-size:.83rem;color:var(--muted);margin-bottom:10px">Achetez 200 générations supplémentaires pour 4€.</div>
-      <a href="mailto:contact@bulletinspro.fr?subject=Top-up 200 générations" class="btn btn-g" style="display:block;text-align:center;text-decoration:none;font-size:.85rem">Acheter 200 générations — 4€ →</a>
+      <a href="mailto:bulletins.pro.app@gmail.com?subject=Top-up 200 générations" class="btn btn-g" style="display:block;text-align:center;text-decoration:none;font-size:.85rem">Acheter 200 générations — 4€ →</a>
     </div>` : ''}
     ${!isPaid ? `
     <div style="background:var(--purple-l);border:1.5px solid var(--purple-b);border-radius:10px;padding:14px;margin-bottom:14px;text-align:left">
