@@ -3510,7 +3510,12 @@ function createClass(){
   closeMo('mo-cls'); save(); renderSidebar(); selectClass(id); toast(`"${name}" créée — ${students.length} élève(s)`);
 }
 
-function selectClass(id){S.active=id;S.student=null;S.period=1;S.view='students';save();renderSidebar();renderMain();closeMobSidebar();mobUpdateStudentNav();}
+function selectClass(id){
+  S.active=id;S.student=null;S.period=1;S.view='students';
+  activePP=null;S.activePP=null;
+  activeCPE=null;S.activeCPE=null;
+  save();renderSidebar();renderPPSidebar();renderCPESidebar();renderMain();closeMobSidebar();mobUpdateStudentNav();
+}
 
 function deleteClass(id){
   const cls=S.classes[id]; if(!cls)return;
@@ -7402,10 +7407,10 @@ function createPP(){
 }
 
 function selectPP(id){
-  // Deselect regular class
   S.active=null; S.student=null; S.view='students';
+  activeCPE=null; S.activeCPE=null;
   activePP=id; S.activePP=id; activePPStudent=null; activePPPeriod=1;
-  save(); renderSidebar(); renderPPSidebar(); renderPPMain();
+  save(); renderSidebar(); renderPPSidebar(); renderCPESidebar(); renderPPMain();
 }
 
 // ── PP MAIN AREA ──────────────────────────────────────────────────────────────
