@@ -941,7 +941,7 @@ body{font-family:'DM Sans',sans-serif;font-weight:300;background:var(--bg);color
     </div>
     <div class="mo-lbl">Limite de caractères par appréciation</div>
     <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px">
-      <input class="mo-inp" id="nc-charlimit" type="number" min="100" max="2000" placeholder="750" style="margin:0;width:90px">
+      <input class="mo-inp" id="nc-charlimit" type="number" min="100" max="1000" placeholder="750" style="margin:0;width:90px">
       <span style="font-size:.8rem;color:var(--muted)">caractères max (défaut : 750)</span>
     </div>
     <div class="mo-lbl">Personnalisation des appréciations</div>
@@ -1079,7 +1079,7 @@ body{font-family:'DM Sans',sans-serif;font-weight:300;background:var(--bg);color
     </select>
     <div class="mo-lbl">Limite de caractères par appréciation</div>
     <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px">
-      <input class="mo-inp" id="ec-charlimit" type="number" min="100" max="2000" placeholder="750" style="margin:0;width:90px">
+      <input class="mo-inp" id="ec-charlimit" type="number" min="100" max="1000" placeholder="750" style="margin:0;width:90px">
       <span style="font-size:.8rem;color:var(--muted)">caractères max</span>
     </div>
     <label for="ec-usename" style="background:var(--accent-l);border:1.5px solid var(--accent-b);border-radius:10px;padding:12px 14px;margin-bottom:10px;display:flex;align-items:center;gap:10px;cursor:pointer">
@@ -1152,6 +1152,11 @@ body{font-family:'DM Sans',sans-serif;font-weight:300;background:var(--bg);color
         </div>
       </div>
     </div>
+    <div class="mo-lbl">Limite de caractères par bilan</div>
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px">
+      <input class="mo-inp" id="pp-charlimit" type="number" min="100" max="1000" placeholder="750" style="margin:0;width:90px">
+      <span style="font-size:.8rem;color:var(--muted)">caractères max (100–1000)</span>
+    </div>
     <div class="mo-acts">
       <button class="btn btn-o" onclick="closeMo('mo-pp')">Annuler</button>
       <button class="btn btn-g" onclick="createPP()">Créer</button>
@@ -1184,6 +1189,11 @@ body{font-family:'DM Sans',sans-serif;font-weight:300;background:var(--bg);color
       <label><input type="radio" name="epp-period" value="trimestre"> Trimestres (3)</label>
       <label><input type="radio" name="epp-period" value="semestre"> Semestres (2)</label>
     </div>
+    <div class="mo-lbl">Limite de caractères par bilan</div>
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px">
+      <input class="mo-inp" id="epp-charlimit" type="number" min="100" max="1000" placeholder="750" style="margin:0;width:90px">
+      <span style="font-size:.8rem;color:var(--muted)">caractères max</span>
+    </div>
     <div class="mo-acts">
       <button class="btn btn-o" onclick="closeMo('mo-edit-pp')">Annuler</button>
       <button class="btn btn-g" onclick="saveEditPP()">Enregistrer</button>
@@ -1213,6 +1223,11 @@ body{font-family:'DM Sans',sans-serif;font-weight:300;background:var(--bg);color
     <div class="mo-radio">
       <label><input type="radio" name="ecpe-period" value="trimestre"> Trimestres (3)</label>
       <label><input type="radio" name="ecpe-period" value="semestre"> Semestres (2)</label>
+    </div>
+    <div class="mo-lbl">Limite de caractères</div>
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px">
+      <input class="mo-inp" id="ecpe-charlimit" type="number" min="100" max="600" placeholder="350" style="margin:0;width:90px">
+      <span style="font-size:.8rem;color:var(--muted)">caractères max</span>
     </div>
     <div class="mo-acts">
       <button class="btn btn-o" onclick="closeMo('mo-edit-cpe')">Annuler</button>
@@ -1244,6 +1259,11 @@ body{font-family:'DM Sans',sans-serif;font-weight:300;background:var(--bg);color
     <div class="mo-radio">
       <label><input type="radio" name="cpe-period" value="trimestre" checked> Trimestres (3)</label>
       <label><input type="radio" name="cpe-period" value="semestre"> Semestres (2)</label>
+    </div>
+    <div class="mo-lbl">Limite de caractères par suivi</div>
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px">
+      <input class="mo-inp" id="cpe-charlimit" type="number" min="100" max="600" placeholder="350" style="margin:0;width:90px">
+      <span style="font-size:.8rem;color:var(--muted)">caractères max (100–600)</span>
     </div>
     <div class="mo-acts">
       <button class="btn btn-o" onclick="closeMo('mo-cpe')">Annuler</button>
@@ -3519,7 +3539,7 @@ function saveEditClass(){
   cls.classYear=document.getElementById('ec-year').value||'';
   cls.schoolLevel=YEAR_TO_LEVEL[cls.classYear]||'college';
   cls.evalType=document.getElementById('ec-eval').value;
-  cls.charLimit=parseInt(document.getElementById('ec-charlimit').value)||750;
+  cls.charLimit=Math.min(1000,parseInt(document.getElementById('ec-charlimit').value)||750);
   cls.useName=document.getElementById('ec-usename').checked;
   cls.noJe=document.getElementById('ec-noje').checked;
   const ecPronoun=document.querySelector('input[name="ec-pronoun"]:checked');
@@ -3926,7 +3946,7 @@ function renderEditor(id){
   const comment=(st.comments&&st.comments[S.period])||'';
   const orient=st.orient||{on:false,level:1,path:'',note:''};
   const pLabel=cls.periodType==='semestre'?`Semestre ${S.period}`:`Trimestre ${S.period}`;
-  const charLimit=cls.charLimit||750;
+  const charLimit=Math.min(1000,cls.charLimit||750);
 
   let html=`
     <div class="ed-hdr">
@@ -4402,7 +4422,7 @@ function buildPrompt(st,cls,period,seed,memSamp){
   const gender=st.gender==='F' ? 'FILLE — pronom : ELLE. Article démonstratif : CETTE (pas cet). Adjectifs au FÉMININ : sérieuse, appliquée, investie, motivée, régulière. JAMAIS "il", JAMAIS "cet élève" (toujours "cette élève").' : 'GARÇON — pronom : IL. Article démonstratif : CET (pas cette). Adjectifs au MASCULIN : sérieux, appliqué, investi, motivé, régulier. JAMAIS "elle", JAMAIS "cette élève" (toujours "cet élève").';
   const accord=st.gender==='F'?'féminin':'masculin';
 
-  const charLimit=cls.charLimit||750;
+  const charLimit=Math.min(1000,cls.charLimit||750);
   const targetMax=Math.round(charLimit*0.92);
 
   // Count distinct thematic groups (not raw pill count)
@@ -5729,35 +5749,44 @@ function startVoiceToPills(sid){
   };
 
   vtpRecognition.onresult=(e)=>{
-    // Only process new results using resultIndex to avoid repetition on restart
-    for(let i=e.resultIndex;i<e.results.length;i++){
+    for(let i=0;i<e.results.length;i++){
       if(e.results[i].isFinal){
-        vtpTranscript+=e.results[i][0].transcript+' ';
+        const t=e.results[i][0].transcript;
+        // Only add if not already in transcript (prevent duplicates)
+        if(!vtpTranscript.endsWith(t+' ')&&!vtpTranscript.endsWith(t)){
+          vtpTranscript+=t+' ';
+        }
       }
     }
-    // Show interim (last non-final result only) alongside accumulated finals
     let interim='';
-    for(let i=e.results.length-1;i>=e.resultIndex;i--){
-      if(!e.results[i].isFinal){interim=e.results[i][0].transcript;break;}
+    if(e.results.length>0&&!e.results[e.results.length-1].isFinal){
+      interim=e.results[e.results.length-1][0].transcript;
     }
     const ta=document.getElementById('vtp-transcript');
-    if(ta) ta.textContent=(vtpTranscript+(interim?interim:'')).trim()||'Parlez maintenant…';
+    if(ta) ta.textContent=(vtpTranscript+(interim?'('+interim+')':'')).trim()||'Parlez maintenant…';
   };
 
   vtpRecognition.onerror=(e)=>{
-    if(e.error==='no-speech') return; // ignore silence
-    document.getElementById('vtp-status-txt').textContent='❌ Erreur micro — '+e.error;
+    if(e.error==='no-speech'||e.error==='aborted') return;
+    const statusEl=document.getElementById('vtp-status-txt');
+    if(statusEl) statusEl.textContent='❌ Erreur micro — '+e.error;
   };
 
   vtpRecognition.onend=()=>{
-    // Only restart if still active and modal open — with small delay to avoid rapid cycling
-    if(vtpActive&&document.getElementById('mo-vtp')){
-      setTimeout(()=>{
-        if(vtpActive&&document.getElementById('mo-vtp')){
-          try{vtpRecognition.start();}catch(e){}
-        }
-      }, 300);
-    }
+    if(!vtpActive||!document.getElementById('mo-vtp')) return;
+    // Create a FRESH instance — never restart same instance (causes duplicate results on mobile)
+    setTimeout(()=>{
+      if(!vtpActive||!document.getElementById('mo-vtp')) return;
+      const SR2=window.SpeechRecognition||window.webkitSpeechRecognition;
+      const newRec=new SR2();
+      newRec.lang='fr-FR'; newRec.continuous=false; newRec.interimResults=true;
+      newRec.onstart=vtpRecognition.onstart;
+      newRec.onresult=vtpRecognition.onresult;
+      newRec.onerror=vtpRecognition.onerror;
+      newRec.onend=vtpRecognition.onend;
+      vtpRecognition=newRec;
+      try{vtpRecognition.start();}catch(e2){}
+    },150);
   };
 
   vtpRecognition.start();
@@ -5801,22 +5830,24 @@ LISTE DES OBSERVATIONS DISPONIBLES (id → label) :
 ${pillList.map(p=>`${p.id}: ${p.label}`).join('\n')}
 
 INSTRUCTIONS :
-1. Analyse la description et identifie les observations qui correspondent.
-2. Retourne un JSON avec ces clés :
-   - "tick": array d'IDs à cocher (correspondances claires)
-   - "suggest": array d'IDs possibles mais incertains (à surligner pour que l'enseignant confirme)
-   - "untick": array d'IDs à décocher car contradictoires avec la description (seulement si contradiction explicite)
-3. Ne décocher une case existante QUE si la description dit explicitement le contraire (ex: "excellents résultats" déjà coché + description dit "résultats très insuffisants").
-4. Préfère cocher trop peu plutôt que trop — mieux vaut suggérer que cocher à tort.
+1. Analyse finement la description — cherche les correspondances directes ET les implications logiques.
+   Exemple : "s'entraîner régulièrement" → implique "approfondir le travail" ou "maintenir les efforts"
+   Exemple : "participation présente mais pourrait être plus active" → implique "participation correcte" ET suggère "s'impliquer davantage à l'oral"
+2. Retourne un JSON avec :
+   - "tick": correspondances CLAIRES et directes (sois généreux — si c'est évident, coche)
+   - "suggest": correspondances PROBABLES ou IMPLICITES — toujours en mettre plusieurs (5-10 minimum si la description est riche)
+   - "untick": contradictions EXPLICITES avec cases existantes uniquement
+3. La liste "suggest" doit être GÉNÉREUSE : inclure tout ce qui est possible, logiquement lié, ou déduit du contexte.
+4. Ne décocher que si contradiction explicite.
 5. Réponds UNIQUEMENT avec le JSON, sans explication ni backticks.
 
-Exemple de réponse : {"tick":["pr1","tr1"],"suggest":["co5"],"untick":[]}`;
+Exemple : {"tick":["pr2","tr1","tr2"],"suggest":["pa3","ob5","ob6","co1","pr8","co4"],"untick":[]}`;
 
   try{
     const res=await fetch('https://openrouter.ai/api/v1/chat/completions',{
       method:'POST',
       headers:{'Content-Type':'application/json','Authorization':'Bearer '+_apiKey,'HTTP-Referer':'https://bulletinspro.github.io','X-Title':'BulletinsPro VTP'},
-      body:JSON.stringify({model:'anthropic/claude-sonnet-4-5',max_tokens:500,messages:[{role:'user',content:prompt}]})
+      body:JSON.stringify({model:'anthropic/claude-sonnet-4-5',max_tokens:800,messages:[{role:'user',content:prompt}]})
     });
     const data=await res.json();
     const raw=data.choices?.[0]?.message?.content?.trim()||'{}';
@@ -5960,7 +5991,16 @@ function startVoiceToPillsPP(sid){
     if(ta)ta.textContent=(vtpTranscript+(interim?interim:'')).trim()||'Parlez maintenant…';
   };
   vtpRecognition.onerror=(e)=>{if(e.error==='no-speech')return;document.getElementById('vtp-status-txt').textContent='❌ Erreur micro';};
-  vtpRecognition.onend=()=>{if(vtpActive&&document.getElementById('mo-vtp')){setTimeout(()=>{if(vtpActive&&document.getElementById('mo-vtp')){try{vtpRecognition.start();}catch(e){}}},300);}};
+  vtpRecognition.onend=()=>{
+    if(!vtpActive||!document.getElementById('mo-vtp'))return;
+    setTimeout(()=>{
+      if(!vtpActive||!document.getElementById('mo-vtp'))return;
+      const SR2=window.SpeechRecognition||window.webkitSpeechRecognition;
+      const nr=new SR2();nr.lang='fr-FR';nr.continuous=false;nr.interimResults=true;
+      nr.onstart=vtpRecognition.onstart;nr.onresult=vtpRecognition.onresult;nr.onerror=vtpRecognition.onerror;nr.onend=vtpRecognition.onend;
+      vtpRecognition=nr;try{vtpRecognition.start();}catch(e){}
+    },150);
+  };
   vtpRecognition.start();
 }
 
@@ -6550,6 +6590,7 @@ function openEditPP(id){
   S._editingPP=id;
   document.getElementById('epp-name').value=p.name;
   document.getElementById('epp-year').value=p.classYear||'';
+  document.getElementById('epp-charlimit').value=p.charLimit||750;
   document.querySelectorAll('input[name="epp-period"]').forEach(r=>r.checked=r.value===p.periodType);
   document.getElementById('mo-edit-pp').classList.add('open');
 }
@@ -6560,6 +6601,7 @@ function saveEditPP(){
   p.name=name;
   p.classYear=document.getElementById('epp-year').value||'';
   p.periodType=document.querySelector('input[name="epp-period"]:checked')?.value||'trimestre';
+  p.charLimit=Math.min(1000,parseInt(document.getElementById('epp-charlimit').value)||750);
   S._editingPP=null;
   closeMo('mo-edit-pp'); save(); renderPPSidebar();
   if(activePP===id)renderPPMain();
@@ -6571,6 +6613,7 @@ function openEditCPE(id){
   S._editingCPE=id;
   document.getElementById('ecpe-name').value=c.name;
   document.getElementById('ecpe-year').value=c.classYear||'';
+  document.getElementById('ecpe-charlimit').value=c.charLimit||350;
   document.querySelectorAll('input[name="ecpe-period"]').forEach(r=>r.checked=r.value===c.periodType);
   document.getElementById('mo-edit-cpe').classList.add('open');
 }
@@ -6581,6 +6624,7 @@ function saveEditCPE(){
   c.name=name;
   c.classYear=document.getElementById('ecpe-year').value||'';
   c.periodType=document.querySelector('input[name="ecpe-period"]:checked')?.value||'trimestre';
+  c.charLimit=Math.min(1000,parseInt(document.getElementById('ecpe-charlimit').value)||350);
   S._editingCPE=null;
   closeMo('mo-edit-cpe'); save(); renderCPESidebar();
   if(activeCPE===id)renderCPEMain();
@@ -6599,8 +6643,9 @@ function createCPE(){
   const classYear=document.getElementById('cpe-year').value||'';
   const periodType=document.querySelector('input[name="cpe-period"]:checked')?.value||'trimestre';
   const id='cpe'+Date.now();
+  const charLimit=Math.min(1000,parseInt(document.getElementById('cpe-charlimit').value)||350);
   if(!S.cpe) S.cpe={};
-  S.cpe[id]={name,classYear,periodType,students:[],tone:'equilibre'};
+  S.cpe[id]={name,classYear,periodType,charLimit,students:[],tone:'equilibre'};
   closeMo('mo-cpe'); save(); renderCPESidebar(); selectCPE(id);
 }
 
@@ -6743,6 +6788,7 @@ function renderCPEEditor(id){
   const scroll=document.getElementById('cpe-ed-scroll'); if(!scroll)return;
   const pLabel=c.periodType==='semestre'?`Semestre ${activeCPEPeriod}`:`Trimestre ${activeCPEPeriod}`;
   const comment=(st.comments&&st.comments[activeCPEPeriod])||'';
+  const charLimit=c.charLimit||350;
 
   let html=`
     <div style="display:flex;align-items:center;gap:14px;margin-bottom:20px;background:linear-gradient(135deg,#b45309,#d97706);border-radius:16px;padding:16px;color:#fff">
@@ -6757,7 +6803,7 @@ function renderCPEEditor(id){
             <button class="gbtn m ${st.gender==='M'?'active':''}" onclick="setCPEGender('${id}','M')">♂ M</button>
             <button class="gbtn f ${st.gender==='F'?'active':''}" onclick="setCPEGender('${id}','F')">♀ F</button>
           </div>
-          <div class="ed-sub">${pLabel} · CPE · ${c.name}</div>
+          <div class="ed-sub">${pLabel} · CPE · ${c.name} · Max ${charLimit} car.</div>
           <button onclick="resetAllCPEBoxes('${id}')" style="padding:3px 10px;border:1px solid rgba(255,255,255,.35);border-radius:6px;font-size:.65rem;font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.05em;background:rgba(255,255,255,.15);color:rgba(255,255,255,.9);cursor:pointer" title="Réinitialiser">↺ Reset</button>
           <button onclick="startVoiceToPillsCPE('${id}')" style="padding:3px 10px;border:1px solid rgba(255,255,255,.5);border-radius:6px;font-size:.65rem;font-family:'DM Mono',monospace;text-transform:uppercase;background:rgba(255,255,255,.2);color:#fff;cursor:pointer;font-weight:600" title="Profil vocal">🎙️ Profil vocal</button>
         </div>
@@ -6791,6 +6837,7 @@ function renderCPEEditor(id){
       <div class="cmt-hd">
         <span class="cmt-lbl">Suivi CPE — ${pLabel}</span>
         <div class="cmt-acts">
+          <span class="cchar ${comment.length>charLimit?'over':comment.length>0?'teal':''}">${comment.length}/${charLimit}</span>
           <button class="act-btn gen-btn" onclick="cpeGenOne('${id}')">↻ Générer</button>
           <button class="act-btn" onclick="resetCPEComment('${id}')" title="Effacer">🗑 Effacer</button>
           <button class="act-btn" id="voice-btn-${id}" onclick="toggleVoice('${id}')" title="Dicter le suivi directement dans le champ texte">🎙️ Dicter</button>
@@ -6862,6 +6909,7 @@ async function cpeGenOne(sid){
   const ta=document.getElementById('cpecta-'+sid); if(!ta)return;
   ta.classList.add('gen'); ta.value='Rédaction en cours…';
   const pLabel=c.periodType==='semestre'?`Semestre ${activeCPEPeriod}`:`Trimestre ${activeCPEPeriod}`;
+  const charLimit=Math.min(1000,c.charLimit||350);
   const obs=[];
   Object.entries(CPE_BOXES).forEach(([,sec])=>{
     sec.items.forEach(item=>{if(st.boxes&&st.boxes[item.id])obs.push(item.l);});
@@ -6880,7 +6928,7 @@ ${obs.length?obs.map(o=>'• '+o).join('\n'):'(aucune observation cochée — r�
 RÈGLES STRICTES :
 1. Ton CPE uniquement — PAS de mention de résultats scolaires, notes, matières.
 2. Focus : assiduité, ponctualité, comportement, vie scolaire, suivi.
-3. 200-350 caractères maximum — court et précis.
+3. MAXIMUM ${charLimit} caractères — court et précis.
 4. Ton professionnel et factuel, sans jugement de valeur sur la personne.
 5. Pas de "je" — parler à la 3e personne ou directement à l'élève/famille.
 6. INTERDIT : "il est essentiel", "il est important", "il est nécessaire".
@@ -6939,7 +6987,16 @@ function startVoiceToPillsCPE(sid){
     if(ta)ta.textContent=(vtpTranscript+interim).trim()||'Parlez maintenant…';
   };
   vtpRecognition.onerror=(e)=>{if(e.error==='no-speech')return;document.getElementById('vtp-status-txt').textContent='❌ Erreur micro';};
-  vtpRecognition.onend=()=>{if(vtpActive&&document.getElementById('mo-vtp')){setTimeout(()=>{if(vtpActive&&document.getElementById('mo-vtp')){try{vtpRecognition.start();}catch(e){}}},300);}};
+  vtpRecognition.onend=()=>{
+    if(!vtpActive||!document.getElementById('mo-vtp'))return;
+    setTimeout(()=>{
+      if(!vtpActive||!document.getElementById('mo-vtp'))return;
+      const SR2=window.SpeechRecognition||window.webkitSpeechRecognition;
+      const nr=new SR2();nr.lang='fr-FR';nr.continuous=false;nr.interimResults=true;
+      nr.onstart=vtpRecognition.onstart;nr.onresult=vtpRecognition.onresult;nr.onerror=vtpRecognition.onerror;nr.onend=vtpRecognition.onend;
+      vtpRecognition=nr;try{vtpRecognition.start();}catch(e){}
+    },150);
+  };
   vtpRecognition.start();
 }
 
@@ -7773,7 +7830,7 @@ function renderPPEditor(id){
             <button class="gbtn m ${st.gender==='M'?'active':''}" onclick="setPPGender('${st.id}','M',this)">♂ M</button>
             <button class="gbtn f ${st.gender==='F'?'active':''}" onclick="setPPGender('${st.id}','F',this)">♀ F</button>
           </div>
-          <div class="ed-sub">${pLabel} · ${pp.name}</div>
+          <div class="ed-sub">${pLabel} · ${pp.name} · Max ${pp.charLimit||750} car.</div>
           <button onclick="resetAllPPBoxes('${id}')" style="padding:3px 10px;border:1px solid rgba(255,255,255,.35);border-radius:6px;font-size:.65rem;font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.05em;background:rgba(255,255,255,.15);color:rgba(255,255,255,.9);cursor:pointer;transition:all .15s" onmouseover="this.style.background='rgba(255,255,255,.25)'" onmouseout="this.style.background='rgba(255,255,255,.15)'" title="Réinitialiser toutes les cases cochées">↺ Tout réinitialiser</button>
           <button onclick="startVoiceToPillsPP('${id}')" style="padding:3px 10px;border:1px solid rgba(255,255,255,.5);border-radius:6px;font-size:.65rem;font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.05em;background:rgba(255,255,255,.2);color:#fff;cursor:pointer;transition:all .15s;font-weight:600" onmouseover="this.style.background='rgba(255,255,255,.35)'" onmouseout="this.style.background='rgba(255,255,255,.2)'" title="Profil vocal">🎙️ Profil vocal</button>
         </div>
@@ -7907,7 +7964,7 @@ function setPPOL(id,level,btn){const st=getPPSt(id);st.orient.level=level;btn.cl
 function setPPOP(id,path,btn){getPPSt(id).orient.path=path;btn.closest('.opath-row').querySelectorAll('.opbtn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');save();}
 function setPPON(id,v){getPPSt(id).orient.note=v;save();}
 function resetPPComment(id){const st=getPPSt(id);if(!st)return;if(!st.comments)st.comments={};st.comments[activePPPeriod]='';save();renderPPEditor(id);toast('🗑 Bilan effacé');}
-function ppOnCI(id,val){const pp=S.pp[activePP];const st=getPPSt(id);if(!st.comments)st.comments={};st.comments[activePPPeriod]=val;save();renderPPStudentList();const el=document.getElementById('ppcc-'+id);if(el){el.textContent=`${val.length}/750`;el.className='cchar'+(val.length>750?' over':val.length>0?' teal':'');}}
+function ppOnCI(id,val){const pp=S.pp[activePP];const st=getPPSt(id);if(!st.comments)st.comments={};st.comments[activePPPeriod]=val;save();renderPPStudentList();const el=document.getElementById('ppcc-'+id);if(el){const ppCl=S.pp[activePP]?.charLimit||750;el.textContent=`${val.length}/${ppCl}`;el.className='cchar'+(val.length>ppCl?' over':val.length>0?' teal':'');}}
 function ppCopy(id){const ta=document.getElementById('ppcta-'+id);if(!ta?.value)return;navigator.clipboard.writeText(ta.value).then(()=>{const b=document.getElementById('ppcpb-'+id);b.textContent='✓ Copié';b.classList.add('copied');setTimeout(()=>{b.textContent='Copier';b.classList.remove('copied');},1800);});}
 
 // ── PP PROMPT ─────────────────────────────────────────────────────────────────
@@ -7942,6 +7999,7 @@ function buildPPPrompt(st,pp,period,seed,memSamp){
   const notesCtx=st.notes?`\nNOTES DU PP (contexte confidentiel à intégrer avec discrétion) : ${st.notes}`:'';
   const memCtx=memSamp?`\nEXPRESSIONS DÉJÀ UTILISÉES (à éviter pour garantir la variété) :\n${memSamp}`:'';
 
+  const ppCharLimit=Math.min(1000,pp.charLimit||750);
   return `Tu es un professeur principal expérimenté rédigeant le bilan trimestriel global d'un élève pour le bulletin scolaire.
 
 ÉLÈVE : ${gender}, accord au ${accord} OBLIGATOIRE. ${pLabel} — Classe : ${pp.name}.
@@ -7956,7 +8014,7 @@ ${memCtx}
 RÈGLES STRICTES — toutes obligatoires :
 1. Ce texte est un BILAN GLOBAL rédigé par le professeur principal — pas une appréciation de matière.
 2. Le registre est institutionnel, synthétique, conclusif. C'est la voix de l'équipe pédagogique au complet.
-3. Texte FLUIDE et CONTINU, entre 400 et 750 caractères. JAMAIS de liste, de tirets, de points numérotés.
+3. Texte FLUIDE et CONTINU, entre ${Math.round(ppCharLimit*0.6)} et ${ppCharLimit} caractères. JAMAIS de liste, de tirets, de points numérotés.
 4. Relie toutes les idées avec des connecteurs variés : "Cependant,", "Par ailleurs,", "Néanmoins,", "Tout en saluant…, on soulignera que", "Dans l'ensemble,", "Au fil du trimestre,", "L'équipe pédagogique souligne que", etc.
 5. Accord grammatical au ${accord} SANS EXCEPTION.
 6. Ne commence PAS par "Il / Elle" seul. Commence par une formule plus élaborée : "Au terme de ce trimestre,", "Le conseil de classe souligne…", "L'ensemble des professeurs…", "Au fil de ce semestre…", etc.
@@ -7972,7 +8030,7 @@ async function ppGenOne(sid){
   ta.classList.add('gen'); ta.value='Rédaction du bilan en cours…';
   try{
     const seed=PP_STYLE_SEEDS[Math.floor(Math.random()*PP_STYLE_SEEDS.length)];
-    const txt=fitToLimit(await callClaude(buildPPPrompt(st,pp,activePPPeriod,seed,sampPPMem(activePP))), 750);
+    const txt=fitToLimit(await callClaude(buildPPPrompt(st,pp,activePPPeriod,seed,sampPPMem(activePP))), pp.charLimit||750);
     ta.classList.remove('gen'); ta.value=txt;
     addPPMem(activePP,txt); ppOnCI(sid,txt);
   }catch(e){ta.classList.remove('gen');ta.value='';toast('Erreur de génération');}
@@ -8027,7 +8085,7 @@ async function ppGenOneBulk(sid){
   ta.classList.add('gen');
   try{
     const seed=PP_STYLE_SEEDS[Math.floor(Math.random()*PP_STYLE_SEEDS.length)];
-    const txt=fitToLimit(await callClaude(buildPPPrompt(st,pp,activePPPeriod,seed,sampPPMem(activePP))), 750);
+    const txt=fitToLimit(await callClaude(buildPPPrompt(st,pp,activePPPeriod,seed,sampPPMem(activePP))), pp.charLimit||750);
     ta.classList.remove('gen'); ta.value=txt;
     addPPMem(activePP,txt); ppBulkSave(sid,txt);
   }catch(e){ta.classList.remove('gen');toast('Erreur génération');}
@@ -8036,7 +8094,7 @@ async function ppGenOneBulk(sid){
 function ppBulkSave(id,val){
   const st=getPPSt(id); if(!st)return;
   if(!st.comments)st.comments={}; st.comments[activePPPeriod]=val; save();
-  const el=document.getElementById('ppbcc-'+id);if(el){el.textContent=`${val.length}/750`;el.className='cchar'+(val.length>750?' over':val.length>0?' teal':'');}
+  const el=document.getElementById('ppbcc-'+id);if(el){const ppCl=S.pp[activePP]?.charLimit||750;el.textContent=`${val.length}/${ppCl}`;el.className='cchar'+(val.length>ppCl?' over':val.length>0?' teal':'');}
 }
 function ppCopyOne(id){const ta=document.getElementById('ppbta-'+id);if(ta?.value)navigator.clipboard.writeText(ta.value).then(()=>toast('Copié !'));}
 function ppCopyAll(){
