@@ -5705,105 +5705,127 @@ function stopVoice(){
 }
 
 // ── VOICE TO PILLS ────────────────────────────────────────────────────────────
+// Rewrite: NO auto-restart, Set deduplication, text fallback for network errors
 let vtpRecognition=null;
 let vtpActive=false;
 let vtpTargetId=null;
 let vtpTranscript='';
+let vtpSeen=new Set();
 
 function startVoiceToPills(sid){
-  if(!('webkitSpeechRecognition' in window)&&!('SpeechRecognition' in window)){
-    toast('❌ Saisie vocale non supportée — utilisez Chrome ou Edge');return;
-  }
   vtpTargetId=sid;
   vtpTranscript='';
+  vtpSeen=new Set();
 
-  // Show modal
+  const hasSR=('webkitSpeechRecognition' in window)||('SpeechRecognition' in window);
+
   const mo=document.createElement('div');
   mo.className='mo'; mo.id='mo-vtp';
-  mo.innerHTML=`<div class="mo-box" style="max-width:480px">
+  mo.innerHTML=`<div class="mo-box" style="max-width:500px">
     <div class="mo-t" style="margin-bottom:4px">🎙️ Profil vocal</div>
-    <p style="font-size:.82rem;color:var(--muted);margin-bottom:16px;line-height:1.5">Décrivez oralement le profil de l'élève. Par exemple : <em>"Élève sérieux, bons résultats, mais bavarde parfois et manque de concentration."</em></p>
-    <div id="vtp-status" style="display:flex;align-items:center;gap:10px;background:var(--bg);border-radius:10px;padding:12px 14px;margin-bottom:12px">
-      <div id="vtp-dot" style="width:12px;height:12px;border-radius:50%;background:#dc2626;animation:pulse-suggest 1s infinite;flex-shrink:0"></div>
-      <span id="vtp-status-txt" style="font-size:.82rem;color:var(--ink)">En attente…</span>
-    </div>
-    <div id="vtp-transcript" style="min-height:60px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:.85rem;color:var(--ink2);line-height:1.6;margin-bottom:16px;font-style:italic">Parlez maintenant…</div>
-    <div style="display:flex;gap:8px">
-      <button class="btn btn-g" id="vtp-stop-btn" onclick="stopAndAnalyseVTP()" style="flex:1">✓ Terminer et analyser</button>
+    <p style="font-size:.82rem;color:var(--muted);margin-bottom:14px;line-height:1.5">Décrivez le profil de l'élève en phrases complètes — l'IA cochera automatiquement les observations correspondantes.</p>
+    ${hasSR?`<div id="vtp-status-row" style="display:flex;align-items:center;gap:10px;background:var(--bg);border-radius:10px;padding:10px 14px;margin-bottom:10px">
+      <div id="vtp-dot" style="width:11px;height:11px;border-radius:50%;background:#9ca3af;flex-shrink:0;transition:background .3s"></div>
+      <span id="vtp-status-txt" style="font-size:.82rem;color:var(--ink);flex:1">Prêt…</span>
+      <button id="vtp-resume-btn" onclick="vtpStartListening()" style="display:none;padding:5px 14px;background:var(--purple);color:#fff;border:none;border-radius:6px;font-size:.75rem;cursor:pointer;font-family:inherit">▶ Reprendre</button>
+    </div>`:''}
+    <textarea id="vtp-transcript-ta" placeholder="Votre description apparaît ici — ou tapez directement…" style="width:100%;min-height:90px;background:var(--bg);border:1.5px solid var(--border);border-radius:8px;padding:10px 12px;font-size:.85rem;color:var(--ink2);line-height:1.6;margin-bottom:10px;resize:vertical;font-family:inherit;box-sizing:border-box" oninput="vtpTranscript=this.value"></textarea>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      ${hasSR?`<button id="vtp-mic-btn" onclick="vtpStartListening()" style="padding:9px 16px;background:var(--purple);color:#fff;border:none;border-radius:8px;font-size:.82rem;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;font-family:inherit">🎙️ Enregistrer</button>`:''}
+      <button class="btn btn-g" id="vtp-stop-btn" onclick="stopAndAnalyseVTP()" style="flex:1">✓ Analyser</button>
       <button class="btn btn-o" onclick="cancelVTP()">Annuler</button>
     </div>
+    <p style="font-size:.72rem;color:var(--muted);margin-top:8px;text-align:center">Appuyez sur Enregistrer, parlez, puis appuyez sur ▶ Reprendre pour ajouter. Ou tapez directement.</p>
   </div>`;
   document.body.appendChild(mo);
   mo.classList.add('open');
 
-  // Start recognition
-  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-  vtpRecognition=new SR();
-  vtpRecognition.lang='fr-FR';
-  vtpRecognition.continuous=true;
-  vtpRecognition.interimResults=true;
+  if(hasSR) vtpStartListening();
+}
 
-  vtpRecognition.onstart=()=>{
+function vtpStartListening(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR) return;
+  if(vtpRecognition){try{vtpRecognition.abort();}catch(e){} vtpRecognition=null;}
+
+  const rec=new SR();
+  rec.lang='fr-FR';
+  rec.continuous=false;     // single utterance — most reliable on all platforms
+  rec.interimResults=false; // finals only — eliminates all duplicate/partial issues
+
+  rec.onstart=()=>{
     vtpActive=true;
-    document.getElementById('vtp-status-txt').textContent='🎙️ En cours d\'écoute — parlez maintenant';
-    document.getElementById('vtp-dot').style.background='#16a34a';
+    const dot=document.getElementById('vtp-dot');
+    const txt=document.getElementById('vtp-status-txt');
+    const micBtn=document.getElementById('vtp-mic-btn');
+    const resumeBtn=document.getElementById('vtp-resume-btn');
+    if(dot){dot.style.background='#16a34a';}
+    if(txt){txt.textContent='🎙️ Écoute en cours — parlez maintenant…';}
+    if(micBtn){micBtn.style.display='none';}
+    if(resumeBtn){resumeBtn.style.display='none';}
   };
 
-  vtpRecognition.onresult=(e)=>{
+  rec.onresult=(e)=>{
     for(let i=0;i<e.results.length;i++){
       if(e.results[i].isFinal){
-        const t=e.results[i][0].transcript;
-        // Only add if not already in transcript (prevent duplicates)
-        if(!vtpTranscript.endsWith(t+' ')&&!vtpTranscript.endsWith(t)){
-          vtpTranscript+=t+' ';
+        const phrase=e.results[i][0].transcript.trim();
+        if(phrase&&!vtpSeen.has(phrase)){
+          vtpSeen.add(phrase);
+          vtpTranscript+=(vtpTranscript?' ':'')+phrase;
+          const ta=document.getElementById('vtp-transcript-ta');
+          if(ta){ta.value=vtpTranscript;}
         }
       }
     }
-    let interim='';
-    if(e.results.length>0&&!e.results[e.results.length-1].isFinal){
-      interim=e.results[e.results.length-1][0].transcript;
-    }
-    const ta=document.getElementById('vtp-transcript');
-    if(ta) ta.textContent=(vtpTranscript+(interim?'('+interim+')':'')).trim()||'Parlez maintenant…';
   };
 
-  vtpRecognition.onerror=(e)=>{
+  rec.onerror=(e)=>{
     if(e.error==='no-speech'||e.error==='aborted') return;
-    const statusEl=document.getElementById('vtp-status-txt');
-    if(statusEl) statusEl.textContent='❌ Erreur micro — '+e.error;
+    const dot=document.getElementById('vtp-dot');
+    const txt=document.getElementById('vtp-status-txt');
+    const micBtn=document.getElementById('vtp-mic-btn');
+    if(dot){dot.style.background='#f59e0b';}
+    if(txt){txt.textContent=e.error==='network'
+      ?'⚠️ Micro indisponible sur ce réseau — tapez votre description ci-dessus'
+      :'⚠️ Erreur micro ('+e.error+') — tapez ci-dessus';}
+    if(micBtn){micBtn.style.display='none';}
   };
 
-  vtpRecognition.onend=()=>{
-    if(!vtpActive||!document.getElementById('mo-vtp')) return;
-    // Create a FRESH instance — never restart same instance (causes duplicate results on mobile)
-    setTimeout(()=>{
-      if(!vtpActive||!document.getElementById('mo-vtp')) return;
-      const SR2=window.SpeechRecognition||window.webkitSpeechRecognition;
-      const newRec=new SR2();
-      newRec.lang='fr-FR'; newRec.continuous=false; newRec.interimResults=true;
-      newRec.onstart=vtpRecognition.onstart;
-      newRec.onresult=vtpRecognition.onresult;
-      newRec.onerror=vtpRecognition.onerror;
-      newRec.onend=vtpRecognition.onend;
-      vtpRecognition=newRec;
-      try{vtpRecognition.start();}catch(e2){}
-    },150);
+  rec.onend=()=>{
+    vtpActive=false;
+    vtpRecognition=null;
+    // NEVER auto-restart — show Reprendre button, user decides
+    const dot=document.getElementById('vtp-dot');
+    const txt=document.getElementById('vtp-status-txt');
+    const resumeBtn=document.getElementById('vtp-resume-btn');
+    const micBtn=document.getElementById('vtp-mic-btn');
+    const hasText=!!(document.getElementById('vtp-transcript-ta')?.value?.trim());
+    if(dot){dot.style.background='#9ca3af';}
+    if(txt){txt.textContent=hasText?'✓ Terminé — relancez pour ajouter, ou cliquez Analyser':'Rien capturé — réessayez ou tapez ci-dessus';}
+    if(resumeBtn){resumeBtn.style.display='';}
+    if(micBtn){micBtn.style.display='none';}
   };
 
-  vtpRecognition.start();
+  vtpRecognition=rec;
+  try{rec.start();}catch(err){
+    const txt=document.getElementById('vtp-status-txt');
+    if(txt){txt.textContent='⚠️ Impossible de démarrer — tapez votre description ci-dessus';}
+  }
 }
-
 async function stopAndAnalyseVTP(){
-  if(vtpRecognition) vtpRecognition.stop();
+  if(vtpRecognition){try{vtpRecognition.abort();}catch(e){} vtpRecognition=null;}
   vtpActive=false;
 
-  const transcript=vtpTranscript.trim();
-  if(!transcript){toast('Aucune parole détectée');cancelVTP();return;}
+  // Read from textarea — works whether user spoke or typed
+  const ta=document.getElementById('vtp-transcript-ta');
+  const transcript=(ta?.value||vtpTranscript).trim();
+  if(!transcript){toast('Aucune description — parlez ou tapez votre description');return;}
 
   // Update modal to show analysis in progress
   const stopBtn=document.getElementById('vtp-stop-btn');
   if(stopBtn){stopBtn.disabled=true;stopBtn.textContent='⟳ Analyse en cours…';}
-  document.getElementById('vtp-status-txt').textContent='🤖 Analyse par l\'IA…';
+  const statusTxt=document.getElementById('vtp-status-txt');
+  if(statusTxt) statusTxt.textContent='🤖 Analyse par l\'IA…';
 
   const cls=S.classes[S.active];
   const st=getSt(vtpTargetId);
@@ -5957,52 +5979,28 @@ function resetCPECategoryBoxes(sid,itemIdsStr){
 }
 
 function startVoiceToPillsPP(sid){
-  if(!('webkitSpeechRecognition' in window)&&!('SpeechRecognition' in window)){
-    toast('❌ Saisie vocale non supportée — utilisez Chrome ou Edge');return;
-  }
-  vtpTargetId=sid;vtpTranscript='';
+  vtpTargetId=sid; vtpTranscript=''; vtpSeen=new Set();
+  const hasSR=('webkitSpeechRecognition' in window)||('SpeechRecognition' in window);
   const mo=document.createElement('div');
-  mo.className='mo';mo.id='mo-vtp';
-  mo.innerHTML=`<div class="mo-box" style="max-width:480px">
+  mo.className='mo'; mo.id='mo-vtp';
+  mo.innerHTML=`<div class="mo-box" style="max-width:500px">
     <div class="mo-t" style="margin-bottom:4px">🎙️ Profil vocal — PP</div>
-    <p style="font-size:.82rem;color:var(--muted);margin-bottom:16px;line-height:1.5">Décrivez oralement le bilan de l'élève. Ex : <em>"Élève sérieux, bonne intégration, quelques absences."</em></p>
-    <div id="vtp-status" style="display:flex;align-items:center;gap:10px;background:var(--bg);border-radius:10px;padding:12px 14px;margin-bottom:12px">
-      <div id="vtp-dot" style="width:12px;height:12px;border-radius:50%;background:#dc2626;animation:pulse-suggest 1s infinite;flex-shrink:0"></div>
-      <span id="vtp-status-txt" style="font-size:.82rem;color:var(--ink)">En attente…</span>
-    </div>
-    <div id="vtp-transcript" style="min-height:60px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:.85rem;color:var(--ink2);line-height:1.6;margin-bottom:16px;font-style:italic">Parlez maintenant…</div>
-    <div style="display:flex;gap:8px">
-      <button class="btn btn-g" id="vtp-stop-btn" onclick="stopAndAnalyseVTPPP('${sid}')" style="flex:1">✓ Terminer et analyser</button>
+    <p style="font-size:.82rem;color:var(--muted);margin-bottom:14px;line-height:1.5">Décrivez oralement le bilan de l'élève. Ex : <em>"Élève sérieux, bonne intégration, quelques absences."</em></p>
+    ${hasSR?`<div id="vtp-status-row" style="display:flex;align-items:center;gap:10px;background:var(--bg);border-radius:10px;padding:10px 14px;margin-bottom:10px">
+      <div id="vtp-dot" style="width:11px;height:11px;border-radius:50%;background:#9ca3af;flex-shrink:0;transition:background .3s"></div>
+      <span id="vtp-status-txt" style="font-size:.82rem;color:var(--ink);flex:1">Prêt…</span>
+      <button id="vtp-resume-btn" onclick="vtpStartListening()" style="display:none;padding:5px 14px;background:var(--purple);color:#fff;border:none;border-radius:6px;font-size:.75rem;cursor:pointer;font-family:inherit">▶ Reprendre</button>
+    </div>`:''}
+    <textarea id="vtp-transcript-ta" placeholder="Votre description apparaît ici — ou tapez directement…" style="width:100%;min-height:90px;background:var(--bg);border:1.5px solid var(--border);border-radius:8px;padding:10px 12px;font-size:.85rem;color:var(--ink2);line-height:1.6;margin-bottom:10px;resize:vertical;font-family:inherit;box-sizing:border-box" oninput="vtpTranscript=this.value"></textarea>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      ${hasSR?`<button id="vtp-mic-btn" onclick="vtpStartListening()" style="padding:9px 16px;background:var(--purple);color:#fff;border:none;border-radius:8px;font-size:.82rem;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;font-family:inherit">🎙️ Enregistrer</button>`:''}
+      <button class="btn btn-g" id="vtp-stop-btn" onclick="stopAndAnalyseVTPPP('${sid}')" style="flex:1">✓ Analyser</button>
       <button class="btn btn-o" onclick="cancelVTP()">Annuler</button>
     </div>
+    <p style="font-size:.72rem;color:var(--muted);margin-top:8px;text-align:center">Appuyez sur Enregistrer, parlez, puis ▶ Reprendre pour ajouter. Ou tapez directement.</p>
   </div>`;
-  document.body.appendChild(mo);mo.classList.add('open');
-  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-  vtpRecognition=new SR();vtpRecognition.lang='fr-FR';vtpRecognition.continuous=true;vtpRecognition.interimResults=true;
-  vtpRecognition.onstart=()=>{vtpActive=true;document.getElementById('vtp-status-txt').textContent='🎙️ En cours d\'écoute';document.getElementById('vtp-dot').style.background='#16a34a';};
-  vtpRecognition.onresult=(e)=>{
-    for(let i=e.resultIndex;i<e.results.length;i++){
-      if(e.results[i].isFinal) vtpTranscript+=e.results[i][0].transcript+' ';
-    }
-    let interim='';
-    for(let i=e.results.length-1;i>=e.resultIndex;i--){
-      if(!e.results[i].isFinal){interim=e.results[i][0].transcript;break;}
-    }
-    const ta=document.getElementById('vtp-transcript');
-    if(ta)ta.textContent=(vtpTranscript+(interim?interim:'')).trim()||'Parlez maintenant…';
-  };
-  vtpRecognition.onerror=(e)=>{if(e.error==='no-speech')return;document.getElementById('vtp-status-txt').textContent='❌ Erreur micro';};
-  vtpRecognition.onend=()=>{
-    if(!vtpActive||!document.getElementById('mo-vtp'))return;
-    setTimeout(()=>{
-      if(!vtpActive||!document.getElementById('mo-vtp'))return;
-      const SR2=window.SpeechRecognition||window.webkitSpeechRecognition;
-      const nr=new SR2();nr.lang='fr-FR';nr.continuous=false;nr.interimResults=true;
-      nr.onstart=vtpRecognition.onstart;nr.onresult=vtpRecognition.onresult;nr.onerror=vtpRecognition.onerror;nr.onend=vtpRecognition.onend;
-      vtpRecognition=nr;try{vtpRecognition.start();}catch(e){}
-    },150);
-  };
-  vtpRecognition.start();
+  document.body.appendChild(mo); mo.classList.add('open');
+  if(hasSR) vtpStartListening();
 }
 
 async function stopAndAnalyseVTPPP(sid){
@@ -7018,47 +7016,28 @@ async function cpeGenAll(){
 }
 
 function startVoiceToPillsCPE(sid){
-  if(!('webkitSpeechRecognition' in window)&&!('SpeechRecognition' in window)){
-    toast('❌ Saisie vocale non supportée — utilisez Chrome ou Edge');return;
-  }
-  vtpTargetId=sid;vtpTranscript='';
+  vtpTargetId=sid; vtpTranscript=''; vtpSeen=new Set();
+  const hasSR=('webkitSpeechRecognition' in window)||('SpeechRecognition' in window);
   const mo=document.createElement('div');
-  mo.className='mo';mo.id='mo-vtp';
-  mo.innerHTML=`<div class="mo-box" style="max-width:480px">
+  mo.className='mo'; mo.id='mo-vtp';
+  mo.innerHTML=`<div class="mo-box" style="max-width:500px">
     <div class="mo-t" style="margin-bottom:4px">🎙️ Profil vocal — CPE</div>
-    <p style="font-size:.82rem;color:var(--muted);margin-bottom:16px;line-height:1.5">Décrivez le suivi de l'élève : absences, comportement, incidents, progrès…</p>
-    <div id="vtp-status" style="display:flex;align-items:center;gap:10px;background:var(--bg);border-radius:10px;padding:12px 14px;margin-bottom:12px">
-      <div id="vtp-dot" style="width:12px;height:12px;border-radius:50%;background:#dc2626;animation:pulse-suggest 1s infinite;flex-shrink:0"></div>
-      <span id="vtp-status-txt" style="font-size:.82rem;color:var(--ink)">En attente…</span>
-    </div>
-    <div id="vtp-transcript" style="min-height:60px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:.85rem;color:var(--ink2);line-height:1.6;margin-bottom:16px;font-style:italic">Parlez maintenant…</div>
-    <div style="display:flex;gap:8px">
-      <button class="btn btn-g" id="vtp-stop-btn" onclick="stopAndAnalyseVTPCPE('${sid}')" style="flex:1">✓ Terminer et analyser</button>
+    <p style="font-size:.82rem;color:var(--muted);margin-bottom:14px;line-height:1.5">Décrivez le suivi de l'élève : absences, comportement, incidents, progrès…</p>
+    ${hasSR?`<div id="vtp-status-row" style="display:flex;align-items:center;gap:10px;background:var(--bg);border-radius:10px;padding:10px 14px;margin-bottom:10px">
+      <div id="vtp-dot" style="width:11px;height:11px;border-radius:50%;background:#9ca3af;flex-shrink:0;transition:background .3s"></div>
+      <span id="vtp-status-txt" style="font-size:.82rem;color:var(--ink);flex:1">Prêt…</span>
+      <button id="vtp-resume-btn" onclick="vtpStartListening()" style="display:none;padding:5px 14px;background:var(--purple);color:#fff;border:none;border-radius:6px;font-size:.75rem;cursor:pointer;font-family:inherit">▶ Reprendre</button>
+    </div>`:''}
+    <textarea id="vtp-transcript-ta" placeholder="Votre description apparaît ici — ou tapez directement…" style="width:100%;min-height:90px;background:var(--bg);border:1.5px solid var(--border);border-radius:8px;padding:10px 12px;font-size:.85rem;color:var(--ink2);line-height:1.6;margin-bottom:10px;resize:vertical;font-family:inherit;box-sizing:border-box" oninput="vtpTranscript=this.value"></textarea>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      ${hasSR?`<button id="vtp-mic-btn" onclick="vtpStartListening()" style="padding:9px 16px;background:var(--purple);color:#fff;border:none;border-radius:8px;font-size:.82rem;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;font-family:inherit">🎙️ Enregistrer</button>`:''}
+      <button class="btn btn-g" id="vtp-stop-btn" onclick="stopAndAnalyseVTPCPE('${sid}')" style="flex:1">✓ Analyser</button>
       <button class="btn btn-o" onclick="cancelVTP()">Annuler</button>
     </div>
+    <p style="font-size:.72rem;color:var(--muted);margin-top:8px;text-align:center">Appuyez sur Enregistrer, parlez, puis ▶ Reprendre pour ajouter. Ou tapez directement.</p>
   </div>`;
-  document.body.appendChild(mo);mo.classList.add('open');
-  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-  vtpRecognition=new SR();vtpRecognition.lang='fr-FR';vtpRecognition.continuous=true;vtpRecognition.interimResults=true;
-  vtpRecognition.onstart=()=>{vtpActive=true;document.getElementById('vtp-status-txt').textContent='🎙️ En cours d\'écoute';document.getElementById('vtp-dot').style.background='#16a34a';};
-  vtpRecognition.onresult=(e)=>{
-    for(let i=e.resultIndex;i<e.results.length;i++){if(e.results[i].isFinal)vtpTranscript+=e.results[i][0].transcript+' ';}
-    let interim='';for(let i=e.results.length-1;i>=e.resultIndex;i--){if(!e.results[i].isFinal){interim=e.results[i][0].transcript;break;}}
-    const ta=document.getElementById('vtp-transcript');
-    if(ta)ta.textContent=(vtpTranscript+interim).trim()||'Parlez maintenant…';
-  };
-  vtpRecognition.onerror=(e)=>{if(e.error==='no-speech')return;document.getElementById('vtp-status-txt').textContent='❌ Erreur micro';};
-  vtpRecognition.onend=()=>{
-    if(!vtpActive||!document.getElementById('mo-vtp'))return;
-    setTimeout(()=>{
-      if(!vtpActive||!document.getElementById('mo-vtp'))return;
-      const SR2=window.SpeechRecognition||window.webkitSpeechRecognition;
-      const nr=new SR2();nr.lang='fr-FR';nr.continuous=false;nr.interimResults=true;
-      nr.onstart=vtpRecognition.onstart;nr.onresult=vtpRecognition.onresult;nr.onerror=vtpRecognition.onerror;nr.onend=vtpRecognition.onend;
-      vtpRecognition=nr;try{vtpRecognition.start();}catch(e){}
-    },150);
-  };
-  vtpRecognition.start();
+  document.body.appendChild(mo); mo.classList.add('open');
+  if(hasSR) vtpStartListening();
 }
 
 async function stopAndAnalyseVTPCPE(sid){
