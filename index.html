@@ -783,6 +783,7 @@ body{font-family:'DM Sans',sans-serif;font-weight:300;background:var(--bg);color
     <button class="sb-fbtn" onclick="showCodeAccess()">🔑 Code</button>
     <button class="sb-fbtn" onclick="showFeedback()" style="position:relative">💬 Avis<span id="avis-dot" style="position:absolute;top:3px;right:3px;width:6px;height:6px;background:#f87171;border-radius:50%;animation:pulse 1.5s infinite"></span></button>
     <button class="sb-fbtn" onclick="showOnboarding(true)" title="Aide">❓ Aide</button>
+    <a href="https://bulletinspro.github.io/guide.html" target="_blank" class="sb-fbtn" style="text-decoration:none;display:flex;align-items:center;justify-content:center;gap:3px" title="Guide complet">📖 Guide</a>
     <a href="https://bulletinspro.github.io/privacy.html" target="_blank" class="sb-fbtn" style="text-decoration:none;display:flex;align-items:center;justify-content:center;gap:3px">🔒 Confidentialité</a>
     <input type="file" id="imp-inp" accept=".json" style="display:none" onchange="doImport(event)">
   </div>
@@ -6408,51 +6409,111 @@ const ONBOARD_STEPS = [
   {
     icon: '👋',
     title: 'Bienvenue dans BulletinsPro !',
-    desc: 'Générez des appréciations de bulletin scolaire en quelques clics grâce à l\'IA. Voici comment démarrer en 4 étapes.',
+    desc: 'Rédigez vos appréciations de bulletin en quelques minutes grâce à l\'IA. Ce guide vous explique tout en moins de 5 minutes.',
     tips: [
-      {icon:'☁️', text:'Vos données sont <strong>sauvegardées automatiquement</strong> sur votre Google Drive personnel.'},
-      {icon:'📱', text:'L\'app fonctionne sur <strong>ordinateur, tablette et mobile</strong> — même sans connexion internet.'},
-      {icon:'🔒', text:'Chaque prof a <strong>son propre espace</strong> — personne ne voit vos données.'},
+      {icon:'🎓', text:'Pour les <strong>professeurs de matière</strong>, le <strong>Prof. Principal</strong> et le <strong>CPE</strong> — chaque rôle a son module dédié.'},
+      {icon:'🔒', text:'<strong>100% RGPD</strong> — les prénoms de vos élèves ne sont jamais envoyés à l\'IA.'},
+      {icon:'💾', text:'Vos données sont sauvegardées <strong>automatiquement</strong> sur votre Google Drive personnel.'},
     ]
   },
   {
     icon: '📚',
-    title: 'Créez votre première classe',
-    desc: 'Commencez par créer une classe en cliquant sur "+ Nouvelle classe" dans la barre latérale.',
+    title: '① Créez votre première classe',
+    desc: 'Cliquez sur <strong>"+ Nouvelle classe"</strong> dans la barre latérale gauche. Choisissez le nom, la matière, le niveau scolaire, les périodes et la limite de caractères.',
     tips: [
-      {icon:'🎓', text:'Choisissez la <strong>matière</strong> (maths, anglais, EPS...) pour des observations adaptées.'},
-      {icon:'📊', text:'Sélectionnez votre <strong>système d\'évaluation</strong> : note /20, niveaux ou compétences.'},
-      {icon:'📥', text:'Importez directement votre <strong>liste d\'élèves en CSV</strong> via le bouton 📥 — plus rapide !'},
+      {icon:'📥', text:'<strong>Importez vos élèves</strong> depuis PRONOTE via le bouton 📥 Importer — copiez-collez votre liste directement.'},
+      {icon:'🎓', text:'Le <strong>niveau scolaire</strong> est important — en 3e les sections Brevet s\'affichent, en Terminale le Grand Oral et le Bac.'},
+      {icon:'✏️', text:'Vous pouvez <strong>modifier</strong> la classe plus tard (nom, matière, niveau, limite de caractères) via le bouton ✎ dans la sidebar.'},
     ]
   },
   {
-    icon: '✏️',
-    title: 'Remplissez le profil de chaque élève',
-    desc: 'Sélectionnez un élève, puis cochez les observations qui le décrivent. Plus vous cochez, plus l\'appréciation sera précise.',
+    icon: '☑️',
+    title: '② Cochez les observations de l\'élève',
+    desc: 'Cliquez sur un élève pour ouvrir son profil. Cochez les observations qui le décrivent dans chaque catégorie.',
     tips: [
-      {icon:'🟢', text:'Les pills <strong>vertes</strong> sont positives, <strong>rouges</strong> négatives, <strong>ambre</strong> neutres.'},
-      {icon:'➕', text:'Ajoutez vos <strong>propres observations</strong> avec le bouton "+ Ajouter" dans chaque catégorie.'},
-      {icon:'🎯', text:'Activez l\'<strong>orientation</strong> si l\'élève a un projet de filière à mentionner.'},
+      {icon:'🟢', text:'Pills <strong>vertes</strong> = positif · Pills <strong>ambre</strong> = neutre/mitigé · Pills <strong>rouges</strong> = négatif.'},
+      {icon:'🎯', text:'Choisissez un <strong>verdict global</strong> en haut (Excellent, Bon, Satisfaisant…) pour ouvrir l\'appréciation sur cette phrase.'},
+      {icon:'↺', text:'Chaque catégorie a un bouton <strong>↺ reset</strong> dans son titre pour décocher uniquement cette section.'},
+    ]
+  },
+  {
+    icon: '🎙️',
+    title: '③ Profil vocal — dictez le profil',
+    desc: 'Dans la barre colorée en haut du profil élève, cliquez sur <strong>"🎙️ Profil vocal"</strong>. Décrivez l\'élève oralement — l\'IA coche automatiquement les observations correspondantes.',
+    tips: [
+      {icon:'🟡', text:'Les correspondances <strong>certaines</strong> sont cochées en vert. Les correspondances <strong>probables</strong> apparaissent en jaune — confirmez avec ✓ ou ignorez avec ✕.'},
+      {icon:'🎙️', text:'Parlez en <strong>phrases complètes</strong> : "résultats satisfaisants, travail régulier, bavarde parfois, doit s\'impliquer davantage à l\'oral".'},
+      {icon:'⚠️', text:'Le profil vocal fonctionne sur <strong>Chrome et Edge</strong> uniquement (pas Safari).'},
+    ]
+  },
+  {
+    icon: '✨',
+    title: '④ Générez l\'appréciation',
+    desc: 'Cliquez sur <strong>"↻ Générer"</strong> en bas du profil. L\'appréciation apparaît en quelques secondes. Relisez, modifiez si besoin, puis copiez.',
+    tips: [
+      {icon:'⌨️', text:'Raccourci clavier : <strong>Ctrl + Entrée</strong> pour générer sans quitter le clavier.'},
+      {icon:'🔄', text:'Régénérez autant de fois que vous voulez — chaque résultat est <strong>différent</strong>. Les anciens résultats sont automatiquement évités.'},
+      {icon:'🗑️', text:'Le bouton <strong>🗑 Effacer</strong> efface l\'appréciation générée sans toucher aux observations cochées.'},
     ]
   },
   {
     icon: '⚡',
-    title: 'Générez les appréciations',
-    desc: 'Cliquez sur "Générer" pour qu\'une appréciation soit rédigée automatiquement. Vous pouvez la modifier avant de la copier.',
+    title: '⑤ Génération en masse',
+    desc: 'Cochez les observations de tous vos élèves, puis cliquez sur <strong>"⚡ Générer tout"</strong> en haut à droite. Toute la classe est générée automatiquement.',
     tips: [
-      {icon:'🔄', text:'Cliquez plusieurs fois sur <strong>↻ Générer</strong> pour avoir des variantes différentes.'},
-      {icon:'🎙️', text:'Utilisez la <strong>saisie vocale</strong> 🎙️ pour dicter directement votre appréciation.'},
-      {icon:'📄', text:'En vue <strong>📄 Tout</strong>, générez toutes les appréciations d\'un coup avec ⚡ Générer tout.'},
+      {icon:'📄', text:'Consultez toutes les appréciations dans l\'onglet <strong>📄 Vue complète</strong> — vous pouvez modifier chacune individuellement.'},
+      {icon:'⚡', text:'Une classe de <strong>25 élèves</strong> prend environ 2 à 3 minutes. Le compteur en haut à droite montre votre solde.'},
+      {icon:'📋', text:'Bouton <strong>"📋 Tout copier"</strong> pour copier toutes les appréciations dans le presse-papier d\'un coup.'},
+    ]
+  },
+  {
+    icon: '🔄',
+    title: '⑥ Trimestres et resets',
+    desc: 'Naviguez entre <strong>T1 · T2 · T3</strong> avec les boutons en haut. Les observations du trimestre précédent restent — ajustez ce qui a changé plutôt que de repartir de zéro.',
+    tips: [
+      {icon:'↺', text:'<strong>↺ Tout réinitialiser</strong> (barre colorée du profil) efface toutes les observations d\'un élève — utile si le profil a complètement changé.'},
+      {icon:'↺', text:'<strong>↺ reset</strong> sur chaque catégorie décoche uniquement cette catégorie, en préservant les autres.'},
+      {icon:'📋', text:'En T2/T3, un champ optionnel permet de coller l\'<strong>appréciation du trimestre précédent</strong> pour contextualiser l\'évolution.'},
+    ]
+  },
+  {
+    icon: '📋',
+    title: '⑦ Appréciation de classe',
+    desc: 'L\'onglet <strong>"📋 Classe"</strong> génère une appréciation générale de votre groupe — celle qui apparaît au-dessus des appréciations individuelles dans PRONOTE.',
+    tips: [
+      {icon:'👥', text:'Les observations décrivent la <strong>dynamique collective</strong> — niveau général, ambiance, points forts et axes d\'amélioration du groupe.'},
+      {icon:'✨', text:'L\'appréciation de classe est <strong>distincte</strong> des appréciations individuelles — elle ne mentionne aucun élève.'},
+      {icon:'📤', text:'Exportez-la avec le reste via PRONOTE ou copiez-la manuellement.'},
+    ]
+  },
+  {
+    icon: '👨‍🏫',
+    title: '⑧ Module Professeur Principal',
+    desc: 'Sous "Prof. Principal" dans la sidebar, créez un groupe PP. Le module génère des bilans globaux de l\'équipe pédagogique — compétences transversales, vie scolaire, orientation.',
+    tips: [
+      {icon:'📊', text:'Renseignez les <strong>absences et retards</strong> du trimestre pour chaque élève — ils seront intégrés dans le bilan.'},
+      {icon:'🎙️', text:'Le <strong>profil vocal</strong> est disponible en PP aussi — décrivez le bilan tel que vous le percevez depuis les retours de l\'équipe.'},
+      {icon:'🎯', text:'La section <strong>Orientation</strong> est activable individuellement pour les élèves avec un projet de filière.'},
+    ]
+  },
+  {
+    icon: '📋',
+    title: '⑨ Module CPE',
+    desc: 'Sous "CPE" dans la sidebar, créez un suivi CPE. Le module génère des suivis comportementaux et d\'assiduité — <strong>jamais de résultats scolaires</strong>.',
+    tips: [
+      {icon:'📋', text:'4 catégories uniquement : <strong>Assiduité, Comportement, Suivi & Accompagnement, Conclusion</strong>.'},
+      {icon:'📏', text:'Le suivi CPE est court par défaut (<strong>350 caractères</strong>) — factuel, professionnel, sans jugement sur la personne.'},
+      {icon:'🎙️', text:'Le <strong>profil vocal</strong> est aussi disponible en CPE — décrivez rapidement le suivi de l\'élève.'},
     ]
   },
   {
     icon: '📤',
-    title: 'Exportez vos appréciations',
-    desc: 'Quand tout est rédigé, exportez en PDF ou Word pour les copier dans Pronote ou votre logiciel de bulletins.',
+    title: '⑩ Export et PRONOTE',
+    desc: 'Depuis la <strong>Vue complète</strong>, exportez vers PRONOTE, copiez tout dans le presse-papier, ou téléchargez en CSV. Vos données sont aussi exportables en JSON depuis le menu Export.',
     tips: [
-      {icon:'📄', text:'<strong>PDF</strong> : mise en page officielle avec en-tête, tableau et zone de signature.'},
-      {icon:'📝', text:'<strong>Word (.rtf)</strong> : s\'ouvre dans Word, LibreOffice ou Pages — éditable.'},
-      {icon:'📋', text:'<strong>Copier tout</strong> : toutes les appréciations dans le presse-papier en un clic.'},
+      {icon:'📄', text:'<strong>⬇ PRONOTE</strong> génère un fichier importable directement dans PRONOTE client (logiciel installé).'},
+      {icon:'💾', text:'<strong>⬇ Export</strong> (en bas de la sidebar) sauvegarde toutes vos classes en JSON — utile comme sauvegarde ou pour changer d\'appareil.'},
+      {icon:'📖', text:'Retrouvez ce guide à tout moment en cliquant sur <strong>❓ Aide</strong> en bas de la barre latérale.'},
     ]
   },
 ];
