@@ -4800,6 +4800,8 @@ function getGenCount(){
 
 function incrementGenCount(n=1){
   if(typeof gtag!=='undefined') gtag('event','appreciation_generated',{event_category:'engagement',event_label:'app',value:n});
+  // Don't increment counter for owner — truly unlimited
+  if(hasOwnerAccess()){updateGenCounter();return 0;}
   const c=getGenCount()+n;
   localStorage.setItem(GEN_COUNT_KEY,String(c));
   localStorage.setItem(GEN_YEAR_KEY,String(getSchoolYear()));
@@ -5723,7 +5725,11 @@ function startVoiceToPills(sid){
   mo.className='mo'; mo.id='mo-vtp';
   mo.innerHTML=`<div class="mo-box" style="max-width:500px">
     <div class="mo-t" style="margin-bottom:4px">🎙️ Profil vocal</div>
-    <p style="font-size:.82rem;color:var(--muted);margin-bottom:14px;line-height:1.5">Décrivez le profil de l'élève en phrases complètes — l'IA cochera automatiquement les observations correspondantes.</p>
+    <p style="font-size:.82rem;color:var(--muted);margin-bottom:10px;line-height:1.5">Décrivez le profil de l'élève en phrases complètes — l'IA cochera automatiquement les observations correspondantes.</p>
+    <div style="background:#fff8ed;border:1px solid #fde68a;border-radius:8px;padding:8px 12px;margin-bottom:10px;font-size:.78rem;color:#92400e;line-height:1.5">
+      ⚠️ <strong>RGPD :</strong> Ne prononcez pas le nom ou prénom de l'élève — décrivez son profil de façon anonyme.<br>
+      🌐 <strong>Compatibilité :</strong> Fonctionne sur <strong>Chrome</strong> uniquement (pas Brave, Edge, Firefox).
+    </div>
     ${hasSR?`<div id="vtp-status-row" style="display:flex;align-items:center;gap:10px;background:var(--bg);border-radius:10px;padding:10px 14px;margin-bottom:10px">
       <div id="vtp-dot" style="width:11px;height:11px;border-radius:50%;background:#9ca3af;flex-shrink:0;transition:background .3s"></div>
       <span id="vtp-status-txt" style="font-size:.82rem;color:var(--ink);flex:1">Prêt…</span>
@@ -5812,6 +5818,24 @@ function vtpStartListening(){
     if(txt){txt.textContent='⚠️ Impossible de démarrer — tapez votre description ci-dessus';}
   }
 }
+
+function vtpStripNames(transcript, classStudents){
+  // Remove any known student names from transcript before sending to AI
+  if(!classStudents||!classStudents.length) return transcript;
+  let clean = transcript;
+  classStudents.forEach(st=>{
+    if(!st.name) return;
+    // Strip first name, last name parts, and full name
+    const parts = st.name.trim().split(/\s+/);
+    parts.forEach(part=>{
+      if(part.length < 3) return; // skip initials/very short
+      const re = new RegExp('\\b' + part.replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + '\\b', 'gi');
+      clean = clean.replace(re, "l'élève");
+    });
+  });
+  return clean;
+}
+
 async function stopAndAnalyseVTP(){
   if(vtpRecognition){try{vtpRecognition.abort();}catch(e){} vtpRecognition=null;}
   vtpActive=false;
@@ -5985,7 +6009,11 @@ function startVoiceToPillsPP(sid){
   mo.className='mo'; mo.id='mo-vtp';
   mo.innerHTML=`<div class="mo-box" style="max-width:500px">
     <div class="mo-t" style="margin-bottom:4px">🎙️ Profil vocal — PP</div>
-    <p style="font-size:.82rem;color:var(--muted);margin-bottom:14px;line-height:1.5">Décrivez oralement le bilan de l'élève. Ex : <em>"Élève sérieux, bonne intégration, quelques absences."</em></p>
+    <p style="font-size:.82rem;color:var(--muted);margin-bottom:10px;line-height:1.5">Décrivez oralement le bilan de l'élève. Ex : <em>"Élève sérieux, bonne intégration, quelques absences."</em></p>
+    <div style="background:#fff8ed;border:1px solid #fde68a;border-radius:8px;padding:8px 12px;margin-bottom:10px;font-size:.78rem;color:#92400e;line-height:1.5">
+      ⚠️ <strong>RGPD :</strong> Ne prononcez pas le nom ou prénom de l'élève.<br>
+      🌐 <strong>Compatibilité :</strong> Chrome uniquement.
+    </div>
     ${hasSR?`<div id="vtp-status-row" style="display:flex;align-items:center;gap:10px;background:var(--bg);border-radius:10px;padding:10px 14px;margin-bottom:10px">
       <div id="vtp-dot" style="width:11px;height:11px;border-radius:50%;background:#9ca3af;flex-shrink:0;transition:background .3s"></div>
       <span id="vtp-status-txt" style="font-size:.82rem;color:var(--ink);flex:1">Prêt…</span>
@@ -7022,7 +7050,11 @@ function startVoiceToPillsCPE(sid){
   mo.className='mo'; mo.id='mo-vtp';
   mo.innerHTML=`<div class="mo-box" style="max-width:500px">
     <div class="mo-t" style="margin-bottom:4px">🎙️ Profil vocal — CPE</div>
-    <p style="font-size:.82rem;color:var(--muted);margin-bottom:14px;line-height:1.5">Décrivez le suivi de l'élève : absences, comportement, incidents, progrès…</p>
+    <p style="font-size:.82rem;color:var(--muted);margin-bottom:10px;line-height:1.5">Décrivez le suivi de l'élève : absences, comportement, incidents, progrès…</p>
+    <div style="background:#fff8ed;border:1px solid #fde68a;border-radius:8px;padding:8px 12px;margin-bottom:10px;font-size:.78rem;color:#92400e;line-height:1.5">
+      ⚠️ <strong>RGPD :</strong> Ne prononcez pas le nom ou prénom de l'élève.<br>
+      🌐 <strong>Compatibilité :</strong> Chrome uniquement.
+    </div>
     ${hasSR?`<div id="vtp-status-row" style="display:flex;align-items:center;gap:10px;background:var(--bg);border-radius:10px;padding:10px 14px;margin-bottom:10px">
       <div id="vtp-dot" style="width:11px;height:11px;border-radius:50%;background:#9ca3af;flex-shrink:0;transition:background .3s"></div>
       <span id="vtp-status-txt" style="font-size:.82rem;color:var(--ink);flex:1">Prêt…</span>
