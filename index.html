@@ -776,16 +776,19 @@ body{font-family:'DM Sans',sans-serif;font-weight:300;background:var(--bg);color
     <div id="cpe-list"></div>
     <button class="add-pp-btn" style="background:rgba(217,119,6,.06);border-color:rgba(217,119,6,.35);color:rgba(217,119,6,.85)" onmouseover="this.style.borderColor='#d97706';this.style.color='#fff';this.style.background='rgba(217,119,6,.15)'" onmouseout="this.style.borderColor='rgba(217,119,6,.35)';this.style.color='rgba(217,119,6,.85)';this.style.background='rgba(217,119,6,.06)'" onclick="openNewCPE()">+ Nouveau suivi CPE</button>
   </div>
-  <div class="sb-foot">
-    <button class="sb-fbtn" onclick="exportAll()">⬇ Export</button>
-    <button class="sb-fbtn" onclick="importAll()">⬆ Import</button>
-    <button class="sb-fbtn" onclick="showStats()">📊 Stats</button>
-    <button class="sb-fbtn" onclick="showCodeAccess()">🔑 Code</button>
-    <button class="sb-fbtn" onclick="showFeedback()" style="position:relative">💬 Avis<span id="avis-dot" style="position:absolute;top:3px;right:3px;width:6px;height:6px;background:#f87171;border-radius:50%;animation:pulse 1.5s infinite"></span></button>
-    <button class="sb-fbtn" onclick="showOnboarding(true)" title="Aide">❓ Aide</button>
-    <button class="sb-fbtn" onclick="showStylePerso()" title="Mon style d'écriture">✍️ Style</button>
-    <a href="https://bulletinspro.github.io/guide.html" target="_blank" class="sb-fbtn" style="text-decoration:none;display:flex;align-items:center;justify-content:center;gap:3px" title="Guide complet">📖 Guide</a>
-    <a href="https://bulletinspro.github.io/privacy.html" target="_blank" class="sb-fbtn" style="text-decoration:none;display:flex;align-items:center;justify-content:center;gap:3px">🔒 Confidentialité</a>
+  <div class="sb-foot" style="flex-direction:column;gap:4px">
+    <div style="display:flex;gap:4px">
+      <button class="sb-fbtn" onclick="exportAll()" title="Exporter les données">⬇ Export</button>
+      <button class="sb-fbtn" onclick="importAll()" title="Importer des données">⬆ Import</button>
+      <button class="sb-fbtn" onclick="showStats()" title="Statistiques">📊 Stats</button>
+      <button class="sb-fbtn" onclick="showCodeAccess()" title="Code d'accès">🔑 Code</button>
+    </div>
+    <div style="display:flex;gap:4px">
+      <button class="sb-fbtn" onclick="showStylePerso()" title="Mon style d'écriture personnel">✍️ Style</button>
+      <button class="sb-fbtn" onclick="showFeedback()" style="position:relative" title="Laisser un avis">💬 Avis<span id="avis-dot" style="position:absolute;top:3px;right:3px;width:6px;height:6px;background:#f87171;border-radius:50%;animation:pulse 1.5s infinite"></span></button>
+      <button class="sb-fbtn" onclick="showOnboarding(true)" title="Tutoriel interactif">❓ Aide</button>
+      <a href="https://bulletinspro.github.io/guide.html" target="_blank" class="sb-fbtn" style="text-decoration:none;display:flex;align-items:center;justify-content:center" title="Guide complet en ligne">📖 Guide</a>
+    </div>
     <input type="file" id="imp-inp" accept=".json" style="display:none" onchange="doImport(event)">
   </div>
   <!-- GOOGLE DRIVE SYNC BAR -->
