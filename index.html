@@ -3770,9 +3770,29 @@ function setView(v){
 }
 
 function goGenAll(){
+  // If style not configured yet, nudge before mass generation
+  if(!localStorage.getItem('bp3_style_set') && !localStorage.getItem('bp3_style_dismissed') && !hasOwnerAccess()){
+    const mo=document.createElement('div');
+    mo.className='mo'; mo.id='mo-style-nudge-gen';
+    mo.innerHTML=`<div class="mo-box" style="max-width:440px;text-align:center">
+      <div style="font-size:2rem;margin-bottom:10px">✍️</div>
+      <div class="mo-t" style="margin-bottom:8px">Avant de générer toute la classe…</div>
+      <p style="font-size:.88rem;color:var(--muted);line-height:1.65;margin-bottom:20px">Saviez-vous que BulletinsPro peut apprendre <strong>votre style d'écriture</strong> ? Collez 3 de vos anciennes appréciations et toute la classe sera générée dans votre style.<br><br>2 minutes maintenant = une classe entière qui sonne comme vous.</p>
+      <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+        <button class="btn btn-o" onclick="localStorage.setItem('bp3_style_dismissed','true');document.getElementById('mo-style-nudge-gen').remove();goGenAllNow()">Générer sans style perso</button>
+        <button class="btn btn-g" onclick="document.getElementById('mo-style-nudge-gen').remove();showStylePerso()">✍️ Configurer d'abord</button>
+      </div>
+    </div>`;
+    document.body.appendChild(mo);
+    mo.classList.add('open');
+    return;
+  }
+  goGenAllNow();
+}
+
+function goGenAllNow(){
   S.view='bulk';
   setView('bulk');
-  // Small delay to ensure DOM is rendered before generating
   setTimeout(()=>generateAll(), 150);
 }
 
@@ -6584,8 +6604,18 @@ const ONBOARD_STEPS = [
     ]
   },
   {
+    icon: '✍️',
+    title: '⑩ Mon style d\'écriture personnel',
+    desc: 'Cliquez sur <strong>"✍️ Style"</strong> en bas de la barre latérale et collez 3 de vos anciennes appréciations. L\'IA apprendra votre façon d\'écrire et l\'appliquera à toutes vos générations.',
+    tips: [
+      {icon:'⭐', text:'<strong>La qualité de ces exemples est déterminante.</strong> Choisissez vos meilleures appréciations — un excellent élève, un moyen, un en difficulté. C\'est ce qui fait que le résultat sonne comme vous.'},
+      {icon:'🔄', text:'Le style s\'applique à <strong>toutes vos classes, PP et CPE</strong> — une seule configuration pour tout.'},
+      {icon:'💡', text:'L\'IA ne copie pas vos exemples — elle reproduit votre façon d\'écrire : longueur de phrases, connecteurs, niveau de formalité.'},
+    ]
+  },
+  {
     icon: '📤',
-    title: '⑩ Export et PRONOTE',
+    title: '⑪ Export et PRONOTE',
     desc: 'Depuis la <strong>Vue complète</strong>, exportez vers PRONOTE, copiez tout dans le presse-papier, ou téléchargez en CSV. Vos données sont aussi exportables en JSON depuis le menu Export.',
     tips: [
       {icon:'📄', text:'<strong>⬇ PRONOTE</strong> génère un fichier importable directement dans PRONOTE client (logiciel installé).'},
