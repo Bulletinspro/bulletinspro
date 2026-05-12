@@ -4849,6 +4849,8 @@ function incrementGenCount(n=1){
   const c=getGenCount()+n;
   localStorage.setItem(GEN_COUNT_KEY,String(c));
   localStorage.setItem(GEN_YEAR_KEY,String(getSchoolYear()));
+  // Mirror into S so Drive sync persists the count
+  S._genCount=c; S._genYear=getSchoolYear();
   // Track first use date for time-based feedback trigger
   if(!localStorage.getItem('bp3_first_use')) localStorage.setItem('bp3_first_use',String(Date.now()));
   updateGenCounter();
@@ -4927,13 +4929,16 @@ function showGenLimitModal(){
       <a href="mailto:bulletins.pro.app@gmail.com?subject=Top-up 200 générations" class="btn btn-g" style="display:block;text-align:center;text-decoration:none;font-size:.85rem">Acheter 200 générations — 4€ →</a>
     </div>` : ''}
     ${!isPaid ? `
-    <div style="background:var(--purple-l);border:1.5px solid var(--purple-b);border-radius:10px;padding:14px;margin-bottom:14px;text-align:left">
-      <div style="font-weight:700;font-size:.9rem;color:var(--purple);margin-bottom:6px">🔓 Passer à l'abonnement</div>
-      <div style="font-size:.83rem;color:var(--muted);margin-bottom:10px">Standard à 24,99€/an — 800 générations, toutes les matières.</div>
+    <p style="font-size:.82rem;color:var(--muted);margin-bottom:16px;line-height:1.6">Vos classes et données sont <strong>conservées</strong> — elles vous attendent après l'abonnement.</p>
+    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px">
+      <a href="https://bulletinspro.github.io/#tarifs" target="_blank" class="btn btn-g" style="text-decoration:none;font-size:.88rem;text-align:center;padding:12px">🔓 Voir les abonnements — à partir de 4,99€/mois →</a>
     </div>
-    <div style="margin-top:8px">
-      <input id="beta-code-input" class="mo-inp" placeholder="Code d'accès..." style="width:180px;display:inline-block;margin-right:8px">
-      <button class="btn btn-o" onclick="activateBetaCode()">Activer</button>
+    <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin-bottom:12px">
+      <div style="font-size:.78rem;color:var(--muted);margin-bottom:6px">Vous avez un code d'accès ?</div>
+      <div style="display:flex;gap:8px">
+        <input id="beta-code-input" class="mo-inp" placeholder="Code..." style="flex:1;margin:0">
+        <button class="btn btn-o" onclick="activateBetaCode()">Activer</button>
+      </div>
     </div>` : ''}
     <button class="btn btn-o" style="margin-top:12px;width:100%" onclick="document.getElementById('gen-limit-modal').classList.remove('open')">Fermer</button>
   </div>`;
