@@ -4833,13 +4833,21 @@ function getSchoolYear(){
 
 function getGenCount(){
   const storedYear=localStorage.getItem(GEN_YEAR_KEY);
-  const currentYear=String(getSchoolYear());
-  if(storedYear!==currentYear){
-    localStorage.setItem(GEN_YEAR_KEY,currentYear);
+  const currentYear=getSchoolYear();
+  if(storedYear&&parseInt(storedYear)!==currentYear){
+    localStorage.setItem(GEN_YEAR_KEY,String(currentYear));
     localStorage.setItem(GEN_COUNT_KEY,'0');
+    if(S){S._genCount=0;S._genYear=currentYear;}
     return 0;
   }
-  return parseInt(localStorage.getItem(GEN_COUNT_KEY)||'0');
+  // If localStorage cleared but Drive restored S with count, recover it
+  const local=parseInt(localStorage.getItem(GEN_COUNT_KEY)||'0');
+  if(local===0 && S && S._genYear===currentYear && (S._genCount||0)>0){
+    localStorage.setItem(GEN_COUNT_KEY,String(S._genCount));
+    localStorage.setItem(GEN_YEAR_KEY,String(currentYear));
+    return S._genCount;
+  }
+  return local;
 }
 
 function incrementGenCount(n=1){
@@ -4960,41 +4968,31 @@ function activateBetaCode(){
 }
 
 function updateGenCounter(){
-  const el = document.getElementById('gen-counter-badge');
-  if(!el) return;
+  const els = document.querySelectorAll('#gen-counter-badge');
+  if(!els.length) return;
+  let txt='', title='', bg='', bc='', col='';
   if(hasOwnerAccess()){
-    el.textContent = '∞ générations';
-    el.title = 'Accès propriétaire — illimité';
-    el.style.background = 'var(--accent-l)';
-    el.style.borderColor = 'var(--accent-b)';
-    el.style.color = 'var(--accent)';
+    txt='∞ générations'; title='Accès propriétaire — illimité';
+    bg='var(--accent-l)'; bc='var(--accent-b)'; col='var(--accent)';
   } else if(hasBetaAccess()){
-    const remaining = getRemainingGens();
-    el.textContent = remaining + ' restantes (bêta)';
-    el.title = `Accès bêta — ${remaining} générations restantes`;
-    el.style.background = remaining <= 20 ? '#fee2e2' : 'var(--accent-l)';
-    el.style.borderColor = remaining <= 20 ? '#fca5a5' : 'var(--accent-b)';
-    el.style.color = remaining <= 20 ? '#b91c1c' : 'var(--accent)';
+    const r=getRemainingGens();
+    txt=r+' restantes (bêta)'; title=`Accès bêta — ${r} générations restantes`;
+    bg=r<=20?'#fee2e2':'var(--accent-l)'; bc=r<=20?'#fca5a5':'var(--accent-b)'; col=r<=20?'#b91c1c':'var(--accent)';
   } else if(hasPaidAccess()){
-    const remaining = getRemainingGens();
-    const pct = remaining / ANNUAL_LIMIT;
-    el.textContent = remaining + ' / ' + ANNUAL_LIMIT + ' générations';
-    el.title = `${remaining} générations restantes sur ${ANNUAL_LIMIT} — reset le 1er septembre`;
-    if(remaining <= 50){
-      el.style.background = '#fee2e2'; el.style.borderColor = '#fca5a5'; el.style.color = '#b91c1c';
-    } else if(remaining <= 200){
-      el.style.background = '#fff7ed'; el.style.borderColor = '#fed7aa'; el.style.color = '#c2410c';
-    } else {
-      el.style.background = 'var(--green-l)'; el.style.borderColor = '#bbf7d0'; el.style.color = 'var(--green)';
-    }
+    const r=getRemainingGens();
+    txt=r+' / '+ANNUAL_LIMIT+' générations'; title=`${r} restantes — reset le 1er septembre`;
+    if(r<=50){bg='#fee2e2';bc='#fca5a5';col='#b91c1c';}
+    else if(r<=200){bg='#fff7ed';bc='#fed7aa';col='#c2410c';}
+    else{bg='var(--green-l)';bc='#bbf7d0';col='var(--green)';}
   } else {
-    const remaining = getRemainingGens();
-    el.textContent = remaining + ' / ' + FREE_LIMIT + ' gratuites';
-    el.title = `${remaining} générations gratuites restantes`;
-    el.style.background = remaining <= 5 ? '#fee2e2' : 'var(--purple-l)';
-    el.style.borderColor = remaining <= 5 ? '#fca5a5' : 'var(--purple-b)';
-    el.style.color = remaining <= 5 ? '#b91c1c' : 'var(--purple)';
+    const r=getRemainingGens();
+    txt=r+' / '+FREE_LIMIT+' gratuites'; title=`${r} générations gratuites restantes`;
+    bg=r<=5?'#fee2e2':'var(--purple-l)'; bc=r<=5?'#fca5a5':'var(--purple-b)'; col=r<=5?'#b91c1c':'var(--purple)';
   }
+  els.forEach(el=>{
+    el.textContent=txt; el.title=title;
+    el.style.background=bg; el.style.borderColor=bc; el.style.color=col;
+  });
 }
 
 async function callClaude(prompt, retries=3, bulkMode=false){
@@ -6610,6 +6608,11 @@ function showOnboarding(force=false){
 function closeOnboarding(){
   document.getElementById('onboard-overlay').style.display='none';
   localStorage.setItem('bp3_onboard','1');
+  // Nudge towards guide after onboarding
+  if(!localStorage.getItem('bp3_guide_nudged')){
+    localStorage.setItem('bp3_guide_nudged','1');
+    setTimeout(()=>toast('📖 Retrouvez le guide complet avec le bouton Guide en bas de la barre latérale'),800);
+  }
 }
 
 function onboardNav(dir){
@@ -8324,6 +8327,16 @@ if (S.active && S.classes[S.active]) {
   document.getElementById('topbar-r').style.display='none';
   document.getElementById('view-tabs').style.display='none';
   document.getElementById('dbar').style.display='none';
+}
+
+// Show onboarding for first-time users — based on having no classes yet
+// Works regardless of Drive/localStorage state
+const _isFirstVisit = !localStorage.getItem('bp3_onboard') &&
+  Object.keys(S.classes||{}).length===0 &&
+  Object.keys(S.pp||{}).length===0 &&
+  Object.keys(S.cpe||{}).length===0;
+if(_isFirstVisit){
+  setTimeout(()=>showOnboarding(), 1200);
 }
 
 // ── MOBILE FUNCTIONS ──────────────────────────────────────────────────────────
