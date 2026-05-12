@@ -1174,10 +1174,11 @@ body{font-family:'DM Sans',sans-serif;font-weight:300;background:var(--bg);color
 <div class="mo" id="mo-style-perso">
   <div class="modal" style="max-width:600px">
     <div class="mo-t">✍️ Mon style d'écriture</div>
-    <p style="font-size:.85rem;color:var(--muted);margin-bottom:6px;line-height:1.6">Collez 3 à 5 anciennes appréciations que vous avez rédigées — l'IA apprendra votre style, vos tournures préférées et votre niveau de formalité.</p>
-    <p style="font-size:.78rem;color:var(--muted);margin-bottom:14px;line-height:1.5">Idéalement un mélange : un élève excellent, un moyen, un en difficulté. Ne pas inclure les noms.</p>
+    <p style="font-size:.85rem;color:var(--muted);margin-bottom:6px;line-height:1.6">Collez <strong>3 de vos meilleures appréciations réelles</strong> — l'IA apprendra votre style, vos tournures préférées et votre niveau de formalité.</p>
+    <p style="font-size:.78rem;color:var(--muted);margin-bottom:6px;line-height:1.5">⭐ <strong>La qualité de ces exemples est déterminante.</strong> Choisissez des appréciations dont vous êtes fier(e) — celles qui représentent vraiment comment vous écrivez à votre meilleur. Pas des premières venues.</p>
+    <p style="font-size:.78rem;color:var(--muted);margin-bottom:14px;line-height:1.5">Un mélange des 3 profils : un élève excellent, un élève moyen, un élève en difficulté. Ne pas inclure les prénoms.</p>
     <div class="mo-lbl">Mes appréciations de référence <span style="font-weight:400;opacity:.7">(un par ligne ou séparées par — )</span></div>
-    <textarea class="mo-inp" id="style-perso-ta" rows="8" placeholder="Exemple 1 : Excellent trimestre. Élève très investi(e), les résultats sont à la hauteur des efforts fournis…&#10;&#10;—&#10;&#10;Exemple 2 : Trimestre satisfaisant. Du sérieux dans l'ensemble, mais la participation pourrait être plus active…&#10;&#10;—&#10;&#10;Exemple 3 : Trimestre fragile. Les bases sont encore insuffisantes malgré les rappels…" style="min-height:180px;font-size:.83rem;resize:vertical"></textarea>
+    <textarea class="mo-inp" id="style-perso-ta" rows="8" placeholder="Exemple 1 — élève excellent(e) :&#10;Excellent trimestre. Élève très investi(e), les résultats sont à la hauteur…&#10;&#10;—&#10;&#10;Exemple 2 — élève moyen(ne) :&#10;Trimestre satisfaisant. Du sérieux dans l'ensemble, mais la participation pourrait être plus active…&#10;&#10;—&#10;&#10;Exemple 3 — élève en difficulté :&#10;Trimestre fragile. Les bases sont encore insuffisantes malgré les rappels…" style="min-height:180px;font-size:.83rem;resize:vertical"></textarea>
     <div style="display:flex;gap:10px;margin-top:6px;align-items:center">
       <div id="style-perso-status" style="font-size:.78rem;color:var(--muted);flex:1"></div>
       <button class="btn btn-o" onclick="clearStylePerso()">🗑 Effacer</button>
@@ -1185,7 +1186,7 @@ body{font-family:'DM Sans',sans-serif;font-weight:300;background:var(--bg);color
       <button class="btn btn-g" onclick="saveStylePerso()">✓ Enregistrer</button>
     </div>
     <div style="margin-top:12px;padding:10px 14px;background:var(--purple-l);border-radius:8px;font-size:.78rem;color:var(--ink2);line-height:1.5">
-      💡 <strong>Comment ça marche :</strong> L'IA ne copie pas vos appréciations — elle s'inspire de votre style, longueur de phrases, connecteurs préférés et niveau de formalité. Vos exemples sont stockés localement et sur votre Drive.
+      💡 <strong>Plus vos exemples sont soignés, plus le résultat vous ressemble.</strong> L'IA analyse vos connecteurs, la longueur de vos phrases, votre niveau de formalité, vos tournures habituelles — et les reproduit. Des exemples bâclés donneront un style bâclé. Vos meilleurs exemples donneront votre meilleur style.
     </div>
   </div>
 </div>
@@ -4852,6 +4853,10 @@ function incrementGenCount(n=1){
   if(!localStorage.getItem('bp3_first_use')) localStorage.setItem('bp3_first_use',String(Date.now()));
   updateGenCounter();
   // Only show feedback invite outside of bulk generation, and only once
+  // Nudge to set style after 3rd generation if not yet set
+  if(!hasOwnerAccess()&&!localStorage.getItem('bp3_style_set')&&getGenCount()===3){
+    setTimeout(()=>showStyleNudge(),800);
+  }
   if(!_generating && !localStorage.getItem('bp3_feedback_given')){
     const firstUse=parseInt(localStorage.getItem('bp3_first_use')||'0');
     const daysSinceFirst=(Date.now()-firstUse)/(1000*60*60*24);
@@ -6770,7 +6775,7 @@ function showStylePerso(){
   const status=document.getElementById('style-perso-status');
   if(saved.trim()){
     const count=(saved.match(/—/g)||[]).length+1;
-    status.textContent=`✓ ${count} exemple(s) enregistré(s)`;
+    status.textContent=`✓ ${Math.min(count,3)} exemple(s) enregistré(s) — actifs`;
     status.style.color='var(--green)';
   } else {
     status.textContent='Aucun exemple enregistré';
@@ -6781,6 +6786,7 @@ function showStylePerso(){
 function saveStylePerso(){
   const val=document.getElementById('style-perso-ta').value.trim();
   localStorage.setItem(STYLE_KEY, val);
+  localStorage.setItem('bp3_style_set','true');
   if(typeof gdScheduleSync==='function') gdScheduleSync();
   closeMo('mo-style-perso');
   if(val) toast('✍️ Style enregistré — actif pour toutes les générations');
@@ -6796,9 +6802,28 @@ function getStylePersoCtx(){
   const raw=localStorage.getItem(STYLE_KEY)||'';
   if(!raw.trim()) return '';
   // Split by — separator or double newline, take up to 5 examples
-  const examples=raw.split(/\n\s*—\s*\n|\n{3,}/).map(e=>e.trim()).filter(Boolean).slice(0,5);
+  const examples=raw.split(/\n\s*—\s*\n|\n{3,}/).map(e=>e.trim()).filter(Boolean).slice(0,3);
   if(!examples.length) return '';
-  return `\nSTYLE D'ÉCRITURE DE L'ENSEIGNANT — exemples réels :\n${examples.map((e,i)=>`Exemple ${i+1}: "${e}"`).join('\n')}\n→ Inspire-toi de ces exemples pour : la longueur des phrases, les connecteurs utilisés, le niveau de formalité, les tournures préférées. Ne recopie PAS ces formulations — reproduis le STYLE. Si l'enseignant écrit des phrases courtes, fais pareil. S'il préfère des nuances, intègre-les.`;
+  return `\nSTYLE D'ÉCRITURE DE L'ENSEIGNANT — exemples réels :\n${examples.map((e,i)=>`Exemple ${i+1}: "${e}"`).join('\n')}\n→ Reproduis ce STYLE (longueur de phrases, connecteurs, niveau de formalité, tournures). Ne recopie jamais les formulations — inspire-toi uniquement de la façon d'écrire.`;
+}
+
+
+function showStyleNudge(){
+  // Don't show if already dismissed or set
+  if(localStorage.getItem('bp3_style_dismissed')||localStorage.getItem('bp3_style_set')) return;
+  const mo=document.createElement('div');
+  mo.className='mo'; mo.id='mo-style-nudge';
+  mo.innerHTML=`<div class="mo-box" style="max-width:460px;text-align:center">
+    <div style="font-size:2.2rem;margin-bottom:10px">✍️</div>
+    <div class="mo-t" style="margin-bottom:8px">Personnalisez vos appréciations</div>
+    <p style="font-size:.88rem;color:var(--muted);line-height:1.65;margin-bottom:20px">Saviez-vous que BulletinsPro peut apprendre <strong>votre style d'écriture</strong> ?<br><br>Collez 3 de vos anciennes appréciations et l'IA reproduira vos tournures, votre longueur de phrases et votre niveau de formalité. Le résultat sonnera comme vous.</p>
+    <div style="display:flex;gap:10px;justify-content:center">
+      <button class="btn btn-o" onclick="localStorage.setItem('bp3_style_dismissed','true');document.getElementById('mo-style-nudge').remove()">Plus tard</button>
+      <button class="btn btn-g" onclick="document.getElementById('mo-style-nudge').remove();showStylePerso()">✍️ Configurer mon style</button>
+    </div>
+  </div>`;
+  document.body.appendChild(mo);
+  mo.classList.add('open');
 }
 
 function openNewCPE(){
