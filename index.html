@@ -783,6 +783,7 @@ body{font-family:'DM Sans',sans-serif;font-weight:300;background:var(--bg);color
     <button class="sb-fbtn" onclick="showCodeAccess()">🔑 Code</button>
     <button class="sb-fbtn" onclick="showFeedback()" style="position:relative">💬 Avis<span id="avis-dot" style="position:absolute;top:3px;right:3px;width:6px;height:6px;background:#f87171;border-radius:50%;animation:pulse 1.5s infinite"></span></button>
     <button class="sb-fbtn" onclick="showOnboarding(true)" title="Aide">❓ Aide</button>
+    <button class="sb-fbtn" onclick="showStylePerso()" title="Mon style d'écriture">✍️ Style</button>
     <a href="https://bulletinspro.github.io/guide.html" target="_blank" class="sb-fbtn" style="text-decoration:none;display:flex;align-items:center;justify-content:center;gap:3px" title="Guide complet">📖 Guide</a>
     <a href="https://bulletinspro.github.io/privacy.html" target="_blank" class="sb-fbtn" style="text-decoration:none;display:flex;align-items:center;justify-content:center;gap:3px">🔒 Confidentialité</a>
     <input type="file" id="imp-inp" accept=".json" style="display:none" onchange="doImport(event)">
@@ -1166,6 +1167,26 @@ body{font-family:'DM Sans',sans-serif;font-weight:300;background:var(--bg);color
 </div>
 
 
+<!-- STYLE PERSO MODAL -->
+<div class="mo" id="mo-style-perso">
+  <div class="modal" style="max-width:600px">
+    <div class="mo-t">✍️ Mon style d'écriture</div>
+    <p style="font-size:.85rem;color:var(--muted);margin-bottom:6px;line-height:1.6">Collez 3 à 5 anciennes appréciations que vous avez rédigées — l'IA apprendra votre style, vos tournures préférées et votre niveau de formalité.</p>
+    <p style="font-size:.78rem;color:var(--muted);margin-bottom:14px;line-height:1.5">Idéalement un mélange : un élève excellent, un moyen, un en difficulté. Ne pas inclure les noms.</p>
+    <div class="mo-lbl">Mes appréciations de référence <span style="font-weight:400;opacity:.7">(un par ligne ou séparées par — )</span></div>
+    <textarea class="mo-inp" id="style-perso-ta" rows="8" placeholder="Exemple 1 : Excellent trimestre. Élève très investi(e), les résultats sont à la hauteur des efforts fournis…&#10;&#10;—&#10;&#10;Exemple 2 : Trimestre satisfaisant. Du sérieux dans l'ensemble, mais la participation pourrait être plus active…&#10;&#10;—&#10;&#10;Exemple 3 : Trimestre fragile. Les bases sont encore insuffisantes malgré les rappels…" style="min-height:180px;font-size:.83rem;resize:vertical"></textarea>
+    <div style="display:flex;gap:10px;margin-top:6px;align-items:center">
+      <div id="style-perso-status" style="font-size:.78rem;color:var(--muted);flex:1"></div>
+      <button class="btn btn-o" onclick="clearStylePerso()">🗑 Effacer</button>
+      <button class="btn btn-o" onclick="closeMo('mo-style-perso')">Annuler</button>
+      <button class="btn btn-g" onclick="saveStylePerso()">✓ Enregistrer</button>
+    </div>
+    <div style="margin-top:12px;padding:10px 14px;background:var(--purple-l);border-radius:8px;font-size:.78rem;color:var(--ink2);line-height:1.5">
+      💡 <strong>Comment ça marche :</strong> L'IA ne copie pas vos appréciations — elle s'inspire de votre style, longueur de phrases, connecteurs préférés et niveau de formalité. Vos exemples sont stockés localement et sur votre Drive.
+    </div>
+  </div>
+</div>
+
 <!-- CPE MODAL -->
 <!-- EDIT PP MODAL -->
 <div class="mo" id="mo-edit-pp">
@@ -1353,26 +1374,39 @@ const SUBJECTS = {
 
 // ── CHECKBOX DEFINITIONS PER SUBJECT TYPE ────────────────────────────────────
 // valence: 'pos' | 'neg' | 'neutral'
-const VERDICT_PILLS = [
-  {id:'vd1', l:'Excellent trimestre',              weight: 5},
-  {id:'vd2', l:'Très bon trimestre',               weight: 4},
-  {id:'vd3', l:'Bon trimestre',                    weight: 3},
-  {id:'vd4', l:'Trimestre satisfaisant',           weight: 2},
-  {id:'vd18',l:'Trimestre assez satisfaisant',      weight: 2},
-  {id:'vd15',l:'Trimestre tout juste satisfaisant',weight: 1},
-  {id:'vd16',l:'Trimestre satisfaisant mais fragile', weight: 1},
-  {id:'vd5', l:'Trimestre encourageant',           weight: 2},
-  {id:'vd10',l:'Trimestre en deçà des capacités', weight: 0},
-  {id:'vd11',l:'Trimestre décevant mais pas sans espoir', weight: 0},
-  {id:'vd6', l:'Trimestre décevant',               weight:-1},
-  {id:'vd12',l:'Trimestre fragile',                weight:-1},
-  {id:'vd7', l:'Trimestre insuffisant',            weight:-2},
-  {id:'vd8', l:'Trimestre inquiétant',             weight:-3},
-  {id:'vd13',l:'Situation alarmante',               weight:-4},
-  {id:'vd14',l:'Trimestre préoccupant — réaction urgente requise', weight:-4},
-  {id:'vd9', l:'Trimestre très insuffisant',        weight:-5},
-  {id:'vd17',l:'Trimestre catastrophique',           weight:-6},
+const VERDICT_PILLS_BASE = [
+  {id:'vd1', key:'Excellent',              weight: 5},
+  {id:'vd2', key:'Très bon',               weight: 4},
+  {id:'vd3', key:'Bon',                    weight: 3},
+  {id:'vd4', key:'satisfaisant',           weight: 2},
+  {id:'vd18',key:'assez satisfaisant',     weight: 2},
+  {id:'vd15',key:'tout juste satisfaisant',weight: 1},
+  {id:'vd16',key:'satisfaisant mais fragile', weight: 1},
+  {id:'vd5', key:'encourageant',           weight: 2},
+  {id:'vd10',key:'en deçà des capacités',  weight: 0},
+  {id:'vd11',key:'décevant mais pas sans espoir', weight: 0},
+  {id:'vd6', key:'décevant',               weight:-1},
+  {id:'vd12',key:'fragile',                weight:-1},
+  {id:'vd7', key:'insuffisant',            weight:-2},
+  {id:'vd8', key:'inquiétant',             weight:-3},
+  {id:'vd13',key:'Situation alarmante',    weight:-4, noPrefix:true},
+  {id:'vd14',key:'préoccupant — réaction urgente requise', weight:-4},
+  {id:'vd9', key:'très insuffisant',       weight:-5},
+  {id:'vd17',key:'catastrophique',         weight:-6},
 ];
+
+function getVerdictPills(periodType){
+  const p = periodType==='semestre' ? 'Semestre' : 'Trimestre';
+  return VERDICT_PILLS_BASE.map(v=>({
+    ...v,
+    l: v.noPrefix ? v.key : (v.key[0]===v.key[0].toUpperCase()&&v.key.length>3&&!['satisfaisant','assez','tout','en','décevant','fragile','insuffisant','inquiétant','préoccupant','très','catastrophique','encourageant'].includes(v.key.split(' ')[0].toLowerCase()))
+      ? v.key+' '+p.toLowerCase()
+      : p+' '+v.key
+  }));
+}
+
+// Default — will be overridden at render time based on class periodType
+const VERDICT_PILLS = getVerdictPills('trimestre');
 
 // ── CORE BOXES — shared across all subjects, in display order ────────────────
 // Order: progression → travail → participation (generic) → [subject specific] → qualités → comportement → conseils
@@ -1471,6 +1505,8 @@ const CORE_BOXES = {
       {id:'pa12',l:'Participation pertinente et réfléchie',v:'pos'},
       {id:'pa4',l:'Participation correcte',v:'neutral'},
       {id:'pa5',l:'Participation timide',v:'neutral'},
+      {id:'pa13',l:'Participation décevante liée à l\'ambiance de classe',v:'neutral'},
+      {id:'pa14',l:'Très bon(ne) élève mais participation insuffisante',v:'neutral'},
       {id:'pa9',l:'Ne s\'implique pas au-delà du strict nécessaire',v:'neutral'},
       {id:'pa6',l:'Participe peu',v:'neg'},
       {id:'pa7',l:'Distrait(e) en classe',v:'neg'},
@@ -4042,9 +4078,9 @@ function renderEditor(id){
 
   html+=`
     <div class="card" style="border-color:var(--accent-b)">
-      <div class="card-hd" style="background:var(--accent-l);color:var(--accent)">Bilan global du trimestre <span style="font-weight:500;font-size:.8em;opacity:1;color:var(--muted)">&nbsp;— optionnel, laissez vide pour que l'IA choisisse</span></div>
+      <div class="card-hd" style="background:var(--accent-l);color:var(--accent)">Bilan global du ${cls.periodType==='semestre'?'semestre':'trimestre'} <span style="font-weight:500;font-size:.8em;opacity:1;color:var(--muted)">&nbsp;— optionnel, laissez vide pour que l'IA choisisse</span></div>
       <div class="pill-grid">
-        ${VERDICT_PILLS.map(v=>{
+        ${getVerdictPills(cls.periodType).map(v=>{
           const sel=st.verdict===v.id;
           const cls2=v.weight>=3?'':v.weight>=1?'neutral':'neg';
           return '<span class="pill '+cls2+' '+(sel?'sel':'')+'" onclick="setVerdict(\''+st.id+'\',\''+v.id+'\',this)">'+v.l+'</span>';
@@ -4498,7 +4534,7 @@ function buildPrompt(st,cls,period,seed,memSamp){
   }
 
   const memCtx=memSamp?`\nEXPRESSIONS DÉJÀ UTILISÉES POUR CETTE CLASSE (à éviter absolument pour garantir la variété) :\n${memSamp}`:'';
-
+  const styleCtx=getStylePersoCtx();
   // Previous appreciation context for continuity between terms
   let prevCtx='';
   if(period>1){
@@ -4506,27 +4542,29 @@ function buildPrompt(st,cls,period,seed,memSamp){
     if(prevComment && prevComment.trim()){
       const isPositiveProfile=checkedNeg.length<=1 && checkedPos.length>=4;
       const isDifficultProfile=checkedNeg.length>=3;
-      prevCtx=`\nAPPRÉCIATION DU TRIMESTRE PRÉCÉDENT (T${period-1}) :\n"${prevComment.trim()}"
+      prevCtx=`\nAPPRÉCIATION DU ${per.toUpperCase()} PRÉCÉDENT (${Per} ${period-1}) :\n"${prevComment.trim()}"
 → ${isPositiveProfile
-  ? 'Profil positif stable : une courte mention de continuité suffit ("Encore un excellent trimestre", "La dynamique positive se confirme"). Pas besoin de développer.'
+  ? `Profil positif stable : une courte mention de continuité suffit ("Encore un excellent ${per}", "La dynamique positive se confirme"). Pas besoin de développer.`
   : isDifficultProfile
-  ? 'Profil difficile : si la situation est identique, mentionner clairement que les conseils du trimestre précédent n\'ont pas été suivis d\'effet. Si dégradation, le souligner. Si amélioration même légère, la valoriser — c\'est important pour motiver.'
-  : 'Profil intermédiaire : noter l\'évolution (positive, stable ou négative) en une phrase naturelle. Valoriser les progrès, signaler la stagnation avec bienveillance.'
-} Ne pas reproduire les mêmes formulations que le trimestre précédent.`;
+  ? `Profil difficile : si la situation est identique, mentionner clairement que les conseils du ${per} précédent n'ont pas été suivis d'effet. Si dégradation, le souligner. Si amélioration même légère, la valoriser — c'est important pour motiver.`
+  : `Profil intermédiaire : noter l'évolution (positive, stable ou négative) en une phrase naturelle. Valoriser les progrès, signaler la stagnation avec bienveillance.`
+} Ne pas reproduire les mêmes formulations que le ${per} précédent.`;
     }
   }
   // Verdict context
-  const verdictObj = st.verdict ? VERDICT_PILLS.find(v=>v.id===st.verdict) : null;
+  const verdictObj = st.verdict ? getVerdictPills(cls.periodType).find(v=>v.id===st.verdict) : null;
+  const per = cls.periodType==='semestre' ? 'semestre' : 'trimestre';
+  const Per = cls.periodType==='semestre' ? 'Semestre' : 'Trimestre';
   const verdictCtx = verdictObj
     ? `BILAN GLOBAL CHOISI PAR L'ENSEIGNANT : "${verdictObj.l}." — OBLIGATOIRE : cette expression ouvre l'appréciation, suivie d'un point. La phrase suivante commence par une majuscule. Ne jamais accoler deux phrases sans point entre elles.`
     : `BILAN GLOBAL : l'enseignant n'a pas choisi d'expression d'ouverture — tu dois en choisir une qui correspond PRÉCISÉMENT au profil réel de l'élève (niveau, résultats, observations). Voici le guide de sélection :
-- Profil quasi-entièrement positif, bon niveau → "Excellent trimestre." ou "Très bon trimestre."
-- Profil globalement positif avec quelques bémols → "Bon trimestre."
-- Profil mitigé, des efforts mais des lacunes → "Trimestre satisfaisant." ou "Trimestre encourageant."
-- Profil avec potentiel mais résultats en dessous → "Trimestre en deçà des capacités." ou "Trimestre décevant mais pas sans espoir."
-- Profil fragile, difficultés réelles, régression légère → "Trimestre fragile." ou "Trimestre décevant."
-- Profil en grande difficulté, régression importante → "Trimestre insuffisant." ou "Trimestre inquiétant."
-ATTENTION : si le niveau est "fragile" ou "insuffisant", ou si une régression est notée, NE PAS choisir "Bon trimestre" ou mieux. Le bilan doit refléter honnêtement la réalité.`;
+- Profil quasi-entièrement positif, bon niveau → "Excellent ${per}." ou "Très bon ${per}."
+- Profil globalement positif avec quelques bémols → "Bon ${per}."
+- Profil mitigé, des efforts mais des lacunes → "${Per} satisfaisant." ou "${Per} encourageant."
+- Profil avec potentiel mais résultats en dessous → "${Per} en deçà des capacités." ou "${Per} décevant mais pas sans espoir."
+- Profil fragile, difficultés réelles, régression légère → "${Per} fragile." ou "${Per} décevant."
+- Profil en grande difficulté, régression importante → "${Per} insuffisant." ou "${Per} inquiétant."
+ATTENTION : si le niveau est "fragile" ou "insuffisant", ou si une régression est notée, NE PAS choisir "Bon ${per}" ou mieux. Le bilan doit refléter honnêtement la réalité.`;
 
   // Extract first name — handles formats: "Victoire", "BUISSON Victoire", "Victoire BUISSON"
   let studentName = null;
@@ -4698,7 +4736,7 @@ ${checkedNeutral.length ? '\n⚠️ OBSERVATIONS INTERMÉDIAIRES — DOIVENT APP
 ${checkedConseils.length ? '\nCONSEILS À DONNER EN CONCLUSION (ce sont des conseils pour l\'élève, PAS des qualités qu\'il possède déjà) :\n'+checkedConseils.map(c=>'→ '+c).join('\n') : ''}
 ${isDiscreet ? '\n⛔ Discret/réservé → INTERDIRE : "participe activement", "participe régulièrement". Dire : "suit attentivement", "s\'implique discrètement".' : ''}
 ${checked.some(c=>c.toLowerCase().includes('régress')&&(isDiscreet||checkedNeg.length>=2)) ? '\n⚠️ RÉGRESSION + profil fragile : ne pas mentionner la régression brutalement. Dire plutôt : "des efforts supplémentaires permettront de retrouver une dynamique positive" ou "il lui faudra redoubler d\'efforts pour inverser la tendance". L\'objectif est d\'encourager, pas de décourager.' : ''}
-${aeshCtx}${orientCtx}${classCtx}${prevCtx}${memCtx}
+${aeshCtx}${orientCtx}${classCtx}${prevCtx}${memCtx}${styleCtx}
 
 RÈGLES DE SYNTHÈSE — OBLIGATOIRES :
 0. Longueur : maximum ${targetMax} caractères. Synthétise — 4-5 observations liées = 1 phrase fluide.
@@ -4723,7 +4761,7 @@ RÈGLES DE SYNTHÈSE — OBLIGATOIRES :
 6. Ton : ${toneDesc}. Félicitations seulement si excellent/très bon verdict. JAMAIS "félicitations du conseil de classe". Écrire : ${cls.noJe ? '"Félicitations."' : '"Félicitations." ou "Toutes mes félicitations."'}
 7. "son travail est régulier" pas "elle est régulière dans son travail". "elle maîtrise l'expression orale" pas "elle exprime une bonne maîtrise". "Cette élève" pas "Ceste élève". JAMAIS "satisfaisant" plus d'une fois.
 8. FUSION : 3 observations similaires (discret + participe peu + évite de prendre la parole) = UNE seule phrase courte et bienveillante. Ne pas les répéter en conclusion si déjà mentionnées.
-8b. CLICHÉS INTERDITS — ne jamais écrire : "ambiance de classe", "bonne ambiance en classe", "atmosphère de classe" sauf si explicitement coché. Ne pas inventer de contexte sur la classe. INTERDIT aussi : "Il est désormais essentiel que", "Il est impératif que", "Il est indispensable que", "Il est nécessaire de/que", "Il est important de/que", "impérativement", "doit impérativement", "dès le prochain trimestre", "pour le prochain trimestre" — trop impersonnel et lourd. Préférer : "Il devra", "Il lui faudra", "Un effort s'impose", "La priorité est de", ou reformuler directement : "Revoir les bases permettra de progresser".
+8b. CLICHÉS INTERDITS — ne jamais écrire : "ambiance de classe", "bonne ambiance en classe", "atmosphère de classe" sauf si explicitement coché. Ne pas inventer de contexte sur la classe. INTERDIT aussi : "Il est désormais essentiel que", "Il est impératif que", "Il est indispensable que", "Il est nécessaire de/que", "Il est important de/que", "impérativement", "doit impérativement", "dès le prochain ${per}", "pour le prochain ${per}" — trop impersonnel et lourd. Préférer : "Il devra", "Il lui faudra", "Un effort s'impose", "La priorité est de", ou reformuler directement : "Revoir les bases permettra de progresser". ÉGALEMENT INTERDITS en fin de phrase ou d'appréciation : "qu'il faut saluer", "à souligner", "à noter avec satisfaction", "ce qui est à saluer", "ce qui mérite d'être souligné", "qui mérite d'être salué(e)", "que l'on peut saluer" — trop ampoulés. Préférer une formulation directe : "C'est encourageant.", "C'est positif.", ou simplement énoncer le fait.
 8c. ÉLISION CORRECTE — "que" + consonne = "que" (pas "qu'"). "que Mathis", "que Marie", "que Léa". "qu'" uniquement devant voyelle : "qu'il", "qu'elle", "qu'un". JAMAIS "qu'Mathis", "qu'Léa".
 8d. INTENSITÉ PROPORTIONNELLE — respecter le degré exact de la pill cochée. "Bavarde parfois" = mention légère ("quelques bavardages ponctuels"). JAMAIS amplifier en "rappels fréquents", "perturbe régulièrement", "problème récurrent" si ce n'est pas coché. "Bavardages incessants" = mention forte. "Parfois perturbateur/trice" ≠ "très perturbateur". Ne jamais aggraver ce qui est coché.
 8e. COHÉRENCE ENTRE PILLS — si "Réagit bien aux rappels" est coché avec "Bavarde parfois" → dire "quelques bavardages, mais réagit bien quand on le signale" — les rappels ne sont PAS fréquents. Si coché avec "Bavardages incessants" ou "Très perturbateur" → "malgré des rappels fréquents nécessaires". La fréquence des rappels dépend de la sévérité du comportement coché.
@@ -6720,6 +6758,46 @@ function saveEditCPE(){
   toast(`✓ "${name}" mis à jour`);
 }
 
+// ── STYLE PERSONNEL ──────────────────────────────────────────────────────────
+const STYLE_KEY='bp3_style_perso';
+
+function showStylePerso(){
+  const saved=localStorage.getItem(STYLE_KEY)||'';
+  document.getElementById('style-perso-ta').value=saved;
+  const status=document.getElementById('style-perso-status');
+  if(saved.trim()){
+    const count=(saved.match(/—/g)||[]).length+1;
+    status.textContent=`✓ ${count} exemple(s) enregistré(s)`;
+    status.style.color='var(--green)';
+  } else {
+    status.textContent='Aucun exemple enregistré';
+  }
+  document.getElementById('mo-style-perso').classList.add('open');
+}
+
+function saveStylePerso(){
+  const val=document.getElementById('style-perso-ta').value.trim();
+  localStorage.setItem(STYLE_KEY, val);
+  if(typeof gdScheduleSync==='function') gdScheduleSync();
+  closeMo('mo-style-perso');
+  if(val) toast('✍️ Style enregistré — actif pour toutes les générations');
+  else toast('Style effacé');
+}
+
+function clearStylePerso(){
+  document.getElementById('style-perso-ta').value='';
+  document.getElementById('style-perso-status').textContent='';
+}
+
+function getStylePersoCtx(){
+  const raw=localStorage.getItem(STYLE_KEY)||'';
+  if(!raw.trim()) return '';
+  // Split by — separator or double newline, take up to 5 examples
+  const examples=raw.split(/\n\s*—\s*\n|\n{3,}/).map(e=>e.trim()).filter(Boolean).slice(0,5);
+  if(!examples.length) return '';
+  return `\nSTYLE D'ÉCRITURE DE L'ENSEIGNANT — exemples réels :\n${examples.map((e,i)=>`Exemple ${i+1}: "${e}"`).join('\n')}\n→ Inspire-toi de ces exemples pour : la longueur des phrases, les connecteurs utilisés, le niveau de formalité, les tournures préférées. Ne recopie PAS ces formulations — reproduis le STYLE. Si l'enseignant écrit des phrases courtes, fais pareil. S'il préfère des nuances, intègre-les.`;
+}
+
 function openNewCPE(){
   document.getElementById('cpe-name').value='';
   document.getElementById('cpe-year').value='';
@@ -8072,7 +8150,7 @@ function buildPPPrompt(st,pp,period,seed,memSamp){
 
   const notesCtx=st.notes?`\nNOTES DU PP (contexte confidentiel à intégrer avec discrétion) : ${st.notes}`:'';
   const memCtx=memSamp?`\nEXPRESSIONS DÉJÀ UTILISÉES (à éviter pour garantir la variété) :\n${memSamp}`:'';
-
+  const styleCtx=getStylePersoCtx();
   const ppCharLimit=Math.min(1000,pp.charLimit||750);
   return `Tu es un professeur principal expérimenté rédigeant le bilan trimestriel global d'un élève pour le bulletin scolaire.
 
@@ -8083,8 +8161,7 @@ OBSERVATIONS SYNTHÉTISÉES DE L'ÉQUIPE PÉDAGOGIQUE :
 ${checked.length?checked.map(i=>'• '+i).join('\n'):'• Bilan général correct, sans remarque particulière'}
 
 STYLE D'ENTRÉE EN MATIÈRE : ${seed}
-${memCtx}
-
+${memCtx}${styleCtx}
 RÈGLES STRICTES — toutes obligatoires :
 1. Ce texte est un BILAN GLOBAL rédigé par le professeur principal — pas une appréciation de matière.
 2. Le registre est institutionnel, synthétique, conclusif. C'est la voix de l'équipe pédagogique au complet.
