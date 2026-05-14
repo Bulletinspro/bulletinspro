@@ -5015,13 +5015,29 @@ function activateBetaCode(){
     toast('✅ Accès bêta activé !');
     updateGenCounter();
   } else if(PAID_CODES.includes(code)){
-    // Set expiry = 1 year from today
+    // Check if this code was already used on this account
+    const usedCodes=JSON.parse(localStorage.getItem('bp3_used_codes')||'[]');
+    const existingCode=localStorage.getItem('bp3_paid_code');
+    const existingExpiry=localStorage.getItem('bp3_paid_expiry');
+    // Allow reactivation only if it's a NEW different code, or if no code was ever set
+    if(existingCode===code && existingExpiry && new Date()<new Date(existingExpiry)){
+      toast('✅ Ce code est déjà actif sur votre compte');
+      return;
+    }
+    if(usedCodes.includes(code) && existingCode===code){
+      toast('❌ Ce code a déjà été utilisé — contactez bulletins.pro.app@gmail.com pour renouveler');
+      return;
+    }
+    // Activate
     const expiry = new Date();
     expiry.setFullYear(expiry.getFullYear()+1);
+    usedCodes.push(code);
+    localStorage.setItem('bp3_used_codes', JSON.stringify(usedCodes));
     localStorage.setItem(BETA_KEY,'true');
     localStorage.setItem('bp3_paid_expiry', expiry.toISOString());
     localStorage.setItem('bp3_paid_code', code);
     S._paidExpiry=expiry.toISOString();
+    S._paidCode=code;
     save();
     document.getElementById('gen-limit-modal')?.classList.remove('open');
     toast('✅ Accès activé — valide jusqu\'au '+expiry.toLocaleDateString('fr-FR'));
