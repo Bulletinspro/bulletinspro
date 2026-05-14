@@ -4908,7 +4908,22 @@ function incrementGenCount(n=1){
 
 function hasOwnerAccess(){ return localStorage.getItem(OWNER_KEY)==='true'; }
 function hasBetaAccess(){ return BETA_ACTIVE && localStorage.getItem(BETA_KEY)==='true'; }
-function hasPaidAccess(){ return !BETA_ACTIVE && localStorage.getItem(BETA_KEY)==='true'; }
+function hasPaidAccess(){
+  if(!BETA_ACTIVE && localStorage.getItem(BETA_KEY)==='true'){
+    // Check expiry for paid codes
+    const expiry=localStorage.getItem('bp3_paid_expiry')||S?._paidExpiry;
+    if(expiry && new Date()>new Date(expiry)){
+      // Expired — revoke access
+      localStorage.removeItem(BETA_KEY);
+      localStorage.removeItem('bp3_paid_expiry');
+      localStorage.removeItem('bp3_paid_code');
+      toast('⚠️ Votre abonnement a expiré — renouvelez pour continuer');
+      return false;
+    }
+    return true;
+  }
+  return false;
+}
 
 function getRemainingGens(){
   if(hasOwnerAccess()) return Infinity;
@@ -4976,14 +4991,36 @@ function showGenLimitModal(){
 
 function activateBetaCode(){
   const input = document.getElementById('beta-code-input');
-  const VALID_CODES = ['BP-7K2M','BP-9XQR','BP-4VBN','BP-3WQT','BP-8ZLF','BP-2YNK','BP-6RJP','BP-5HCX','BP-1GTD','BP-0MWS','BP2025PRO','ALEX75','TESTEUR1','TESTEUR2','TESTEUR3'];
-  if(VALID_CODES.includes(input?.value?.toUpperCase().trim())){
-    localStorage.setItem(BETA_KEY, 'true');
-    document.getElementById('gen-limit-modal').classList.remove('open');
-    toast('✅ Accès bêta activé — générations illimitées !');
+  const code = input?.value?.toUpperCase().trim();
+  const OWNER_CODES = ['ALEX75'];
+  const BETA_CODES = ['TESTEUR1','TESTEUR2','TESTEUR3'];
+  const PAID_CODES = ['BP-7K2M','BP-9XQR','BP-4VBN','BP-3WQT','BP-8ZLF','BP-2YNK','BP-6RJP','BP-5HCX','BP-1GTD','BP-0MWS','BP2025PRO'];
+
+  if(OWNER_CODES.includes(code)){
+    localStorage.setItem(OWNER_KEY,'true');
+    localStorage.setItem(BETA_KEY,'true');
+    document.getElementById('gen-limit-modal')?.classList.remove('open');
+    toast('✅ Accès propriétaire activé — illimité !');
+    updateGenCounter();
+  } else if(BETA_CODES.includes(code)){
+    localStorage.setItem(BETA_KEY,'true');
+    document.getElementById('gen-limit-modal')?.classList.remove('open');
+    toast('✅ Accès bêta activé !');
+    updateGenCounter();
+  } else if(PAID_CODES.includes(code)){
+    // Set expiry = 1 year from today
+    const expiry = new Date();
+    expiry.setFullYear(expiry.getFullYear()+1);
+    localStorage.setItem(BETA_KEY,'true');
+    localStorage.setItem('bp3_paid_expiry', expiry.toISOString());
+    localStorage.setItem('bp3_paid_code', code);
+    S._paidExpiry=expiry.toISOString();
+    save();
+    document.getElementById('gen-limit-modal')?.classList.remove('open');
+    toast('✅ Accès activé — valide jusqu\'au '+expiry.toLocaleDateString('fr-FR'));
     updateGenCounter();
   } else {
-    toast('Code invalide');
+    toast('❌ Code invalide');
   }
 }
 
