@@ -3345,32 +3345,42 @@ async function gdSaveToDrive(){
   try{
     const content=JSON.stringify(S,null,2);
     const blob=new Blob([content],{type:'application/json'});
+    let res;
     if(GD.fileId){
-      // Update existing file
       const form=new FormData();
       form.append('metadata',new Blob([JSON.stringify({name:GD.FILE_NAME})],{type:'application/json'}));
       form.append('file',blob);
-      await fetch(`https://www.googleapis.com/upload/drive/v3/files/${GD.fileId}?uploadType=multipart`,{
+      res=await fetch(`https://www.googleapis.com/upload/drive/v3/files/${GD.fileId}?uploadType=multipart`,{
         method:'PATCH',headers:{Authorization:`Bearer ${GD.accessToken}`},body:form
       });
     } else {
-      // Create new file
       const form=new FormData();
       form.append('metadata',new Blob([JSON.stringify({name:GD.FILE_NAME,mimeType:'application/json'})],{type:'application/json'}));
       form.append('file',blob);
-      const res=await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart',{
+      res=await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart',{
         method:'POST',headers:{Authorization:`Bearer ${GD.accessToken}`},body:form
       });
       const data=await res.json();
       GD.fileId=data.id;
       localStorage.setItem('bp3_gd',JSON.stringify({access_token:GD.accessToken,file_id:GD.fileId,saved_at:Date.now()}));
     }
+    // Handle 401 — token expired, try silent refresh
+    if(res&&res.status===401){
+      GD.syncing=false;
+      try{
+        await gdSilentRefresh();
+        await gdSaveToDrive(); // retry after refresh
+        return;
+      }catch(e){
+        gdSetStatus('error','⚠️ Session expirée',true,'🔄 Reconnecter','gdAuth()');
+        return;
+      }
+    }
     GD.lastSync=new Date().toISOString();
     gdSetStatus('connected','Drive connecté',false);
   }catch(e){
     console.error('GD save error',e);
     gdSetStatus('error','⚠️ Sync échouée — données locales préservées',true,'↺ Reconnecter','gdAuth()');
-    toast('⚠️ Synchronisation Drive échouée ! Vos données sont sauvegardées localement mais pas sur Drive. Reconnectez-vous.');
   } finally {
     GD.syncing=false;
   }
@@ -4560,6 +4570,8 @@ function buildPrompt(st,cls,period,seed,memSamp){
 
   const memCtx=memSamp?`\nEXPRESSIONS DÉJÀ UTILISÉES POUR CETTE CLASSE (à éviter absolument pour garantir la variété) :\n${memSamp}`:'';
   const styleCtx=getStylePersoCtx();
+  const per = cls.periodType==='semestre' ? 'semestre' : 'trimestre';
+  const Per = cls.periodType==='semestre' ? 'Semestre' : 'Trimestre';
   // Previous appreciation context for continuity between terms
   let prevCtx='';
   if(period>1){
@@ -4578,8 +4590,6 @@ function buildPrompt(st,cls,period,seed,memSamp){
   }
   // Verdict context
   const verdictObj = st.verdict ? getVerdictPills(cls.periodType).find(v=>v.id===st.verdict) : null;
-  const per = cls.periodType==='semestre' ? 'semestre' : 'trimestre';
-  const Per = cls.periodType==='semestre' ? 'Semestre' : 'Trimestre';
   const verdictCtx = verdictObj
     ? `BILAN GLOBAL CHOISI PAR L'ENSEIGNANT : "${verdictObj.l}." — OBLIGATOIRE : cette expression ouvre l'appréciation, suivie d'un point. La phrase suivante commence par une majuscule. Ne jamais accoler deux phrases sans point entre elles.`
     : `BILAN GLOBAL : l'enseignant n'a pas choisi d'expression d'ouverture — tu dois en choisir une qui correspond PRÉCISÉMENT au profil réel de l'élève (niveau, résultats, observations). Voici le guide de sélection :
