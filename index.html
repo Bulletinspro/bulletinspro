@@ -984,7 +984,7 @@ body{font-family:'DM Sans',sans-serif;font-weight:300;background:var(--bg);color
 </div>
 
 <!-- FEEDBACK MODAL -->
-<div class="mo" id="mo-feedback" style="display:none">
+<div class="mo" id="mo-feedback">
   <div class="mo-box" style="max-width:520px">
     <div class="mo-hd">
       <span style="font-size:1.1rem">💬 Donnez votre avis</span>
@@ -7503,17 +7503,25 @@ let _fbRating=0, _fbRole='';
 
 function showFeedback(){
   _fbRating=0; _fbRole='';
-  document.getElementById('fb-good').value='';
-  document.getElementById('fb-improve').value='';
-  document.getElementById('fb-email').value=GD.user?.email||'';
-  resetStarHover();
-  [1,2,3,4,5].forEach(n=>{document.getElementById('star-'+n).textContent='☆';document.getElementById('star-'+n).style.color='';});
-  document.querySelectorAll('.role-btn').forEach(b=>{b.style.background='var(--bg)';b.style.borderColor='var(--border)';b.style.color='var(--muted)';});
-  document.getElementById('mo-feedback').style.display='flex';
-  // Hide pulse dot once user opens feedback
+  const goodEl=document.getElementById('fb-good');
+  const improveEl=document.getElementById('fb-improve');
+  const emailEl=document.getElementById('fb-email');
+  if(goodEl) goodEl.value='';
+  if(improveEl) improveEl.value='';
+  if(emailEl) emailEl.value=(typeof GD!=='undefined'&&GD.user?.email)||'';
+  if(typeof resetStarHover==='function') resetStarHover();
+  [1,2,3,4,5].forEach(n=>{
+    const s=document.getElementById('star-'+n);
+    if(s){s.textContent='☆';s.style.color='';}
+  });
+  document.querySelectorAll('.role-btn').forEach(b=>{
+    b.style.background='var(--bg)';b.style.borderColor='var(--border)';b.style.color='var(--muted)';
+  });
+  const mo=document.getElementById('mo-feedback');
+  if(mo) mo.classList.add('open');
   localStorage.setItem('bp3_feedback_given','true');
   const dot=document.getElementById('avis-dot');
-  if(dot)dot.style.display='none';
+  if(dot) dot.style.display='none';
 }
 
 function setRating(n){
