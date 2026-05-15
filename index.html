@@ -987,12 +987,11 @@ body{font-family:'DM Sans',sans-serif;font-weight:300;background:var(--bg);color
 
 <!-- FEEDBACK MODAL -->
 <div class="mo" id="mo-feedback" onclick="if(event.target===this)closeFeedbackModal()">
-  <div class="mo-box" style="max-width:520px">
-    <div class="mo-hd">
-      <span style="font-size:1.1rem">💬 Donnez votre avis</span>
-      <button class="mo-close" onclick="closeFeedbackModal()">✕</button>
+  <div class="modal" style="max-width:520px;width:92vw">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+      <span style="font-family:'Lora',serif;font-size:1.2rem">💬 Donnez votre avis</span>
+      <button onclick="closeFeedbackModal()" style="background:none;border:none;font-size:1.3rem;cursor:pointer;color:var(--muted);line-height:1;padding:4px">✕</button>
     </div>
-    <div class="mo-body" style="padding:24px">
       <!-- Stars -->
       <div style="text-align:center;margin-bottom:20px">
         <div style="font-size:.82rem;color:var(--muted);margin-bottom:10px;font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.08em">Note générale</div>
@@ -1033,7 +1032,6 @@ body{font-family:'DM Sans',sans-serif;font-weight:300;background:var(--bg);color
       </button>
       <p style="font-size:.7rem;color:var(--muted);text-align:center;margin-top:10px;font-family:'DM Mono',monospace">Votre avis aide à améliorer BulletinsPro pour tous les enseignants</p>
       <p style="font-size:.75rem;color:var(--muted);text-align:center;margin-top:10px">Un problème technique ? <a href="mailto:bulletins.pro.app@gmail.com?subject=Problème BulletinsPro" style="color:var(--purple);text-decoration:underline">Contactez-nous directement →</a></p>
-    </div>
   </div>
 </div>
 
