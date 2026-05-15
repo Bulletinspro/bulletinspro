@@ -791,7 +791,7 @@ body{font-family:'DM Sans',sans-serif;font-weight:300;background:var(--bg);color
       <a href="https://bulletinspro.github.io/guide.html" target="_blank" class="sb-fbtn" style="text-decoration:none;display:flex;align-items:center;justify-content:center" title="Guide complet en ligne">📖 Guide</a>
     </div>
     <input type="file" id="imp-inp" accept=".json" style="display:none" onchange="doImport(event)">
-    <a href="mailto:bulletins.pro.app@gmail.com?subject=Problème BulletinsPro" style="display:block;text-align:center;font-size:.68rem;color:rgba(255,255,255,.25);text-decoration:none;padding:4px 0 2px;transition:color .15s" onmouseover="this.style.color='rgba(255,255,255,.6)'" onmouseout="this.style.color='rgba(255,255,255,.25)'">🐛 Signaler un problème</a>
+    <button onclick="showContactModal()" style="display:block;width:100%;text-align:center;font-size:.68rem;color:rgba(255,255,255,.25);background:none;border:none;cursor:pointer;padding:4px 0 2px;transition:color .15s;font-family:inherit" onmouseover="this.style.color='rgba(255,255,255,.6)'" onmouseout="this.style.color='rgba(255,255,255,.25)'">🐛 Signaler un problème</button>
   </div>
   <!-- GOOGLE DRIVE SYNC BAR -->
   <div class="gdrive-bar" id="gdrive-bar">
@@ -6926,6 +6926,53 @@ function showStyleNudge(){
   </div>`;
   document.body.appendChild(mo);
   mo.classList.add('open');
+}
+
+function showContactModal(){
+  const existing=document.getElementById('mo-contact');
+  if(existing){existing.classList.add('open');return;}
+  const mo=document.createElement('div');
+  mo.className='mo'; mo.id='mo-contact';
+  mo.onclick=e=>{if(e.target===mo)mo.classList.remove('open');};
+  mo.innerHTML=`<div class="mo-box" style="max-width:460px">
+    <div class="mo-hd">
+      <span style="font-size:1.1rem">🐛 Signaler un problème</span>
+      <button class="mo-close" onclick="document.getElementById('mo-contact').classList.remove('open')">✕</button>
+    </div>
+    <div class="mo-body" style="padding:24px">
+      <p style="font-size:.85rem;color:var(--muted);margin-bottom:16px;line-height:1.6">Décrivez votre problème — on vous répond rapidement à bulletins.pro.app@gmail.com</p>
+      <div style="margin-bottom:12px">
+        <label style="font-size:.78rem;font-weight:600;color:var(--ink);display:block;margin-bottom:6px">Votre email</label>
+        <input id="contact-email" type="email" placeholder="votre@email.fr" style="width:100%;padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.85rem;background:var(--bg);color:var(--ink);outline:none;box-sizing:border-box">
+      </div>
+      <div style="margin-bottom:16px">
+        <label style="font-size:.78rem;font-weight:600;color:var(--ink);display:block;margin-bottom:6px">Description du problème</label>
+        <textarea id="contact-msg" rows="5" placeholder="Ex: Quand je clique sur Générer, rien ne se passe…" style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.85rem;background:var(--bg);color:var(--ink);outline:none;resize:vertical;box-sizing:border-box"></textarea>
+      </div>
+      <button onclick="submitContact()" style="width:100%;padding:12px;background:var(--purple);color:#fff;border:none;border-radius:10px;font-size:.9rem;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif">Envoyer →</button>
+    </div>
+  </div>`;
+  document.body.appendChild(mo);
+  mo.classList.add('open');
+}
+
+async function submitContact(){
+  const email=document.getElementById('contact-email')?.value?.trim();
+  const msg=document.getElementById('contact-msg')?.value?.trim();
+  if(!msg){toast('Décrivez votre problème');return;}
+  try{
+    const res=await fetch('https://formspree.io/f/xjkwpqbn',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Accept':'application/json'},
+      body:JSON.stringify({type:'bug',email:email||'non renseigné',message:msg})
+    });
+    if(res.ok){
+      document.getElementById('mo-contact').classList.remove('open');
+      toast('✅ Message envoyé — on vous répond bientôt !');
+    } else throw new Error();
+  }catch(e){
+    toast('❌ Erreur envoi — copiez bulletins.pro.app@gmail.com');
+  }
 }
 
 function openNewCPE(){
