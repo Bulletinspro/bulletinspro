@@ -7551,8 +7551,8 @@ document.addEventListener('keydown',e=>{
 let _fbRating=0, _fbRole='';
 
 function closeFeedbackModal(){
-  closeMo('mo-feedback');
-  // Restore dot if user didn't submit — so it keeps inviting them
+  const mo=document.getElementById('mo-feedback');
+  if(mo){mo.classList.remove('open');mo.style.display='';}
   if(!localStorage.getItem('bp3_feedback_submitted')){
     localStorage.removeItem('bp3_feedback_given');
     const dot=document.getElementById('avis-dot');
@@ -7577,7 +7577,7 @@ function showFeedback(){
     b.style.background='var(--bg)';b.style.borderColor='var(--border)';b.style.color='var(--muted)';
   });
   const mo=document.getElementById('mo-feedback');
-  if(mo){mo.classList.add('open');mo.style.display='flex';}
+  if(mo){mo.classList.add('open');}
   localStorage.setItem('bp3_feedback_given','true');
   const dot=document.getElementById('avis-dot');
   if(dot) dot.style.display='none';
