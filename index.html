@@ -2,6 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
+  <link rel="icon" type="image/svg+xml" href="https://bulletinspro.github.io/favicon.svg">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Bulletins Pro</title>
 <!-- Google API -->
@@ -995,14 +996,21 @@ body{font-family:'DM Sans',sans-serif;font-weight:300;background:var(--bg);color
       <div style="text-align:center;margin-bottom:20px">
         <div style="font-size:.82rem;color:var(--muted);margin-bottom:10px;font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.08em">Note générale</div>
         <div id="stars-row" style="display:flex;justify-content:center;gap:8px">
-          ${[1,2,3,4,5].map(n=>`<button onclick="setRating(${n})" id="star-${n}" style="background:none;border:none;cursor:pointer;font-size:2rem;transition:transform .1s;line-height:1" onmouseover="hoverRating(${n})" onmouseout="resetStarHover()">☆</button>`).join('')}
+          <button onclick="setRating(1)" id="star-1" style="background:none;border:none;cursor:pointer;font-size:2rem;transition:transform .1s;line-height:1" onmouseover="hoverRating(1)" onmouseout="resetStarHover()">☆</button>
+          <button onclick="setRating(2)" id="star-2" style="background:none;border:none;cursor:pointer;font-size:2rem;transition:transform .1s;line-height:1" onmouseover="hoverRating(2)" onmouseout="resetStarHover()">☆</button>
+          <button onclick="setRating(3)" id="star-3" style="background:none;border:none;cursor:pointer;font-size:2rem;transition:transform .1s;line-height:1" onmouseover="hoverRating(3)" onmouseout="resetStarHover()">☆</button>
+          <button onclick="setRating(4)" id="star-4" style="background:none;border:none;cursor:pointer;font-size:2rem;transition:transform .1s;line-height:1" onmouseover="hoverRating(4)" onmouseout="resetStarHover()">☆</button>
+          <button onclick="setRating(5)" id="star-5" style="background:none;border:none;cursor:pointer;font-size:2rem;transition:transform .1s;line-height:1" onmouseover="hoverRating(5)" onmouseout="resetStarHover()">☆</button>
         </div>
       </div>
       <!-- Role -->
       <div style="margin-bottom:16px">
         <label style="font-size:.78rem;font-weight:600;color:var(--ink);display:block;margin-bottom:6px">Vous êtes :</label>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
-          ${['Professeur','CPE','Directeur / Chef d\'établissement','Autre'].map(r=>`<button class="role-btn" onclick="selectRole(this,'${r}')" style="padding:6px 14px;border:1.5px solid var(--border);border-radius:20px;background:var(--bg);font-size:.8rem;cursor:pointer;color:var(--muted);transition:all .15s">${r}</button>`).join('')}
+          <button class="role-btn" onclick="selectRole(this,'Professeur')" style="padding:6px 14px;border:1.5px solid var(--border);border-radius:20px;background:var(--bg);font-size:.8rem;cursor:pointer;color:var(--muted);transition:all .15s">Professeur</button>
+          <button class="role-btn" onclick="selectRole(this,'CPE')" style="padding:6px 14px;border:1.5px solid var(--border);border-radius:20px;background:var(--bg);font-size:.8rem;cursor:pointer;color:var(--muted);transition:all .15s">CPE</button>
+          <button class="role-btn" onclick="selectRole(this,'Directeur / Chef d\'établissement')" style="padding:6px 14px;border:1.5px solid var(--border);border-radius:20px;background:var(--bg);font-size:.8rem;cursor:pointer;color:var(--muted);transition:all .15s">Directeur / Chef d'établissement</button>
+          <button class="role-btn" onclick="selectRole(this,'Autre')" style="padding:6px 14px;border:1.5px solid var(--border);border-radius:20px;background:var(--bg);font-size:.8rem;cursor:pointer;color:var(--muted);transition:all .15s">Autre</button>
         </div>
       </div>
       <!-- Subject -->
@@ -5646,6 +5654,7 @@ function exportPDF(){
 
   const html=`<!DOCTYPE html>
 <html lang="fr"><head><meta charset="UTF-8">
+  <link rel="icon" type="image/svg+xml" href="https://bulletinspro.github.io/favicon.svg">
 <title>${cls.name} — ${subj} — ${pLabel}</title>
 <style>
   *{margin:0;padding:0;box-sizing:border-box;}
