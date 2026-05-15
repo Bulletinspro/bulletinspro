@@ -791,6 +791,7 @@ body{font-family:'DM Sans',sans-serif;font-weight:300;background:var(--bg);color
       <a href="https://bulletinspro.github.io/guide.html" target="_blank" class="sb-fbtn" style="text-decoration:none;display:flex;align-items:center;justify-content:center" title="Guide complet en ligne">📖 Guide</a>
     </div>
     <input type="file" id="imp-inp" accept=".json" style="display:none" onchange="doImport(event)">
+    <a href="mailto:bulletins.pro.app@gmail.com?subject=Problème BulletinsPro" style="display:block;text-align:center;font-size:.68rem;color:rgba(255,255,255,.25);text-decoration:none;padding:4px 0 2px;transition:color .15s" onmouseover="this.style.color='rgba(255,255,255,.6)'" onmouseout="this.style.color='rgba(255,255,255,.25)'">🐛 Signaler un problème</a>
   </div>
   <!-- GOOGLE DRIVE SYNC BAR -->
   <div class="gdrive-bar" id="gdrive-bar">
@@ -985,11 +986,11 @@ body{font-family:'DM Sans',sans-serif;font-weight:300;background:var(--bg);color
 </div>
 
 <!-- FEEDBACK MODAL -->
-<div class="mo" id="mo-feedback">
+<div class="mo" id="mo-feedback" onclick="if(event.target===this)closeFeedbackModal()">
   <div class="mo-box" style="max-width:520px">
     <div class="mo-hd">
       <span style="font-size:1.1rem">💬 Donnez votre avis</span>
-      <button class="mo-close" onclick="closeMo('mo-feedback')">✕</button>
+      <button class="mo-close" onclick="closeFeedbackModal()">✕</button>
     </div>
     <div class="mo-body" style="padding:24px">
       <!-- Stars -->
@@ -1031,6 +1032,7 @@ body{font-family:'DM Sans',sans-serif;font-weight:300;background:var(--bg);color
         Envoyer mon avis ✨
       </button>
       <p style="font-size:.7rem;color:var(--muted);text-align:center;margin-top:10px;font-family:'DM Mono',monospace">Votre avis aide à améliorer BulletinsPro pour tous les enseignants</p>
+      <p style="font-size:.75rem;color:var(--muted);text-align:center;margin-top:10px">Un problème technique ? <a href="mailto:bulletins.pro.app@gmail.com?subject=Problème BulletinsPro" style="color:var(--purple);text-decoration:underline">Contactez-nous directement →</a></p>
     </div>
   </div>
 </div>
@@ -3476,7 +3478,7 @@ function buildSubjectDropdown(sel, year){
 function toast(msg,dur=2800){const t=document.getElementById('toast');if(!t)return;t.textContent=msg;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),dur);}
 
 // Hide feedback dot if already given
-if(localStorage.getItem('bp3_feedback_given')){
+if(localStorage.getItem('bp3_feedback_submitted')){
   document.addEventListener('DOMContentLoaded',()=>{
     const dot=document.getElementById('avis-dot');
     if(dot)dot.style.display='none';
@@ -7503,6 +7505,16 @@ document.addEventListener('keydown',e=>{
 // ── FEEDBACK ──────────────────────────────────────────────────────────────────
 let _fbRating=0, _fbRole='';
 
+function closeFeedbackModal(){
+  closeMo('mo-feedback');
+  // Restore dot if user didn't submit — so it keeps inviting them
+  if(!localStorage.getItem('bp3_feedback_submitted')){
+    localStorage.removeItem('bp3_feedback_given');
+    const dot=document.getElementById('avis-dot');
+    if(dot) dot.style.display='';
+  }
+}
+
 function showFeedback(){
   _fbRating=0; _fbRole='';
   const goodEl=document.getElementById('fb-good');
@@ -7593,7 +7605,9 @@ async function submitFeedback(){
       body:JSON.stringify(payload)
     });
     if(res.ok){
+      localStorage.setItem('bp3_feedback_submitted','true');
       closeMo('mo-feedback');
+      const dot=document.getElementById('avis-dot');if(dot)dot.style.display='none';
       toast('🎉 Merci pour votre avis !');
     } else {
       throw new Error('send failed');
@@ -7603,7 +7617,9 @@ async function submitFeedback(){
     const fb=JSON.parse(localStorage.getItem('bp3_feedbacks')||'[]');
     fb.push(payload);
     localStorage.setItem('bp3_feedbacks',JSON.stringify(fb));
+    localStorage.setItem('bp3_feedback_submitted','true');
     closeMo('mo-feedback');
+    const dot2=document.getElementById('avis-dot');if(dot2)dot2.style.display='none';
     toast('🎉 Merci ! Avis sauvegardé localement');
   }
 }
