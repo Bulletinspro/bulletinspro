@@ -4479,7 +4479,7 @@ function buildPrompt(st,cls,period,seed,memSamp){
   }:{
     1:"Premier trimestre — premier bilan. Pas de référence au passé. Ton : mise en route, potentiel.",
     2:"Deuxième trimestre — mi-parcours. Ton : évolution depuis le début d'année, cap pour la fin. Ne pas ajouter de contenu supplémentaire, juste nuancer le ton en ce sens.",
-    3:"Troisième trimestre — fin d'année. La dernière phrase conclut l'année et dit si l'élève est prêt(e) pour la classe suivante. INTERDIT : \"au trimestre suivant\", \"prochain trimestre\", \"trimestre à venir\". Cette phrase remplace la conclusion habituelle, elle ne s'y ajoute pas.",
+    3:"Troisième trimestre — fin d'année. La dernière phrase conclut l'année et dit si l'élève est prêt(e) pour l'année prochaine. INTERDIT : \"au trimestre suivant\", \"prochain trimestre\", \"trimestre à venir\", \"classe supérieure\". Utilise \"l'année prochaine\" ou \"en seconde\" / \"au lycée\" si le niveau le justifie. Cette phrase remplace la conclusion habituelle, elle ne s'y ajoute pas.",
   })[period]||'';
   const gender=st.gender==='F' ? 'FILLE — pronom : ELLE. Article démonstratif : CETTE (pas cet). Adjectifs au FÉMININ : sérieuse, appliquée, investie, motivée, régulière. JAMAIS "il", JAMAIS "cet élève" (toujours "cette élève").' : 'GARÇON — pronom : IL. Article démonstratif : CET (pas cette). Adjectifs au MASCULIN : sérieux, appliqué, investi, motivé, régulier. JAMAIS "elle", JAMAIS "cette élève" (toujours "cet élève").';
   const accord=st.gender==='F'?'féminin':'masculin';
