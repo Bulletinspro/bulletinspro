@@ -3116,9 +3116,31 @@ function gdSetStatus(state, msg, showBtn=false, btnLabel='', btnAction=''){
   else{last.textContent='';}
   if(showBtn){btn.style.display='';btn.textContent=btnLabel;btn.onclick=new Function(btnAction);}
   else{
-    // When connected, show a small disconnect option
-    if(state==='connected'){btn.style.display='';btn.textContent='✕';btn.className='gd-btn';btn.title='Déconnecter Drive';btn.onclick=gdDisconnect;}
-    else{btn.style.display='none';}
+    // When connected, show refresh + disconnect buttons
+    if(state==='connected'){
+      btn.style.display='';
+      btn.innerHTML='🔄';
+      btn.className='gd-btn';
+      btn.title='Recharger depuis Drive';
+      btn.onclick=()=>{
+        toast('🔄 Rechargement depuis Drive…');
+        gdLoadFromDrive();
+      };
+      // Add disconnect button if not already there
+      if(!document.getElementById('gd-disconnect-btn')){
+        const discBtn=document.createElement('button');
+        discBtn.id='gd-disconnect-btn';
+        discBtn.className='gd-btn';
+        discBtn.textContent='✕';
+        discBtn.title='Déconnecter Drive';
+        discBtn.onclick=gdDisconnect;
+        btn.parentNode.insertBefore(discBtn, btn.nextSibling);
+      }
+    } else {
+      btn.style.display='none';
+      const disc=document.getElementById('gd-disconnect-btn');
+      if(disc) disc.remove();
+    }
   }
 }
 
@@ -3187,9 +3209,8 @@ function gdAuth(){
 async function gdLoadFromDrive(){
   try{
     gdSetStatus('syncing','Recherche du fichier…');
-    // Use fetch directly — more reliable on mobile than gapi.client
     const listRes=await fetch(
-      `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(`name='${GD.FILE_NAME}' and trashed=false`)}&spaces=drive&fields=files(id,name)&pageSize=1`,
+      `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(`name='${GD.FILE_NAME}' and trashed=false`)}&spaces=drive&fields=files(id,name,modifiedTime)&pageSize=5&orderBy=modifiedTime desc`,
       {headers:{Authorization:`Bearer ${GD.accessToken}`}}
     );
     if(!listRes.ok) throw new Error('list failed '+listRes.status);
@@ -3265,12 +3286,23 @@ async function gdLoadFromDrive(){
       gdSetStatus('connected','Drive connecté',false);
       toast('✓ Données chargées depuis Drive');
     } else {
-      gdSetStatus('syncing','Création du fichier…');
-      await gdSaveToDrive();
-      gdSetStatus('connected','Drive connecté',false);
-      toast('✓ Drive connecté — fichier créé');
-      // Show onboarding for new users
-      setTimeout(()=>showOnboarding(),600);
+      // No file found on Drive
+      const local=JSON.parse(localStorage.getItem('bp3')||'{}');
+      const hasLocalData=local.classes&&Object.keys(local.classes).length>0;
+      if(hasLocalData){
+        // Local data exists — save it to Drive, don't overwrite with empty
+        gdSetStatus('syncing','Création du fichier Drive…');
+        await gdSaveToDrive();
+        gdSetStatus('connected','Drive connecté',false);
+        toast('✓ Données locales sauvegardées sur Drive');
+      } else {
+        // Truly new user — create empty file and show onboarding
+        gdSetStatus('syncing','Création du fichier…');
+        await gdSaveToDrive();
+        gdSetStatus('connected','Drive connecté',false);
+        toast('✓ Drive connecté — fichier créé');
+        setTimeout(()=>showOnboarding(),600);
+      }
     }
   }catch(e){
     console.error('GD load error',e);
@@ -3378,7 +3410,7 @@ function gdScheduleSync(){
   if(!GD.accessToken)return;
   if(_generating)return; // Pause sync during bulk generation — prevent re-renders
   clearTimeout(GD.syncTimer);
-  GD.syncTimer=setTimeout(()=>gdSaveToDrive(),500); // debounce 500ms — faster to avoid data loss
+  GD.syncTimer=setTimeout(()=>gdSaveToDrive(),2000); // 2s debounce — ensures save completes
 }
 
 function gdDisconnect(){
