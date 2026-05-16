@@ -5002,13 +5002,14 @@ function showGenLimitModal(){
   }
   if(!isPaid){
     html += '<p style="font-size:.82rem;color:var(--muted);margin-bottom:16px;line-height:1.6">Vos classes et donnees sont <strong>conservees</strong> pour apres votre abonnement.</p>';
+    html += '<div style="background:var(--bg);border:1.5px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:12px;display:flex;align-items:flex-start;gap:10px;text-align:left"><input type="checkbox" id="cgv-check" style="margin-top:3px;flex-shrink:0;accent-color:#6B2FD9;width:16px;height:16px;cursor:pointer"><label for="cgv-check" style="font-size:.78rem;color:var(--muted);cursor:pointer;line-height:1.5">J ai lu et j accepte les <a href="https://bulletinspro.github.io/cgv.html" target="_blank" style="color:#6B2FD9">CGV</a> et la <a href="https://bulletinspro.github.io/privacy.html" target="_blank" style="color:#6B2FD9">Politique de confidentialite</a></label></div>';
     html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">';
-    html += '<a href="https://www.paypal.com/ncp/payment/RPKRNF8SRG4NQ" target="_blank" class="btn btn-g" style="text-decoration:none;font-size:.78rem;text-align:center;padding:10px">Standard - 24,99EUR/an</a>';
-    html += '<a href="https://www.paypal.com/ncp/payment/SYZDDBLXAKXS2" target="_blank" class="btn btn-g" style="text-decoration:none;font-size:.78rem;text-align:center;padding:10px;background:#7c3aed">Pro - 39,99EUR/an</a>';
+    html += '<a href="https://www.paypal.com/ncp/payment/RPKRNF8SRG4NQ" target="_blank" class="btn btn-g paypal-btn" style="text-decoration:none;font-size:.78rem;text-align:center;padding:10px;opacity:0.4;pointer-events:none">Standard - 24,99EUR/an</a>';
+    html += '<a href="https://www.paypal.com/ncp/payment/SYZDDBLXAKXS2" target="_blank" class="btn btn-g paypal-btn" style="text-decoration:none;font-size:.78rem;text-align:center;padding:10px;background:#7c3aed;opacity:0.4;pointer-events:none">Pro - 39,99EUR/an</a>';
     html += '</div>';
     html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">';
-    html += '<a href="https://www.paypal.com/ncp/payment/WMDVVMS4M4X6E" target="_blank" class="btn btn-o" style="text-decoration:none;font-size:.78rem;text-align:center;padding:10px">Standard - 4,99EUR/mois</a>';
-    html += '<a href="https://www.paypal.com/ncp/payment/LL5DKBWH7RZEL" target="_blank" class="btn btn-o" style="text-decoration:none;font-size:.78rem;text-align:center;padding:10px">Pro - 7,99EUR/mois</a>';
+    html += '<a href="https://www.paypal.com/ncp/payment/WMDVVMS4M4X6E" target="_blank" class="btn btn-o paypal-btn" style="text-decoration:none;font-size:.78rem;text-align:center;padding:10px;opacity:0.4;pointer-events:none">Standard - 4,99EUR/mois</a>';
+    html += '<a href="https://www.paypal.com/ncp/payment/LL5DKBWH7RZEL" target="_blank" class="btn btn-o paypal-btn" style="text-decoration:none;font-size:.78rem;text-align:center;padding:10px;opacity:0.4;pointer-events:none">Pro - 7,99EUR/mois</a>';
     html += '</div>';
     html += '<div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin-bottom:12px">';
     html += '<div style="font-size:.78rem;color:var(--muted);margin-bottom:6px">Vous avez un code acces ?</div>';
@@ -5016,7 +5017,6 @@ function showGenLimitModal(){
     html += '<input id="beta-code-input" class="mo-inp" placeholder="Code..." style="flex:1;margin:0">';
     html += '<button class="btn btn-o" onclick="activateBetaCode()">Activer</button>';
     html += '</div></div>';
-    html += '<p style="font-size:.68rem;color:var(--muted);text-align:center;margin-top:8px">En souscrivant, vous acceptez nos <a href=\'https://bulletinspro.github.io/cgv.html\' target=\'_blank\' style=\'color:#6B2FD9\'>CGV</a></p>';
   }
   html += '<button class="btn btn-o" style="margin-top:12px;width:100%" onclick="document.getElementById(\'gen-limit-modal\').classList.remove(\'open\')">Fermer</button>';
   html += '</div>';
@@ -5024,6 +5024,16 @@ function showGenLimitModal(){
   mo.innerHTML = html;
   document.body.appendChild(mo);
   mo.classList.add('open');
+  // Wire up CGV checkbox to unlock payment buttons
+  const cgvCb = document.getElementById('cgv-check');
+  if(cgvCb){
+    cgvCb.addEventListener('change', function(){
+      document.querySelectorAll('.paypal-btn').forEach(function(b){
+        b.style.opacity = cgvCb.checked ? '1' : '0.4';
+        b.style.pointerEvents = cgvCb.checked ? 'auto' : 'none';
+      });
+    });
+  }
 }
 
 function activateBetaCode(){
