@@ -3055,7 +3055,7 @@ const ORIENT_DESCS = {
 // ── STATE ─────────────────────────────────────────────────────────────────────
 let S = {classes:{}, active:null, student:null, period:1, view:'students'};
 const load = ()=>{ try{const d=localStorage.getItem('bp3');if(d)S=JSON.parse(d);}catch(e){} };
-const save = ()=>{ try{localStorage.setItem('bp3',JSON.stringify(S));}catch(e){} gdScheduleSync(); };
+const save = ()=>{ try{localStorage.setItem('bp3',JSON.stringify(S));localStorage.setItem('bp3_local_saved_at',String(Date.now()));}catch(e){} gdScheduleSync(); };
 
 // ── GOOGLE DRIVE SYNC ─────────────────────────────────────────────────────────
 const GD = {
@@ -3227,58 +3227,43 @@ async function gdLoadFromDrive(){
       if(!getRes.ok) throw new Error('get failed '+getRes.status);
       const remote=await getRes.json();
 
-      // SMART MERGE: local wins if its timestamp is newer than remote
+      // Use remote data directly — don't merge local over remote
+      // Local data is only relevant if it's NEWER than remote (user made changes offline)
+      // Check if local has a more recent save timestamp
       const local=JSON.parse(localStorage.getItem('bp3')||'{}');
-      if(local.classes && remote.classes){
-        Object.keys(local.classes).forEach(cid=>{
-          if(!remote.classes[cid]) return;
+      const localSavedAt=parseInt(localStorage.getItem('bp3_local_saved_at')||'0');
+      const remoteSavedAt=new Date(files[0].modifiedTime||0).getTime();
+      // Only merge if local is definitely newer (offline changes)
+      if(localSavedAt > remoteSavedAt + 5000 && local.classes){
+        // Local is newer — merge local appreciations into remote
+        Object.keys(local.classes||{}).forEach(cid=>{
+          if(!remote.classes||!remote.classes[cid]) return;
           const localCls=local.classes[cid];
           const remoteCls=remote.classes[cid];
           if(!localCls.students||!remoteCls.students) return;
-
-          // Merge student comments (appreciation text)
           localCls.students.forEach(localSt=>{
             const remoteSt=remoteCls.students.find(s=>s.id===localSt.id);
-            if(!remoteSt) return;
-            if(!localSt.comments) return;
+            if(!remoteSt||!localSt.comments) return;
             Object.keys(localSt.comments).forEach(period=>{
               const localCmt=localSt.comments[period]||'';
               const remoteCmt=(remoteSt.comments&&remoteSt.comments[period])||'';
               const localTs=(localSt.commentTs&&localSt.commentTs[period])||0;
               const remoteTs=(remoteSt.commentTs&&remoteSt.commentTs[period])||0;
-              // Remote wins if it has content and local doesn't, OR if remote is newer
-              const remoteWins = (!localCmt && remoteCmt) || (remoteTs > localTs);
-              const localWins = localCmt && (localTs > remoteTs);
-              if(localWins){
+              if(localCmt && localTs > remoteTs){
                 if(!remoteSt.comments) remoteSt.comments={};
                 if(!remoteSt.commentTs) remoteSt.commentTs={};
                 remoteSt.comments[period]=localCmt;
                 remoteSt.commentTs[period]=localTs;
               }
             });
-
-            // Merge boxes (pills) — local wins if boxes were modified more recently
-            const localBoxTs=localSt.boxTs||0;
-            const remoteBoxTs=remoteSt.boxTs||0;
-            if(localBoxTs > remoteBoxTs && localSt.boxes){
-              remoteSt.boxes=localSt.boxes;
-              remoteSt.boxTs=localBoxTs;
-            }
           });
-
-          // Merge class-level boxes (class appreciation pills)
-          const localClsTs=localCls.clsBoxTs||0;
-          const remoteClsTs=remoteCls.clsBoxTs||0;
-          if(localClsTs > remoteClsTs && localCls.classBoxes){
-            remoteCls.classBoxes=localCls.classBoxes;
-            remoteCls.clsBoxTs=localClsTs;
-          }
         });
       }
 
       S=remote;
       if(!S.cpe)S.cpe={};
-      save();
+      // Save to localStorage only — do NOT sync back to Drive (would overwrite other browser's changes)
+      try{localStorage.setItem('bp3',JSON.stringify(S));}catch(e){}
       renderSidebar();renderPPSidebar();renderCPESidebar();
       if(S.active&&S.classes[S.active])selectClass(S.active);
       else if(S.activeCPE&&S.cpe&&S.cpe[S.activeCPE]){activeCPE=S.activeCPE;renderCPEMain();}
