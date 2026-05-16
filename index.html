@@ -792,6 +792,11 @@ body{font-family:'DM Sans',sans-serif;font-weight:300;background:var(--bg);color
     </div>
     <input type="file" id="imp-inp" accept=".json" style="display:none" onchange="doImport(event)">
     <button onclick="showContactModal()" style="display:block;width:100%;text-align:center;font-size:.68rem;color:rgba(255,255,255,.25);background:none;border:none;cursor:pointer;padding:4px 0 2px;transition:color .15s;font-family:inherit" onmouseover="this.style.color='rgba(255,255,255,.6)'" onmouseout="this.style.color='rgba(255,255,255,.25)'">🐛 Signaler un problème</button>
+    <div style="display:flex;justify-content:center;gap:12px;padding:6px 0 2px;flex-wrap:wrap">
+      <a href="https://bulletinspro.github.io/cgv.html" target="_blank" style="font-size:.62rem;color:rgba(255,255,255,.25);text-decoration:none;transition:color .15s" onmouseover="this.style.color='rgba(255,255,255,.6)'" onmouseout="this.style.color='rgba(255,255,255,.25)'">CGV</a>
+      <a href="https://bulletinspro.github.io/mentions-legales.html" target="_blank" style="font-size:.62rem;color:rgba(255,255,255,.25);text-decoration:none;transition:color .15s" onmouseover="this.style.color='rgba(255,255,255,.6)'" onmouseout="this.style.color='rgba(255,255,255,.25)'">Mentions légales</a>
+      <a href="https://bulletinspro.github.io/privacy.html" target="_blank" style="font-size:.62rem;color:rgba(255,255,255,.25);text-decoration:none;transition:color .15s" onmouseover="this.style.color='rgba(255,255,255,.6)'" onmouseout="this.style.color='rgba(255,255,255,.25)'">Confidentialité</a>
+    </div>
   </div>
   <!-- GOOGLE DRIVE SYNC BAR -->
   <div class="gdrive-bar" id="gdrive-bar">
@@ -4990,7 +4995,6 @@ function showGenLimitModal(){
       <div style="font-size:.83rem;color:var(--muted);margin-bottom:10px">Achetez 200 générations supplémentaires pour 4€.</div>
       <a href="mailto:bulletins.pro.app@gmail.com?subject=Top-up 200 générations" class="btn btn-g" style="display:block;text-align:center;text-decoration:none;font-size:.85rem">Acheter 200 générations — 4€ →</a>
     </div>` : ''}
-    ${!isPaid ? `
     <p style="font-size:.82rem;color:var(--muted);margin-bottom:16px;line-height:1.6">Vos classes et données sont <strong>conservées</strong> — elles vous attendent après l'abonnement.</p>
     <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px">
@@ -5010,6 +5014,7 @@ function showGenLimitModal(){
       </div>
     </div>` : ''}
     <button class="btn btn-o" style="margin-top:12px;width:100%" onclick="document.getElementById('gen-limit-modal').classList.remove('open')">Fermer</button>
+    <p style="font-size:.68rem;color:var(--muted);text-align:center;margin-top:10px">En souscrivant, vous acceptez nos <a href="https://bulletinspro.github.io/cgv.html" target="_blank" style="color:var(--purple)">CGV</a> et notre <a href="https://bulletinspro.github.io/privacy.html" target="_blank" style="color:var(--purple)">politique de confidentialité</a>.</p>
   </div>`;
   document.body.appendChild(mo);
   mo.classList.add('open');
