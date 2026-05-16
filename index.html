@@ -4976,46 +4976,52 @@ function showGenLimitModal(){
   const mo = document.createElement('div');
   mo.id = 'gen-limit-modal';
   mo.className = 'mo';
-  mo.innerHTML = `<div class="mo-box" style="max-width:440px;text-align:center">
-    <div style="font-size:2rem;margin-bottom:12px">${isPaid ? '📊' : '🎓'}</div>
-    <div class="mo-t" style="margin-bottom:8px">${isPaid ? 'Quota atteint' : 'Limite gratuite atteinte'}</div>
-    <p style="font-size:.88rem;color:var(--muted);margin-bottom:16px">${isPaid
-      ? `Vous avez utilisé vos <strong>${ANNUAL_LIMIT} générations</strong> pour cette année scolaire.`
-      : `Vous avez utilisé vos <strong>${FREE_LIMIT} appréciations gratuites</strong>.`
-    }</p>
-    ${isPaid && isStandardPlan ? `
-    <div style="background:var(--accent-l);border:1.5px solid var(--accent-b);border-radius:10px;padding:14px;margin-bottom:14px;text-align:left">
-      <div style="font-weight:700;font-size:.9rem;color:var(--ink);margin-bottom:6px">⬆️ Passer au plan Pro</div>
-      <div style="font-size:.83rem;color:var(--muted);margin-bottom:10px">Accédez à 1500 générations/an pour seulement 15€ de plus.</div>
-      <a href="mailto:bulletins.pro.app@gmail.com?subject=Upgrade Standard vers Pro" class="btn btn-g" style="display:block;text-align:center;text-decoration:none;font-size:.85rem">Passer au Pro — 15€ →</a>
-    </div>` : ''}
-    ${isPaid && !isStandardPlan ? `
-    <div style="background:var(--purple-l);border:1.5px solid var(--purple-b);border-radius:10px;padding:14px;margin-bottom:14px;text-align:left">
-      <div style="font-weight:700;font-size:.9rem;color:var(--ink);margin-bottom:6px">➕ Pack de générations supplémentaires</div>
-      <div style="font-size:.83rem;color:var(--muted);margin-bottom:10px">Achetez 200 générations supplémentaires pour 4€.</div>
-      <a href="mailto:bulletins.pro.app@gmail.com?subject=Top-up 200 générations" class="btn btn-g" style="display:block;text-align:center;text-decoration:none;font-size:.85rem">Acheter 200 générations — 4€ →</a>
-    </div>` : ''}
-    <p style="font-size:.82rem;color:var(--muted);margin-bottom:16px;line-height:1.6">Vos classes et données sont <strong>conservées</strong> — elles vous attendent après l'abonnement.</p>
-    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px">
-      <a href="https://www.paypal.com/ncp/payment/RPKRNF8SRG4NQ" target="_blank" class="btn btn-g" style="text-decoration:none;font-size:.78rem;text-align:center;padding:10px">⭐ Standard — 24,99€/an</a>
-      <a href="https://www.paypal.com/ncp/payment/SYZDDBLXAKXS2" target="_blank" class="btn btn-g" style="text-decoration:none;font-size:.78rem;text-align:center;padding:10px;background:#7c3aed">Pro — 39,99€/an</a>
-    </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-      <a href="https://www.paypal.com/ncp/payment/WMDVVMS4M4X6E" target="_blank" class="btn btn-o" style="text-decoration:none;font-size:.78rem;text-align:center;padding:10px">Standard — 4,99€/mois</a>
-      <a href="https://www.paypal.com/ncp/payment/LL5DKBWH7RZEL" target="_blank" class="btn btn-o" style="text-decoration:none;font-size:.78rem;text-align:center;padding:10px">Pro — 7,99€/mois</a>
-    </div>
-    </div>
-    <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin-bottom:12px">
-      <div style="font-size:.78rem;color:var(--muted);margin-bottom:6px">Vous avez un code d'accès ?</div>
-      <div style="display:flex;gap:8px">
-        <input id="beta-code-input" class="mo-inp" placeholder="Code..." style="flex:1;margin:0">
-        <button class="btn btn-o" onclick="activateBetaCode()">Activer</button>
-      </div>
-    </div>` : ''}
-    <button class="btn btn-o" style="margin-top:12px;width:100%" onclick="document.getElementById('gen-limit-modal').classList.remove('open')">Fermer</button>
-    <p style="font-size:.68rem;color:var(--muted);text-align:center;margin-top:10px">En souscrivant, vous acceptez nos <a href="https://bulletinspro.github.io/cgv.html" target="_blank" style="color:var(--purple)">CGV</a> et notre <a href="https://bulletinspro.github.io/privacy.html" target="_blank" style="color:var(--purple)">politique de confidentialité</a>.</p>
-  </div>`;
+  mo.onclick = e => { if(e.target===mo) mo.classList.remove('open'); };
+
+  let html = '<div class="mo-box" style="max-width:440px;text-align:center">';
+  html += '<div style="font-size:2rem;margin-bottom:12px">' + (isPaid ? '📊' : '🎓') + '</div>';
+  html += '<div class="mo-t" style="margin-bottom:8px">' + (isPaid ? 'Quota atteint' : 'Limite gratuite atteinte') + '</div>';
+  html += '<p style="font-size:.88rem;color:var(--muted);margin-bottom:16px">';
+  html += isPaid ? ('Vous avez utilise vos <strong>' + ANNUAL_LIMIT + ' generations</strong> pour cette annee scolaire.')
+                 : ('Vous avez utilise vos <strong>' + FREE_LIMIT + ' appreciations gratuites</strong>.');
+  html += '</p>';
+
+  if(isPaid && isStandardPlan){
+    html += '<div style="background:var(--accent-l);border:1.5px solid var(--accent-b);border-radius:10px;padding:14px;margin-bottom:14px;text-align:left">';
+    html += '<div style="font-weight:700;font-size:.9rem;color:var(--ink);margin-bottom:6px">Passer au plan Pro</div>';
+    html += '<div style="font-size:.83rem;color:var(--muted);margin-bottom:10px">Acces a 1500 generations/an pour seulement 15EUR de plus.</div>';
+    html += '<a href="mailto:bulletins.pro.app@gmail.com?subject=Upgrade Standard vers Pro" class="btn btn-g" style="display:block;text-align:center;text-decoration:none;font-size:.85rem">Passer au Pro</a>';
+    html += '</div>';
+  }
+  if(isPaid && !isStandardPlan){
+    html += '<div style="background:var(--purple-l);border:1.5px solid var(--purple-b);border-radius:10px;padding:14px;margin-bottom:14px;text-align:left">';
+    html += '<div style="font-weight:700;font-size:.9rem;color:var(--ink);margin-bottom:6px">Pack de generations supplementaires</div>';
+    html += '<div style="font-size:.83rem;color:var(--muted);margin-bottom:10px">Achetez 200 generations pour 4EUR.</div>';
+    html += '<a href="mailto:bulletins.pro.app@gmail.com?subject=Top-up 200 generations" class="btn btn-g" style="display:block;text-align:center;text-decoration:none;font-size:.85rem">Acheter 200 generations - 4EUR</a>';
+    html += '</div>';
+  }
+  if(!isPaid){
+    html += '<p style="font-size:.82rem;color:var(--muted);margin-bottom:16px;line-height:1.6">Vos classes et donnees sont <strong>conservees</strong> pour apres votre abonnement.</p>';
+    html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">';
+    html += '<a href="https://www.paypal.com/ncp/payment/RPKRNF8SRG4NQ" target="_blank" class="btn btn-g" style="text-decoration:none;font-size:.78rem;text-align:center;padding:10px">Standard - 24,99EUR/an</a>';
+    html += '<a href="https://www.paypal.com/ncp/payment/SYZDDBLXAKXS2" target="_blank" class="btn btn-g" style="text-decoration:none;font-size:.78rem;text-align:center;padding:10px;background:#7c3aed">Pro - 39,99EUR/an</a>';
+    html += '</div>';
+    html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">';
+    html += '<a href="https://www.paypal.com/ncp/payment/WMDVVMS4M4X6E" target="_blank" class="btn btn-o" style="text-decoration:none;font-size:.78rem;text-align:center;padding:10px">Standard - 4,99EUR/mois</a>';
+    html += '<a href="https://www.paypal.com/ncp/payment/LL5DKBWH7RZEL" target="_blank" class="btn btn-o" style="text-decoration:none;font-size:.78rem;text-align:center;padding:10px">Pro - 7,99EUR/mois</a>';
+    html += '</div>';
+    html += '<div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin-bottom:12px">';
+    html += '<div style="font-size:.78rem;color:var(--muted);margin-bottom:6px">Vous avez un code acces ?</div>';
+    html += '<div style="display:flex;gap:8px">';
+    html += '<input id="beta-code-input" class="mo-inp" placeholder="Code..." style="flex:1;margin:0">';
+    html += '<button class="btn btn-o" onclick="activateBetaCode()">Activer</button>';
+    html += '</div></div>';
+    html += '<p style="font-size:.68rem;color:var(--muted);text-align:center;margin-top:8px">En souscrivant, vous acceptez nos <a href=\'https://bulletinspro.github.io/cgv.html\' target=\'_blank\' style=\'color:#6B2FD9\'>CGV</a></p>';
+  }
+  html += '<button class="btn btn-o" style="margin-top:12px;width:100%" onclick="document.getElementById(\'gen-limit-modal\').classList.remove(\'open\')">Fermer</button>';
+  html += '</div>';
+
+  mo.innerHTML = html;
   document.body.appendChild(mo);
   mo.classList.add('open');
 }
