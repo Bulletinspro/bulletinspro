@@ -3221,8 +3221,8 @@ async function gdLoadFromDrive(){
       GD.fileId=files[0].id;
       gdSetStatus('syncing','Chargement des données…');
       const getRes=await fetch(
-        `https://www.googleapis.com/drive/v3/files/${GD.fileId}?alt=media`,
-        {headers:{Authorization:`Bearer ${GD.accessToken}`}}
+        `https://www.googleapis.com/drive/v3/files/${GD.fileId}?alt=media&t=${Date.now()}`,
+        {headers:{Authorization:`Bearer ${GD.accessToken}`,'Cache-Control':'no-cache, no-store','Pragma':'no-cache'}}
       );
       if(!getRes.ok) throw new Error('get failed '+getRes.status);
       const remote=await getRes.json();
@@ -3246,7 +3246,10 @@ async function gdLoadFromDrive(){
               const remoteCmt=(remoteSt.comments&&remoteSt.comments[period])||'';
               const localTs=(localSt.commentTs&&localSt.commentTs[period])||0;
               const remoteTs=(remoteSt.commentTs&&remoteSt.commentTs[period])||0;
-              if(localTs > remoteTs || (localTs===remoteTs && localCmt.length > remoteCmt.length)){
+              // Remote wins if it has content and local doesn't, OR if remote is newer
+              const remoteWins = (!localCmt && remoteCmt) || (remoteTs > localTs);
+              const localWins = localCmt && (localTs > remoteTs);
+              if(localWins){
                 if(!remoteSt.comments) remoteSt.comments={};
                 if(!remoteSt.commentTs) remoteSt.commentTs={};
                 remoteSt.comments[period]=localCmt;
