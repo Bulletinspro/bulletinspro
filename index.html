@@ -4824,6 +4824,10 @@ function buildClassPrompt(cls,period){
   Object.values(CLASS_BOXES).forEach(sec=>sec.items.forEach(item=>{if(cls.classBoxes&&cls.classBoxes[item.id])checked.push(item.l);}));
   const pLabel=cls.periodType==='semestre'?`semestre ${period}`:`trimestre ${period}`;
   const toneDesc={ferme:'ferme et exigeant',equilibre:'équilibré et professionnel',encourageant:'positif et valorisant'}[cls.tone||'equilibre'];
+  const isLastPeriod = (cls.periodType==='semestre' && period===2) || (cls.periodType!=='semestre' && period===3);
+  const periodRule = isLastPeriod
+    ? `6. C'est le DERNIER ${cls.periodType==='semestre'?'semestre':'trimestre'} — la conclusion bilan l'année. INTERDIT : "sont attendus", "il faudra", "devront", "l'année prochaine", toute projection future. Bilan de l'année, pas de conseils pour la suite.`
+    : `6. Termine par un conseil ou un encouragement collectif pour la suite.`;
   return `Tu es un professeur français. Rédige l'appréciation générale d'une CLASSE pour le bulletin.
 
 Classe : ${cls.name} — ${SUBJECTS[cls.subject]?.label||cls.subject} — ${pLabel} — ${cls.students.length} élèves
@@ -4836,8 +4840,9 @@ RÈGLES :
 2. Parle de la classe comme d'un collectif : "la classe", "les élèves", "ce groupe", "cette classe". JAMAIS le nom de la classe (${cls.name}) ni la matière — c'est évident pour les lecteurs.
 3. Relie les idées avec des connecteurs logiques variés.
 4. Ton : ${toneDesc}.
-5. Termine par un conseil ou un encouragement collectif.
-6. Répondre UNIQUEMENT avec l'appréciation, sans guillemets ni commentaire.`;
+5. INTERDIT : "il est essentiel", "il est important", "il est nécessaire", "sont attendus pour permettre".
+${periodRule}
+7. Répondre UNIQUEMENT avec l'appréciation, sans guillemets ni commentaire.`;
 }
 
 // ── CLAUDE API ────────────────────────────────────────────────────────────────
