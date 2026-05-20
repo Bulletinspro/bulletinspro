@@ -3745,7 +3745,7 @@ function setPeriod(n,btn){
 
 function getStudentVerdict(st){
   // Verdict is period-specific — returns verdict for current period only
-  if(!st.verdicts) return st.verdict||null; // backward compat
+  if(!st.verdicts) return null; // period-specific only — no bleed from old data
   return st.verdicts[S.period]||null;
 }
 
@@ -3920,7 +3920,7 @@ function renderStudentList(){
   }
   students.forEach(s=>{
     const done=!!(s.comments&&s.comments[S.period]);
-    const hasO=s.orient&&s.orient.on;
+    const hasO=s.orients&&s.orients[S.period]&&s.orients[S.period].on;
     const d=document.createElement('div');
     d.className='st-row'+(s.id===S.student?' active':'');
     d.onclick=()=>selectStudent(s.id);
@@ -4047,7 +4047,7 @@ function renderEditor(id){
   const scroll=document.getElementById('ed-scroll'); if(!scroll)return;
   const tone=st.tone||cls.tone||'equilibre';
   const comment=(st.comments&&st.comments[S.period])||'';
-  const orient=st.orient||{on:false,level:1,path:'',note:''};
+  const orient=getStOrient(st);
   const pLabel=cls.periodType==='semestre'?`Semestre ${S.period}`:`Trimestre ${S.period}`;
   const charLimit=Math.min(1000,cls.charLimit||750);
 
@@ -4314,7 +4314,7 @@ function setComp(id,key,v,btn){const st=getSt(id);if(!st.comps)st.comps={};if(!s
 // Get period-specific eval values
 function getStGrade(st){return (st.grades&&st.grades[S.period])||'';}
 function getStLevel(st){return (st.levels&&st.levels[S.period])||'';}
-function getStTone(st){return (st.tones&&st.tones[S.period])||st.tone||null;}
+function getStTone(st){return (st.tones&&st.tones[S.period])||null;} // null = défaut classe, no bleed
 function getStComps(st){return (st.allComps&&st.allComps[S.period])||{};}
 
 function toggleSection(cid, sectionKey, sid){
@@ -4378,8 +4378,10 @@ function toggleClassOrient(){
   // Apply to all students — but only if they haven't been individually set
   cls.students.forEach(st=>{
     if(!st.orientOverride){
-      st.orient=st.orient||{on:false,level:1,path:'',note:''};
-      st.orient.on=cls.classOrient;
+      if(!st.orients)st.orients={};
+      if(!st.orients[S.period])st.orients[S.period]={on:false,level:1,path:'',note:''};
+      st.orients[S.period].on=cls.classOrient;
+      st.orient=st.orients[S.period];
     }
   });
   save();
@@ -4387,17 +4389,28 @@ function toggleClassOrient(){
   toast(cls.classOrient?'🎯 Orientation activée pour toute la classe':'Orientation désactivée pour toute la classe');
 }
 
+function getStOrient(st){
+  if(st.orients&&st.orients[S.period]) return st.orients[S.period];
+  return {on:false,level:1,path:'',note:''};
+}
 function togOrient(id,btn){
-  const st=getSt(id); if(!st.orient)st.orient={on:false,level:1,path:'',note:''};
-  st.orient.on=!st.orient.on;
-  st.orientOverride=true; // individually set — won't be overridden by class toggle
-  btn.classList.toggle('on',st.orient.on);
-  btn.previousElementSibling.textContent=st.orient.on?'Activé':'Désactivé';
-  document.getElementById('ob-'+id).style.display=st.orient.on?'block':'none';
+  const st=getSt(id);
+  if(!st.orients) st.orients={};
+  if(!st.orients[S.period]) st.orients[S.period]={on:false,level:1,path:'',note:''};
+  st.orients[S.period].on=!st.orients[S.period].on;
+  st.orient=st.orients[S.period]; // keep reference for compat
+  st.orientOverride=true;
+  btn.classList.toggle('on',st.orients[S.period].on);
+  btn.previousElementSibling.textContent=st.orients[S.period].on?'Activé':'Désactivé';
+  document.getElementById('ob-'+id).style.display=st.orients[S.period].on?'block':'none';
   save(); renderStudentList();
 }
 function setOL(id,level,btn){
-  const st=getSt(id); st.orient.level=level;
+  const st=getSt(id);
+  if(!st.orients)st.orients={};
+  if(!st.orients[S.period])st.orients[S.period]={on:true,level:1,path:'',note:''};
+  st.orients[S.period].level=level;
+  st.orient=st.orients[S.period];
   btn.closest('.olevel-row').querySelectorAll('.olbtn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');
   document.getElementById('od-'+id).textContent=ORIENT_DESCS[level];
   const show=level>=2;
@@ -4405,7 +4418,7 @@ function setOL(id,level,btn){
   document.getElementById('on-'+id).style.display=show?'block':'none';
   save(); renderStudentList();
 }
-function setOP(id,path,btn){const st=getSt(id);st.orient.path=path;btn.closest('.opath-row').querySelectorAll('.opbtn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');save();}
+function setOP(id,path,btn){const st=getSt(id);if(!st.orients)st.orients={};if(!st.orients[S.period])st.orients[S.period]={on:true,level:1,path:'',note:''};st.orients[S.period].path=path;st.orient=st.orients[S.period];btn.closest('.opath-row').querySelectorAll('.opbtn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');save();}
 function setON(id,v){getSt(id).orient.note=v;save();}
 
 function onCI(id,val){saveCmt(id,val);updCC(id,val);updateProgressBar();}
@@ -8225,7 +8238,7 @@ function renderPPStudentList(){
   scroll.innerHTML='';
   pp.students.forEach(s=>{
     const done=!!(s.comments&&s.comments[activePPPeriod]);
-    const hasO=s.orient&&s.orient.on;
+    const hasO=s.orients&&s.orients[S.period]&&s.orients[S.period].on;
     const d=document.createElement('div');
     d.className='pp-st-row'+(s.id===activePPStudent?' active':'');
     d.onclick=()=>selectPPStudent(s.id);
@@ -8255,7 +8268,7 @@ function renderPPEditor(id){
   const scroll=document.getElementById('pp-ed-scroll'); if(!scroll)return;
   const pLabel=pp.periodType==='semestre'?`Semestre ${activePPPeriod}`:`Trimestre ${activePPPeriod}`;
   const comment=(st.comments&&st.comments[activePPPeriod])||'';
-  const orient=st.orient||{on:false,level:1,path:'',note:''};
+  const orient=getStOrient(st);
   const vs=st.viesco||{absences:'',retards:'',demipen:''};
   const ppTone=pp.tone||'equilibre';
 
