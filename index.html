@@ -4045,7 +4045,7 @@ function renderEditor(id){
   const cls=S.classes[S.active];
   const st=cls.students.find(s=>s.id===id); if(!st)return;
   const scroll=document.getElementById('ed-scroll'); if(!scroll)return;
-  const tone=st.tone||cls.tone||'equilibre';
+  const tone=getStTone(st)||cls.tone||'equilibre';
   const comment=(st.comments&&st.comments[S.period])||'';
   const orient=getStOrient(st);
   const pLabel=cls.periodType==='semestre'?`Semestre ${S.period}`:`Trimestre ${S.period}`;
@@ -4535,7 +4535,7 @@ function buildPrompt(st,cls,period,seed,memSamp){
   const uncheckedNeg=allNegLabels.filter(l=>!checkedNeg.includes(l));
   const checked=[...checkedPos,...checkedNeutral,...checkedNeg];
 
-  const tone=st.tone||cls.tone||'equilibre';
+  const tone=getStTone(st)||cls.tone||'equilibre';
   const toneDesc={
     ferme:'ferme et direct(e) — les manquements sont nommés clairement, sans détour, mais dans un registre professionnel',
     equilibre:'équilibré(e) — les points positifs et les axes de progrès sont évoqués avec nuance',
