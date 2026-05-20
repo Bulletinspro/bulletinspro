@@ -1419,6 +1419,9 @@ const CORE_BOXES = {
       {id:'pr3',l:'Résultats satisfaisants',v:'pos'},
       {id:'pr7',l:'Progression notable',v:'pos'},
       {id:'pr8',l:'Progression régulière',v:'pos'},
+      {id:'pr30',l:'↗ En hausse par rapport à la période précédente',v:'pos'},
+      {id:'pr31',l:'→ Niveau stable par rapport à la période précédente',v:'neutral'},
+      {id:'pr32',l:'↘ En baisse par rapport à la période précédente',v:'neg'},
       {id:'pr27',l:'Progression constante tout au long du trimestre',v:'pos'},
       {id:'pr25',l:'Nette amélioration par rapport au trimestre précédent',v:'pos'},
       {id:'pr26',l:'Évolution positive en comportement et en investissement',v:'pos'},
@@ -3740,6 +3743,18 @@ function setPeriod(n,btn){
   btn.classList.add('active'); save(); renderMain();
 }
 
+function getStudentVerdict(st){
+  // Verdict is period-specific — returns verdict for current period only
+  if(!st.verdicts) return st.verdict||null; // backward compat
+  return st.verdicts[S.period]||null;
+}
+
+function setStudentVerdict(st, verdictId){
+  if(!st.verdicts) st.verdicts={};
+  st.verdicts[S.period] = verdictId;
+  st.verdict = verdictId; // keep for backward compat
+}
+
 // ── MAIN RENDER ───────────────────────────────────────────────────────────────
 function renderMain(){
   // If PP is active instead of a class, route to PP renderer
@@ -3827,7 +3842,8 @@ function renderStudentsView(content){
     <div class="st-panel">
       <div class="panel-head">
         <span class="panel-lbl">Élèves (<span id="sc">${cls.students.length}</span>)</span>
-        <div style="display:flex;gap:4px">
+        <div style="display:flex;gap:4px;flex-wrap:wrap">
+          <button class="btn btn-sm" style="background:${cls.classOrient?'var(--accent)':'transparent'};border:1px solid ${cls.classOrient?'var(--accent)':'var(--border)'};color:${cls.classOrient?'#fff':'var(--muted)'};font-size:.72rem" onclick="toggleClassOrient()" title="Activer/désactiver l'orientation pour toute la classe">🎯 Orientation classe</button>
           <button class="btn btn-o btn-sm" onclick="openImportStudents()" title="Importer une liste d'élèves">📥 Importer</button>
           <button class="btn btn-o btn-sm" onclick="togAddRow()">+ Ajouter</button>
         </div>
@@ -4129,7 +4145,7 @@ function renderEditor(id){
       <div class="card-hd" style="background:var(--accent-l);color:var(--accent)">Bilan global du ${cls.periodType==='semestre'?'semestre':'trimestre'} <span style="font-weight:500;font-size:.8em;opacity:1;color:var(--muted)">&nbsp;— optionnel, laissez vide pour que l'IA choisisse</span></div>
       <div class="pill-grid">
         ${getVerdictPills(cls.periodType).map(v=>{
-          const sel=st.verdict===v.id;
+          const sel=getStudentVerdict(st)===v.id;
           const cls2=v.weight>=3?'':v.weight>=1?'neutral':'neg';
           return '<span class="pill '+cls2+' '+(sel?'sel':'')+'" onclick="setVerdict(\''+st.id+'\',\''+v.id+'\',this)">'+v.l+'</span>';
         }).join('')}
@@ -4147,7 +4163,7 @@ function renderEditor(id){
             <button class="tone-btn equilibre ${tone==='equilibre'?'active':''}" onclick="setSTone('equilibre','${id}',this)">Équilibré</button>
             <button class="tone-btn encourageant ${tone==='encourageant'?'active':''}" onclick="setSTone('encourageant','${id}',this)">Encourageant</button>
           </div>
-          <span style="font-size:.7rem;color:var(--muted);opacity:.6">${st.tone?'(personnalisé)':'(défaut classe)'}</span>
+          <span style="font-size:.7rem;color:var(--muted);opacity:.6">${getStTone(st)?'(personnalisé)':'(défaut classe)'}</span>
         </div>
         ${S.period>1 && !((st.comments&&st.comments[S.period-1])) ? `
         <div style="margin-top:10px">
@@ -4232,7 +4248,7 @@ function renderEditor(id){
 function renderEvalInput(cls,st){
   const ev=cls.evalType;
   if(ev==='note'){
-    return `<div style="display:flex;align-items:center;gap:7px"><span style="font-size:.78rem;color:var(--muted)">Moyenne :</span><input class="grade-inp" value="${st.grade||''}" placeholder="—" onchange="setSGrade('${st.id}',this.value)"><span style="font-size:.75rem;color:var(--muted)">/20</span></div>`;
+    return `<div style="display:flex;align-items:center;gap:7px"><span style="font-size:.78rem;color:var(--muted)">Moyenne :</span><input class="grade-inp" value="${getStGrade(st)}" placeholder="—" onchange="setSGrade('${st.id}',this.value)"><span style="font-size:.75rem;color:var(--muted)">/20</span></div>`;
   }
   if(ev==='niveau'||ev==='mix'){
     const levels=[['excellent','Excellent'],['bien','Bien'],['satisfaisant','Satisfaisant'],['fragile','Fragile','lv-fragile'],['insuffisant','Insuffisant','lv-insuf']];
@@ -4267,7 +4283,7 @@ function resetCategoryBoxes(id,itemIdsStr){
 function setVerdict(id,vid,el){
   const st=getSt(id);
   // toggle — click same pill again to deselect
-  if(st.verdict===vid){ st.verdict=null; el.classList.remove('sel'); }
+  if(getStudentVerdict(st)===vid){ setStudentVerdict(st,null); el.classList.remove('sel'); }
   else {
     st.verdict=vid;
     el.closest('.pill-grid').querySelectorAll('.pill').forEach(p=>p.classList.remove('sel'));
@@ -4290,10 +4306,16 @@ function setPrevComment(sid, period, val){
   save();
 }
 
-function setSTone(tone,id,btn){const st=getSt(id);st.tone=tone;btn.closest('.tone-row').querySelectorAll('.tone-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');save();}
-function setSGrade(id,v){getSt(id).grade=v;save();}
-function setSLevel(id,v,btn){const st=getSt(id);st.level=v;btn.closest('.level-row').querySelectorAll('.lvl-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');save();}
-function setComp(id,key,v,btn){const st=getSt(id);if(!st.comps)st.comps={};st.comps[key]=v;btn.closest('.comp-row').querySelectorAll('.comp-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');save();}
+function setSTone(tone,id,btn){const st=getSt(id);if(!st.tones)st.tones={};st.tones[S.period]=tone;st.tone=tone;btn.closest('.tone-row').querySelectorAll('.tone-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');save();}
+function setSGrade(id,v){const st=getSt(id);if(!st.grades)st.grades={};st.grades[S.period]=v;st.grade=v;save();}
+function setSLevel(id,v,btn){const st=getSt(id);if(!st.levels)st.levels={};st.levels[S.period]=v;st.level=v;btn.closest('.level-row').querySelectorAll('.lvl-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');save();}
+function setComp(id,key,v,btn){const st=getSt(id);if(!st.comps)st.comps={};if(!st.allComps)st.allComps={};if(!st.allComps[S.period])st.allComps[S.period]={};st.comps[key]=v;st.allComps[S.period][key]=v;btn.closest('.comp-row').querySelectorAll('.comp-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');save();}
+
+// Get period-specific eval values
+function getStGrade(st){return (st.grades&&st.grades[S.period])||'';}
+function getStLevel(st){return (st.levels&&st.levels[S.period])||'';}
+function getStTone(st){return (st.tones&&st.tones[S.period])||st.tone||null;}
+function getStComps(st){return (st.allComps&&st.allComps[S.period])||{};}
 
 function toggleSection(cid, sectionKey, sid){
   const cls=S.classes[cid]; if(!cls) return;
@@ -4350,9 +4372,26 @@ function togAeshBox(sid,itemId,el){
   save();
 }
 
+function toggleClassOrient(){
+  const cls=S.classes[S.active]; if(!cls)return;
+  cls.classOrient=!cls.classOrient;
+  // Apply to all students — but only if they haven't been individually set
+  cls.students.forEach(st=>{
+    if(!st.orientOverride){
+      st.orient=st.orient||{on:false,level:1,path:'',note:''};
+      st.orient.on=cls.classOrient;
+    }
+  });
+  save();
+  renderMain();
+  toast(cls.classOrient?'🎯 Orientation activée pour toute la classe':'Orientation désactivée pour toute la classe');
+}
+
 function togOrient(id,btn){
   const st=getSt(id); if(!st.orient)st.orient={on:false,level:1,path:'',note:''};
-  st.orient.on=!st.orient.on; btn.classList.toggle('on',st.orient.on);
+  st.orient.on=!st.orient.on;
+  st.orientOverride=true; // individually set — won't be overridden by class toggle
+  btn.classList.toggle('on',st.orient.on);
   btn.previousElementSibling.textContent=st.orient.on?'Activé':'Désactivé';
   document.getElementById('ob-'+id).style.display=st.orient.on?'block':'none';
   save(); renderStudentList();
@@ -4546,7 +4585,7 @@ function buildPrompt(st,cls,period,seed,memSamp){
   if((cls.evalType==='niveau'||cls.evalType==='mix')&&st.level) evalCtx+=`Niveau : ${st.level}. `;
   if((cls.evalType==='competence'||cls.evalType==='mix')&&st.comps?.global){
     const compLabels={'maitrise':'Maîtrisé','partiellement':'Partiellement maîtrisé','en_cours':'En cours','non_maitrise':'Non maîtrisé'};
-    evalCtx+=`Compétences : ${compLabels[st.comps.global]||st.comps.global}. `;
+    evalCtx+=`Compétences : ${compLabels[_comps.global]||_comps.global}. `;
   }
 
   // Class appreciation context — only if filled
@@ -4602,7 +4641,15 @@ function buildPrompt(st,cls,period,seed,memSamp){
     }
   }
   // Verdict context
-  const verdictObj = st.verdict ? getVerdictPills(cls.periodType).find(v=>v.id===st.verdict) : null;
+  const verdictObj = getStudentVerdict(st) ? getVerdictPills(cls.periodType).find(v=>v.id===getStudentVerdict(st)) : null;
+  // Check if a comparison pill is ticked (hausse/stable/baisse)
+  const compPills = ['pr30','pr31','pr32'];
+  const compChecked = compPills.find(id => st.boxes && st.boxes[id]);
+  const compLabels = {'pr30':'en hausse par rapport à la période précédente','pr31':'niveau stable par rapport à la période précédente','pr32':'en baisse par rapport à la période précédente'};
+  const compCtx = compChecked && period > 1
+    ? `\nÉVOLUTION PAR RAPPORT À LA PÉRIODE PRÉCÉDENTE : ${compLabels[compChecked]}. Intègre cette information naturellement dans l'appréciation — c'est une information importante pour les parents.`
+    : '';
+
   const verdictCtx = verdictObj
     ? `BILAN GLOBAL CHOISI PAR L'ENSEIGNANT : "${verdictObj.l}." — OBLIGATOIRE : cette expression ouvre l'appréciation, suivie d'un point. La phrase suivante commence par une majuscule. Ne jamais accoler deux phrases sans point entre elles.`
     : `BILAN GLOBAL : l'enseignant n'a pas choisi d'expression d'ouverture — tu dois en choisir une qui correspond PRÉCISÉMENT au profil réel de l'élève (niveau, résultats, observations). Voici le guide de sélection :
@@ -4784,7 +4831,7 @@ ${checkedNeutral.length ? '\n⚠️ OBSERVATIONS INTERMÉDIAIRES — DOIVENT APP
 ${checkedConseils.length ? '\nCONSEILS À DONNER EN CONCLUSION (ce sont des conseils pour l\'élève, PAS des qualités qu\'il possède déjà) :\n'+checkedConseils.map(c=>'→ '+c).join('\n') : ''}
 ${isDiscreet ? '\n⛔ Discret/réservé → INTERDIRE : "participe activement", "participe régulièrement". Dire : "suit attentivement", "s\'implique discrètement".' : ''}
 ${checked.some(c=>c.toLowerCase().includes('régress')&&(isDiscreet||checkedNeg.length>=2)) ? '\n⚠️ RÉGRESSION + profil fragile : ne pas mentionner la régression brutalement. Dire plutôt : "des efforts supplémentaires permettront de retrouver une dynamique positive" ou "il lui faudra redoubler d\'efforts pour inverser la tendance". L\'objectif est d\'encourager, pas de décourager.' : ''}
-${aeshCtx}${orientCtx}${classCtx}${prevCtx}${memCtx}${styleCtx}
+${aeshCtx}${orientCtx}${classCtx}${prevCtx}${compCtx}${memCtx}${styleCtx}
 
 RÈGLES DE SYNTHÈSE — OBLIGATOIRES :
 0. Longueur : maximum ${targetMax} caractères. Synthétise — 4-5 observations liées = 1 phrase fluide.
@@ -4810,6 +4857,7 @@ RÈGLES DE SYNTHÈSE — OBLIGATOIRES :
 7. "son travail est régulier" pas "elle est régulière dans son travail". "elle maîtrise l'expression orale" pas "elle exprime une bonne maîtrise". "Cette élève" pas "Ceste élève". JAMAIS "satisfaisant" plus d'une fois.
 8. FUSION : 3 observations similaires (discret + participe peu + évite de prendre la parole) = UNE seule phrase courte et bienveillante. Ne pas les répéter en conclusion si déjà mentionnées.
 8b. CLICHÉS INTERDITS — ne jamais écrire : "ambiance de classe", "bonne ambiance en classe", "atmosphère de classe" sauf si explicitement coché. Ne pas inventer de contexte sur la classe. INTERDIT aussi : "Il est désormais essentiel que", "Il est impératif que", "Il est indispensable que", "Il est nécessaire de/que", "Il est important de/que", "impérativement", "doit impérativement", "dès le prochain ${per}", "pour le prochain ${per}" — trop impersonnel et lourd. Préférer : "Il devra", "Il lui faudra", "Un effort s'impose", "La priorité est de", ou reformuler directement : "Revoir les bases permettra de progresser". ÉGALEMENT INTERDITS en fin de phrase ou d'appréciation : "qu'il faut saluer", "à souligner", "à noter avec satisfaction", "ce qui est à saluer", "ce qui mérite d'être souligné", "qui mérite d'être salué(e)", "que l'on peut saluer" — trop ampoulés. Préférer une formulation directe : "C'est encourageant.", "C'est positif.", ou simplement énoncer le fait.
+8c. FAUTES ET NÉOLOGISMES INTERDITS — n'utilise que des mots français correctement orthographiés. INTERDIT : "davantée" (n'existe pas — utiliser "davantage"), "investissement" à la place de "implication", tout mot inventé. En cas de doute sur un mot, choisis une formulation plus simple.
 8c. ÉLISION CORRECTE — "que" + consonne = "que" (pas "qu'"). "que Mathis", "que Marie", "que Léa". "qu'" uniquement devant voyelle : "qu'il", "qu'elle", "qu'un". JAMAIS "qu'Mathis", "qu'Léa".
 8d. INTENSITÉ PROPORTIONNELLE — respecter le degré exact de la pill cochée. "Bavarde parfois" = mention légère ("quelques bavardages ponctuels"). JAMAIS amplifier en "rappels fréquents", "perturbe régulièrement", "problème récurrent" si ce n'est pas coché. "Bavardages incessants" = mention forte. "Parfois perturbateur/trice" ≠ "très perturbateur". Ne jamais aggraver ce qui est coché.
 8e. COHÉRENCE ENTRE PILLS — si "Réagit bien aux rappels" est coché avec "Bavarde parfois" → dire "quelques bavardages, mais réagit bien quand on le signale" — les rappels ne sont PAS fréquents. Si coché avec "Bavardages incessants" ou "Très perturbateur" → "malgré des rappels fréquents nécessaires". La fréquence des rappels dépend de la sévérité du comportement coché.
@@ -5233,13 +5281,13 @@ async function genOne(sid){
     let txt='';
     for(let attempt=0;attempt<5;attempt++){
       txt=fitToLimit((await callClaude(prompt)).replace(/\n+/g,' ').trim(), cls.charLimit||750);
-      const hallucinated=hasHallucination(txt,checkedNeg,checkedPos,st.verdict);
+      const hallucinated=hasHallucination(txt,checkedNeg,checkedPos,getStudentVerdict(st));
       if(!hallucinated) break;
       console.warn('Hallucination detected, retrying...');
     }
     ta.classList.remove('gen');
     // Safety strip — only apply if result is non-empty
-    const cleanTxt=stripHallucinatedSentences(txt,checkedNeg,checkedPos,st.verdict);
+    const cleanTxt=stripHallucinatedSentences(txt,checkedNeg,checkedPos,getStudentVerdict(st));
     let finalTxt=(cleanTxt&&cleanTxt.length>50)?cleanTxt:txt;
     if(!finalTxt){toast('Erreur : génération vide');return;}
     // RGPD swap — replace placeholder with real name
