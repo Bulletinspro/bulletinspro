@@ -1419,10 +1419,6 @@ const CORE_BOXES = {
       {id:'pr3',l:'Résultats satisfaisants',v:'pos'},
       {id:'pr7',l:'Progression notable',v:'pos'},
       {id:'pr8',l:'Progression régulière',v:'pos'},
-      {id:'pr30',l:'↗ En hausse par rapport à la période précédente',v:'pos'},
-      {id:'pr31',l:'→ Niveau stable par rapport à la période précédente',v:'neutral'},
-      {id:'pr32',l:'↘ En baisse par rapport à la période précédente',v:'neg'},
-      {id:'pr27',l:'Progression constante tout au long du trimestre',v:'pos'},
       {id:'pr25',l:'Nette amélioration par rapport au trimestre précédent',v:'pos'},
       {id:'pr26',l:'Évolution positive en comportement et en investissement',v:'pos'},
       {id:'pr28',l:'Bases globalement acquises',v:'pos'},
@@ -3836,6 +3832,18 @@ function goGenAllNow(){
 }
 
 // ── STUDENTS VIEW ─────────────────────────────────────────────────────────────
+function renderEvoPills(st,id){
+  const pills=[{id:'pr30',l:'↗ En hausse',v:'pos'},{id:'pr31',l:'→ Stable',v:'neutral'},{id:'pr32',l:'↘ En baisse',v:'neg'}];
+  return pills.map(function(p){
+    const sel=!!(st.boxes&&st.boxes[p.id]);
+    const col=p.v==='pos'?'var(--green)':p.v==='neg'?'var(--red)':'var(--amber)';
+    const bg=sel?(p.v==='pos'?'var(--green-l)':p.v==='neg'?'#fee2e2':'var(--amber-l)'):'var(--bg)';
+    const bc=sel?(p.v==='pos'?'#bbf7d0':p.v==='neg'?'#fca5a5':'#fed7aa'):'var(--border)';
+    const fw=sel?'700':'400';
+    return '<button onclick="togBox(\''+p.id+'\',\''+id+'\',this);document.getElementById(\'evo-'+id+'\').innerHTML=renderEvoPills(getSt(\''+id+'\'),\''+id+'\')" style="padding:5px 12px;border:1.5px solid '+bc+';border-radius:20px;background:'+bg+';color:'+(sel?col:'var(--muted)')+';font-size:.78rem;font-weight:'+fw+';cursor:pointer;transition:all .15s">'+p.l+'</button>';
+  }).join('');
+}
+
 function renderStudentsView(content){
   const cls=S.classes[S.active];
   content.innerHTML=`
@@ -4169,6 +4177,13 @@ function renderEditor(id){
         <div style="margin-top:10px">
           <div style="font-size:.75rem;color:var(--muted);margin-bottom:4px">📋 Appréciation T${S.period-1} (optionnel — pour contextualiser T${S.period}) :</div>
           <textarea class="mo-inp" rows="2" style="font-size:.75rem;resize:vertical;width:100%" placeholder="Collez ici l'appréciation du trimestre précédent si disponible…" onchange="setPrevComment('${id}',${S.period-1},this.value)">${(st.prevComments&&st.prevComments[S.period-1])||''}</textarea>
+        </div>` : ''}
+        ${S.period>1 ? `
+        <div>
+          <div style="font-size:.73rem;color:var(--muted);margin-bottom:5px">Évolution des résultats :</div>
+          <div style="display:flex;gap:5px;flex-wrap:wrap" id="evo-${id}">
+            ${renderEvoPills(st,id)}
+          </div>
         </div>` : ''}
         ${renderEvalInput(cls,st)}
       </div>
