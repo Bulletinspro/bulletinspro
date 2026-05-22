@@ -4918,6 +4918,8 @@ function buildClassPrompt(cls,period){
   const periodRule = isLastPeriod
     ? `6. C'est le DERNIER ${cls.periodType==='semestre'?'semestre':'trimestre'} — la conclusion bilan l'année. INTERDIT : "sont attendus", "il faudra", "devront", "l'année prochaine", toute projection future. Bilan de l'année, pas de conseils pour la suite.`
     : `6. Termine par un conseil ou un encouragement collectif pour la suite.`;
+  const clsLimit = cls.classCharLimit || cls.charLimit || 650;
+  const clsMin = Math.max(200, Math.round(clsLimit * 0.7));
   return `Tu es un professeur français. Rédige l'appréciation générale d'une CLASSE pour le bulletin.
 
 Classe : ${cls.name} — ${SUBJECTS[cls.subject]?.label||cls.subject} — ${pLabel} — ${cls.students.length} élèves
@@ -4926,7 +4928,7 @@ Classe : ${cls.name} — ${SUBJECTS[cls.subject]?.label||cls.subject} — ${pLab
 ${checked.length?checked.map(i=>'• '+i).join('\n'):'• Classe correcte dans l\'ensemble'}
 
 RÈGLES :
-1. Texte continu et fluide, 350–650 caractères, jamais de liste.
+1. Texte continu et fluide, entre ${clsMin} et ${clsLimit} caractères MAXIMUM. CRITIQUE : ne jamais dépasser ${clsLimit} caractères — compte précisément.
 2. Parle de la classe comme d'un collectif : "la classe", "les élèves", "ce groupe", "cette classe". JAMAIS le nom de la classe (${cls.name}) ni la matière — c'est évident pour les lecteurs.
 3. Relie les idées avec des connecteurs logiques variés.
 4. Ton : ${toneDesc}.
@@ -5528,10 +5530,15 @@ function renderClassRevView(content){
   const cls=S.classes[S.active];
   const comment=(cls.classComments&&cls.classComments[S.period])||'';
   const pLabel=cls.periodType==='semestre'?`Semestre ${S.period}`:`Trimestre ${S.period}`;
+  const clsLimit=cls.classCharLimit||cls.charLimit||650;
   let html=`<div class="cr-panel">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:10px">
       <div><div style="font-family:'Lora',serif;font-size:1.25rem">${cls.name} — Appréciation de classe</div>
       <div style="font-family:'DM Mono',monospace;font-size:.58rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-top:3px">${pLabel} · ${cls.students.length} élèves</div></div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="font-size:.75rem;color:var(--muted)">Max caractères :</span>
+        <input type="number" min="200" max="1000" value="${clsLimit}" style="width:70px;padding:4px 8px;border:1px solid var(--border);border-radius:6px;font-family:'DM Mono',monospace;font-size:.78rem;background:var(--bg);text-align:center" onchange="S.classes[S.active].classCharLimit=Math.min(1000,parseInt(this.value)||650);save();document.getElementById('cr-cc').textContent=(document.getElementById('cr-ta').value.length)+'/${clsLimit === S.classes[S.active]?.classCharLimit ? clsLimit : "'+(S.classes[S.active].classCharLimit||650)+'"}'">
+      </div>
     </div>`;
   Object.entries(CLASS_BOXES).forEach(([,sec])=>{
     html+=`<div class="cr-card"><div class="cr-hd">${sec.label}</div><div class="pill-grid">`;
@@ -5546,7 +5553,7 @@ function renderClassRevView(content){
     <div class="cmt-hd">
       <span class="cmt-lbl" style="color:var(--blue)">Appréciation de classe — ${pLabel}</span>
       <div class="cmt-acts">
-        <span class="cchar ${comment.length>650?'over':comment.length>0?'ok':''}" id="cr-cc">${comment.length}/650</span>
+        <span class="cchar ${comment.length>clsLimit?'over':comment.length>0?'ok':''}" id="cr-cc">${comment.length}/${clsLimit}</span>
         <button class="act-btn" onclick="genClassRev()">↻ Générer</button>
         <button class="copy-btn" id="cr-cp" onclick="copyCR()">Copier</button>
       </div>
@@ -5563,7 +5570,7 @@ function togClsBox(itemId,el){
   el.classList.toggle('sel',cls.classBoxes[itemId]);
   save();
 }
-function onCRI(val){const cls=S.classes[S.active];if(!cls.classComments)cls.classComments={};cls.classComments[S.period]=val;save();const el=document.getElementById('cr-cc');if(el){el.textContent=`${val.length}/650`;el.className='cchar'+(val.length>650?' over':val.length>0?' ok':'');}}
+function onCRI(val){const cls=S.classes[S.active];if(!cls.classComments)cls.classComments={};cls.classComments[S.period]=val;save();const lim=cls.classCharLimit||cls.charLimit||650;const el=document.getElementById('cr-cc');if(el){el.textContent=`${val.length}/${lim}`;el.className='cchar'+(val.length>lim?' over':val.length>0?' ok':'');}}
 async function genClassRev(){
   const cls=S.classes[S.active]; const ta=document.getElementById('cr-ta'); if(!ta)return;
   ta.classList.add('gen'); ta.value='Rédaction en cours…';
