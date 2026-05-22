@@ -3832,6 +3832,20 @@ function goGenAllNow(){
 }
 
 // ── STUDENTS VIEW ─────────────────────────────────────────────────────────────
+function togEvo(sid,pillId){
+  const st=getSt(sid); if(!st.boxes)st.boxes={};
+  const evoPills=['pr30','pr31','pr32'];
+  const wasSelected=!!st.boxes[pillId];
+  // Deselect all evo pills first
+  evoPills.forEach(function(p){st.boxes[p]=false;});
+  // If wasn't selected, select it — if was selected, leave all off (unclick)
+  if(!wasSelected) st.boxes[pillId]=true;
+  st.boxTs=Date.now();
+  save();
+  const el=document.getElementById('evo-'+sid);
+  if(el) el.innerHTML=renderEvoPills(st,sid);
+}
+
 function renderEvoPills(st,id){
   const pills=[{id:'pr30',l:'↗ En hausse',v:'pos'},{id:'pr31',l:'→ Stable',v:'neutral'},{id:'pr32',l:'↘ En baisse',v:'neg'}];
   return pills.map(function(p){
@@ -3840,7 +3854,7 @@ function renderEvoPills(st,id){
     const bg=sel?(p.v==='pos'?'var(--green-l)':p.v==='neg'?'#fee2e2':'var(--amber-l)'):'var(--bg)';
     const bc=sel?(p.v==='pos'?'#bbf7d0':p.v==='neg'?'#fca5a5':'#fed7aa'):'var(--border)';
     const fw=sel?'700':'400';
-    return '<button onclick="togBox(\''+p.id+'\',\''+id+'\',this);document.getElementById(\'evo-'+id+'\').innerHTML=renderEvoPills(getSt(\''+id+'\'),\''+id+'\')" style="padding:5px 12px;border:1.5px solid '+bc+';border-radius:20px;background:'+bg+';color:'+(sel?col:'var(--muted)')+';font-size:.78rem;font-weight:'+fw+';cursor:pointer;transition:all .15s">'+p.l+'</button>';
+    return '<button onclick="togEvo(\''+id+'\',\''+p.id+'\')" style="padding:5px 12px;border:1.5px solid '+bc+';border-radius:20px;background:'+bg+';color:'+(sel?col:'var(--muted)')+';font-size:.78rem;font-weight:'+fw+';cursor:pointer;transition:all .15s">'+p.l+'</button>';
   }).join('');
 }
 
