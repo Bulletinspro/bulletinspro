@@ -4623,9 +4623,10 @@ function buildPrompt(st,cls,period,seed,memSamp){
   const thematicCount=usedGroups.size;
   const richProfile=thematicCount>=6;
   let evalCtx='';
-  if(cls.evalType==='note'&&st.grade) evalCtx=`Moyenne : ${st.grade}/20. `;
-  if((cls.evalType==='niveau'||cls.evalType==='mix')&&st.level) evalCtx+=`Niveau : ${st.level}. `;
-  if((cls.evalType==='competence'||cls.evalType==='mix')&&st.comps?.global){
+  const _grade=getStGrade(st); const _level=getStLevel(st); const _comps=getStComps(st);
+  if(cls.evalType==='note'&&_grade) evalCtx=`Moyenne : ${_grade}/20. `;
+  if((cls.evalType==='niveau'||cls.evalType==='mix')&&_level) evalCtx+=`Niveau : ${_level}. `;
+  if((cls.evalType==='competence'||cls.evalType==='mix')&&_comps?.global){
     const compLabels={'maitrise':'Maîtrisé','partiellement':'Partiellement maîtrisé','en_cours':'En cours','non_maitrise':'Non maîtrisé'};
     evalCtx+=`Compétences : ${compLabels[_comps.global]||_comps.global}. `;
   }
@@ -5027,8 +5028,22 @@ function incrementGenCount(n=1){
   return c;
 }
 
-function hasOwnerAccess(){ return localStorage.getItem(OWNER_KEY)==='true'; }
-function hasBetaAccess(){ return BETA_ACTIVE && localStorage.getItem(BETA_KEY)==='true'; }
+function hasOwnerAccess(){ 
+  if(localStorage.getItem(OWNER_KEY)==='true') return true;
+  // Restore from Drive if available
+  if(S&&S._ownerAccess){localStorage.setItem(OWNER_KEY,'true');return true;}
+  return false;
+}
+function hasBetaAccess(){ 
+  if(!BETA_ACTIVE && localStorage.getItem(BETA_KEY)==='true') return true;
+  // Restore from Drive if available
+  if(S&&S._betaCode){
+    localStorage.setItem(BETA_KEY,'true');
+    if(S._ownerAccess) localStorage.setItem(OWNER_KEY,'true');
+    return true;
+  }
+  return false;
+}
 function hasPaidAccess(){
   if(!BETA_ACTIVE && localStorage.getItem(BETA_KEY)==='true'){
     // Check expiry for paid codes
@@ -5143,11 +5158,13 @@ function activateBetaCode(){
   if(OWNER_CODES.includes(code)){
     localStorage.setItem(OWNER_KEY,'true');
     localStorage.setItem(BETA_KEY,'true');
+    S._ownerAccess=true; S._betaCode=code; save();
     document.getElementById('gen-limit-modal')?.classList.remove('open');
     toast('✅ Accès propriétaire activé — illimité !');
     updateGenCounter();
   } else if(BETA_CODES.includes(code)){
     localStorage.setItem(BETA_KEY,'true');
+    S._betaCode=code; save();
     document.getElementById('gen-limit-modal')?.classList.remove('open');
     toast('✅ Accès bêta activé !');
     updateGenCounter();
