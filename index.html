@@ -3545,6 +3545,8 @@ function updateLevelFromYear(prefix){
 
 const YEAR_TO_LEVEL={'6e':'college','5e':'college','4e':'college','3e':'college','2nde':'lycee','1ere':'lycee','tle':'lycee'};
 const YEAR_LABELS={'6e':'6e','5e':'5e','4e':'4e','3e':'3e','2nde':'2nde','1ere':'1ère','tle':'Terminale'};
+const NEXT_YEAR={'6e':'5e','5e':'4e','4e':'3e','3e':'2nde (ou lycée professionnel/CAP selon orientation)','2nde':'1ère','1ere':'Terminale','tle':null};
+const NEXT_YEAR_LABEL={'6e':'la 5e','5e':'la 4e','4e':'la 3e','3e':'le lycée','2nde':'la 1ère','1ere':'la Terminale','tle':null};
 
 function toggleLV(prefix){
   const sel=document.getElementById(prefix+'-subj');
@@ -4177,6 +4179,19 @@ function renderEditor(id){
       </div>
     </div>`;
 
+  // Redoublement toggle — only relevant for last period (T3 or S2)
+  const isLastPeriodForRedouble = (cls.periodType==='semestre' && S.period===2) || (cls.periodType!=='semestre' && S.period===3);
+  if(isLastPeriodForRedouble && NEXT_YEAR[cls.classYear]){
+    const redouble=!!(st.redoublement&&st.redoublement[S.period]);
+    html+=`
+    <div class="card" style="border-color:${redouble?'#fca5a5':'var(--border)'}">
+      <div class="card-hd" style="display:flex;justify-content:space-between;align-items:center;background:${redouble?'#fee2e2':'var(--bg)'};color:${redouble?'var(--red)':'var(--ink)'}">
+        <span>🔄 Redoublement envisagé</span>
+        <button class="tog-sw ${redouble?'on':''}" style="--sw-c:var(--red)" onclick="togRedouble('${id}',this)"></button>
+      </div>
+    </div>`;
+  }
+
   html+=`
     <div class="card">
       <div class="card-hd">Ton & Évaluation</div>
@@ -4425,6 +4440,13 @@ function getStOrient(st){
   if(st.orients&&st.orients[S.period]) return st.orients[S.period];
   return {on:false,level:1,path:'',note:''};
 }
+function togRedouble(id,btn){
+  const st=getSt(id); if(!st)return;
+  if(!st.redoublement)st.redoublement={};
+  st.redoublement[S.period]=!st.redoublement[S.period];
+  save(); renderStudentList();
+}
+
 function togOrient(id,btn){
   const st=getSt(id);
   if(!st.orients) st.orients={};
@@ -4584,6 +4606,11 @@ function buildPrompt(st,cls,period,seed,memSamp){
   }[cls.subject]||'';
 
   const pLabel=cls.periodType==='semestre'?`semestre ${period}`:`trimestre ${period}`;
+  const isRedouble = !!(st.redoublement && st.redoublement[period]);
+  const nextYearLabel = NEXT_YEAR_LABEL[cls.classYear];
+  const nextYearInfo = isRedouble
+    ? `\nREDOUBLEMENT ENVISAGÉ : la conclusion ne doit PAS évoquer "${nextYearLabel}" ni une progression de niveau — rester sur "l'année prochaine" de façon neutre, sans préciser la classe, ou évoquer un nouveau départ ("repartir sur de meilleures bases l'année prochaine").`
+    : (nextYearLabel ? `\nNIVEAU SUIVANT : ${nextYearLabel}. Un professeur ne précise PAS systématiquement la classe suivante dans chaque conclusion — "l'année prochaine" générique suffit dans la majorité des cas. Réserver "${nextYearLabel}" UNIQUEMENT pour : (a) un profil nécessitant un vrai changement de dynamique (ex: "Le respect des règles sera essentiel pour bien aborder ${nextYearLabel}.") où nommer le niveau suivant donne du poids/de l'urgence, ou (b) un profil très positif où l'élève est clairement prêt(e) ("Elle est prête pour ${nextYearLabel}."). Pour un profil moyen/intermédiaire, "l'année prochaine" sans préciser le niveau reste préférable.` : '');
   const periodCtx=(cls.periodType==='semestre'?{
     1:"Premier semestre — premier bilan. Pas de référence au passé. Ton : mise en route, potentiel.",
     2:"Second et dernier semestre. La dernière phrase conclut l'année et dit si l'élève est prêt(e) pour l'année suivante. Cette phrase remplace la conclusion habituelle, elle ne s'y ajoute pas.",
@@ -4872,7 +4899,7 @@ Génère uniquement l'appréciation, sans guillemets.`;
   }
 
   return `Tu es un professeur français rédigeant une appréciation de bulletin scolaire.
-Niveau : ${schoolLevelCtx} | ${pLabel} — ${periodCtx}${langLevelCtx}${langNameCtx}${examCtx}${frenchLevelCtx}${histoLevelCtx}${mathsLevelCtx}${scienceLevelCtx}${philoCtx}${sesCtx}${frenchQualityCtx}
+Niveau : ${schoolLevelCtx} | ${pLabel} — ${periodCtx}${nextYearInfo}${langLevelCtx}${langNameCtx}${examCtx}${frenchLevelCtx}${histoLevelCtx}${mathsLevelCtx}${scienceLevelCtx}${philoCtx}${sesCtx}${frenchQualityCtx}
 
 ÉLÈVE : ${gender}. Articles : "${citetEleve}" / "${unEleve}". Accords au ${accord} PARTOUT.
 NE PAS mentionner la matière dans l'appréciation — le professeur et l'élève savent dans quel cours ils sont.
@@ -4916,7 +4943,9 @@ RÈGLES DE SYNTHÈSE — OBLIGATOIRES :
 6. Ton : ${toneDesc}. Félicitations seulement si excellent/très bon verdict. JAMAIS "félicitations du conseil de classe" (cf. règle 8h pour la formulation exacte).
 7. "son travail est régulier" pas "elle est régulière dans son travail". "elle maîtrise l'expression orale" pas "elle exprime une bonne maîtrise". "Cette élève" pas "Ceste élève". JAMAIS "satisfaisant" plus d'une fois.
 8. FUSION : 3 observations similaires (discret + participe peu + évite de prendre la parole) = UNE seule phrase courte et bienveillante. Ne pas les répéter en conclusion si déjà mentionnées.
-8b. CLICHÉS INTERDITS — ne jamais écrire : "ambiance de classe", "bonne ambiance en classe", "atmosphère de classe" sauf si explicitement coché. Ne pas inventer de contexte sur la classe. INTERDIT aussi : "Il est désormais essentiel que", "Il est impératif que", "Il est indispensable que", "Il est nécessaire de/que", "Il est important de/que", "impérativement", "doit impérativement", "dès le prochain ${per}", "pour le prochain ${per}" — trop impersonnel et lourd. Préférer : "Il devra", "Il lui faudra", "Un effort s'impose", "La priorité est de", ou reformuler directement : "Revoir les bases permettra de progresser". ÉGALEMENT INTERDITS en fin de phrase ou d'appréciation : "qu'il faut saluer", "à souligner", "à noter avec satisfaction", "ce qui est à saluer", "ce qui mérite d'être souligné", "qui mérite d'être salué(e)", "que l'on peut saluer" — trop ampoulés. Préférer une formulation directe : "C'est encourageant.", "C'est positif.", ou simplement énoncer le fait. INTERDIT ÉGALEMENT : "rendent son travail agréable à suivre", "rend le travail agréable à suivre" — collocation étrange, "agréable à suivre" ne s'applique pas au "travail" d'un élève. Pour exprimer qu'un élève est agréable grâce à sa bonne volonté/attitude, dire plutôt : "ce qui en fait un élève agréable à avoir en cours", "sa présence en cours est appréciable", ou simplement énoncer la qualité sans cette tournure ("fait preuve d'une bonne volonté sincère et d'une attitude respectueuse").
+8b. CLICHÉS INTERDITS — ne jamais écrire : "ambiance de classe", "bonne ambiance en classe", "atmosphère de classe" sauf si explicitement coché. Ne pas inventer de contexte sur la classe. INTERDIT EN MILIEU DE TEXTE COMME CONNECTEUR VAGUE, sous toute conjugaison : "Il est/va être/sera désormais essentiel que/de [...]", "Il est/va être impératif que/de", "Il est/va être indispensable que/de", "Il est/va être nécessaire de/que", "Il est/va être important de/que", "impérativement", "doit impérativement", "dès le prochain ${per}", "pour le prochain ${per}" — trop impersonnel et lourd comme TRANSITION générique entre deux idées. Préférer : "Il devra", "Il lui faudra", "Un effort s'impose", "La priorité est de".
+EXCEPTION — CONCLUSION FERME AVEC POINT PRÉCIS : "Il sera essentiel de [action SPÉCIFIQUE nommée]" RESTE AUTORISÉ comme PHRASE DE CONCLUSION FINALE (pas en milieu de texte), notamment avec un ton "ferme" et un conseil rouge — ex: "Le respect des règles sera essentiel pour bien aborder la 3e." La différence : INTERDIT = connecteur vague mi-texte ("Il est désormais essentiel que [transition]..."), AUTORISÉ = conclusion finale précise nommant le point exact à travailler.
+ÉGALEMENT INTERDITS en fin de phrase ou d'appréciation : "qu'il faut saluer", "à souligner", "à noter avec satisfaction", "ce qui est à saluer", "ce qui mérite d'être souligné", "qui mérite d'être salué(e)", "que l'on peut saluer" — trop ampoulés. Préférer une formulation directe : "C'est encourageant.", "C'est positif.", ou simplement énoncer le fait. INTERDIT ÉGALEMENT : "rendent son travail agréable à suivre", "rend le travail agréable à suivre" — collocation étrange, "agréable à suivre" ne s'applique pas au "travail" d'un élève. Pour exprimer qu'un élève est agréable grâce à sa bonne volonté/attitude, dire plutôt : "ce qui en fait un élève agréable à avoir en cours", "sa présence en cours est appréciable", ou simplement énoncer la qualité sans cette tournure ("fait preuve d'une bonne volonté sincère et d'une attitude respectueuse").
 8c. FAUTES ET NÉOLOGISMES INTERDITS — n'utilise que des mots français correctement orthographiés. INTERDIT : "davantée" (n'existe pas — utiliser "davantage"), "investissement" à la place de "implication", tout mot inventé. En cas de doute sur un mot, choisis une formulation plus simple.
 8v. ÉLISION CORRECTE — "que"/"de" + consonne = pas d'élision. "que Mathis", "que Marie", "que Léa", "de Lilou", "de Marie", "de Théo". L'élision ("qu'", "d'") n'existe QUE devant une voyelle ou un h muet : "qu'il", "qu'elle", "qu'un", "d'Inès", "d'Hugo". JAMAIS "qu'Mathis", "qu'Léa", "d'Lilou", "d'Marie", "d'Théo" — ce sont des fautes graves.
 8j. VARIATION PRONOM/PRÉNOM/"CETTE ÉLÈVE" — après avoir utilisé le prénom une fois, privilégier le pronom (${citetEleve==='cette élève'?'elle':'il'}) pour la suite plutôt que de répéter "${citetEleve}". N'utiliser "${citetEleve}" qu'en début d'appréciation ou après une rupture de sujet (nouveau paragraphe d'idée). Ne jamais répéter "${citetEleve}" deux fois si le pronom suffit et que le sujet est clair.
@@ -4943,7 +4972,7 @@ RÈGLES DE SYNTHÈSE — OBLIGATOIRES :
 8p. COHÉRENCE BILAN/CONTENU SUR LES VERDICTS MITIGÉS — si le bilan choisi est "en demi-teinte", "satisfaisant", "encourageant" (un verdict ÉQUILIBRÉ, ni très positif ni très négatif), le CORPS du texte doit refléter un VRAI équilibre : au moins une observation positive doit être mise en valeur autant que les points à travailler, pas juste mentionnée en une sub-clause puis noyée sous 4-5 points négatifs qui s'enchaînent. Si le profil coché est presque entièrement négatif, ne pas forcer un verdict "demi-teinte" à sonner équilibré — mais si l'enseignant CHOISIT "demi-teinte", respecter cet équilibre en donnant autant de poids (longueur, position) aux points positifs qu'aux points à améliorer.
 ${checkedConseilsActionable.length ? `
 ⛔ VÉRIFICATION FINALE AVANT DE RÉPONDRE — CONSEILS À TRAITER : ${checkedConseilsActionable.join(', ')}.
-${checkedConseilsRed.length ? `🔥 CONSEILS ROUGES (URGENTS) : ${checkedConseilsRed.join(', ')}. Ces points sont des PROBLÈMES SÉRIEUX, pas de simples axes de progrès. Ils doivent : (1) être nommés comme PROBLÈME dans le CORPS du texte (déjà fait normalement, cf. checkedNeg), ET (2) être REPRIS dans la conclusion de façon DIRECTE et SANS ATTÉNUATION, surtout si le ton est "ferme" — ex: "Le respect des règles de la classe doit devenir une priorité absolue l'année prochaine." Ne pas les diluer dans une formulation générique mélangeant tout ("approfondir et être plus respectueux") — le point rouge mérite sa propre mention ferme, distincte des conseils jaunes.` : ''}
+${checkedConseilsRed.length ? `🔥 CONSEILS ROUGES (URGENTS) : ${checkedConseilsRed.join(', ')}. Ces points sont des PROBLÈMES SÉRIEUX, pas de simples axes de progrès. Ils doivent : (1) être nommés comme PROBLÈME dans le CORPS du texte (déjà fait normalement, cf. checkedNeg), ET (2) être REPRIS dans la conclusion de façon DIRECTE et SANS ATTÉNUATION, surtout si le ton est "ferme" — ex: "Le respect des règles de la classe doit devenir une priorité absolue l'année prochaine." ou "Le respect des règles sera essentiel pour bien aborder ${nextYearLabel||"l'année prochaine"}." Ne pas les diluer dans une formulation générique mélangeant tout ("approfondir et être plus respectueux") — le point rouge mérite sa propre mention ferme, distincte des conseils jaunes.` : ''}
 Ta DERNIÈRE phrase doit être tournée vers l'avenir et adresser ces conseils. DEUX façons d'y arriver :
 A) REFORMULER ta dernière phrase prévue : si elle porte déjà sur un thème lié à un conseil JAUNE/NEUTRE coché (ex: "il se contente du minimum sans approfondir" ↔ conseil "approfondir"), CHANGE SON ORIENTATION du constat (présent) vers la priorité (futur) : "Il devra approfondir son travail pour progresser l'année prochaine." — c'est la MÊME information, juste tournée vers l'avenir.
 B) Si un conseil ROUGE est coché (cf. ci-dessus), AJOUTER une phrase de conclusion ferme et distincte spécifiquement pour ce point, en plus de la reformulation éventuelle pour les conseils jaunes.
