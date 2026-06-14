@@ -4541,7 +4541,7 @@ function buildPromptMeta(st,cls){
 
 function buildPrompt(st,cls,period,seed,memSamp){
   const allBoxes=getSubjectBoxes(cls.subject, cls.langLevel, cls.classYear);
-  const checkedPos=[], checkedNeg=[], checkedNeutral=[], checkedConseils=[], checkedConseilsRed=[];
+  const checkedPos=[], checkedNeg=[], checkedNeutral=[], checkedConseils=[], checkedConseilsRed=[], checkedConseilsActionable=[];
   const allNegLabels=[];
   // Collect from subject-specific boxes
   Object.values(allBoxes).forEach(sec=>sec.items.forEach(item=>{
@@ -4560,6 +4560,7 @@ function buildPrompt(st,cls,period,seed,memSamp){
         // ALL conseils go to checkedConseils — they are advice, not observations
         checkedConseils.push(item.l);
         if(item.v==='neg') checkedConseilsRed.push(item.l);
+        if(item.v!=='pos') checkedConseilsActionable.push(item.l); // neutral+red = need conclusion treatment
       } else if(item.v==='neg'&&!checkedNeg.includes(item.l)) checkedNeg.push(item.l);
       else if(item.v==='neutral'&&!checkedNeutral.includes(item.l)) checkedNeutral.push(item.l);
       else if(item.v==='pos'&&!checkedPos.includes(item.l)) checkedPos.push(item.l);
@@ -4715,7 +4716,7 @@ function buildPrompt(st,cls,period,seed,memSamp){
 - Profil en grande difficulté, régression importante → "${Per} insuffisant." ou "${Per} inquiétant."
 ATTENTION : si le niveau est "fragile" ou "insuffisant", ou si une régression est notée, NE PAS choisir "Bon ${per}" ou mieux. Le bilan doit refléter honnêtement la réalité.`;
 
-  const conclusionReminder = checkedConseils.length ? '\n🔴🔴🔴 RAPPEL CRITIQUE — CONCLUSION OBLIGATOIRE 🔴🔴🔴\nDes conseils ont été cochés (liste complète plus bas). L\'appréciation DOIT SE TERMINER sur une phrase tournée vers l\'avenir qui adresse ces conseils.' + (checkedConseilsRed.length ? ' ⚠️ Au moins un conseil ROUGE/URGENT est coché (' + checkedConseilsRed.join(', ') + ') — il doit être traité FERMEMENT en conclusion, distinctement des conseils jaunes.' : ' Astuce : si ta dernière phrase prévue porte déjà sur un thème lié (ex: travail superficiel ↔ conseil "approfondir"), REFORMULE-LA au futur/impératif plutôt que d\'en ajouter une nouvelle.') + ' Ne JAMAIS terminer sur un simple constat du présent/passé (ex: "...manque de maturité évident.").' : '';
+  const conclusionReminder = checkedConseilsActionable.length ? '\n🔴🔴🔴 RAPPEL CRITIQUE — CONCLUSION OBLIGATOIRE 🔴🔴🔴\nDes conseils ont été cochés (liste complète plus bas). L\'appréciation DOIT SE TERMINER sur une phrase tournée vers l\'avenir qui adresse ces conseils.' + (checkedConseilsRed.length ? ' ⚠️ Au moins un conseil ROUGE/URGENT est coché (' + checkedConseilsRed.join(', ') + ') — il doit être traité FERMEMENT en conclusion, distinctement des conseils jaunes.' : ' Astuce : si ta dernière phrase prévue porte déjà sur un thème lié (ex: travail superficiel ↔ conseil "approfondir"), REFORMULE-LA au futur/impératif plutôt que d\'en ajouter une nouvelle.') + ' Ne JAMAIS terminer sur un simple constat du présent/passé (ex: "...manque de maturité évident.").' : (checkedConseils.length ? '\n💚 Conseils positifs cochés (Félicitations/Encouragements/Continuer ainsi...) — cf. règle 8h pour la formulation de conclusion.' : '');
 
   // Extract first name — handles formats: "Victoire", "BUISSON Victoire", "Victoire BUISSON"
   let studentName = null;
@@ -4940,13 +4941,16 @@ RÈGLES DE SYNTHÈSE — OBLIGATOIRES :
 8n. CONNECTEURS PRÉCIS — ne jamais utiliser de connecteurs vagues comme "La même chose est remarqué(e) avec...", "Il en va de même pour...", "On note la même chose concernant..." — toujours nommer directement le sujet : "Son comportement reste également fluctuant : il/elle...". Vérifier l'accord du participe avec le sujet réel (une "chose" est féminin → "remarquée", jamais "remarqué").
 8o. PONCTUATION OBLIGATOIRE — chaque phrase se termine par un point avant la suivante. JAMAIS deux propositions complètes collées sans ponctuation : "...l'année prochaine il en a les capacités" est une erreur — il faut "...l'année prochaine. Il en a les capacités." ou "..., et il en a les capacités."
 8p. COHÉRENCE BILAN/CONTENU SUR LES VERDICTS MITIGÉS — si le bilan choisi est "en demi-teinte", "satisfaisant", "encourageant" (un verdict ÉQUILIBRÉ, ni très positif ni très négatif), le CORPS du texte doit refléter un VRAI équilibre : au moins une observation positive doit être mise en valeur autant que les points à travailler, pas juste mentionnée en une sub-clause puis noyée sous 4-5 points négatifs qui s'enchaînent. Si le profil coché est presque entièrement négatif, ne pas forcer un verdict "demi-teinte" à sonner équilibré — mais si l'enseignant CHOISIT "demi-teinte", respecter cet équilibre en donnant autant de poids (longueur, position) aux points positifs qu'aux points à améliorer.
-${checkedConseils.length ? `
-⛔ VÉRIFICATION FINALE AVANT DE RÉPONDRE — CONSEILS COCHÉS : ${checkedConseils.join(', ')}.
+${checkedConseilsActionable.length ? `
+⛔ VÉRIFICATION FINALE AVANT DE RÉPONDRE — CONSEILS À TRAITER : ${checkedConseilsActionable.join(', ')}.
 ${checkedConseilsRed.length ? `🔥 CONSEILS ROUGES (URGENTS) : ${checkedConseilsRed.join(', ')}. Ces points sont des PROBLÈMES SÉRIEUX, pas de simples axes de progrès. Ils doivent : (1) être nommés comme PROBLÈME dans le CORPS du texte (déjà fait normalement, cf. checkedNeg), ET (2) être REPRIS dans la conclusion de façon DIRECTE et SANS ATTÉNUATION, surtout si le ton est "ferme" — ex: "Le respect des règles de la classe doit devenir une priorité absolue l'année prochaine." Ne pas les diluer dans une formulation générique mélangeant tout ("approfondir et être plus respectueux") — le point rouge mérite sa propre mention ferme, distincte des conseils jaunes.` : ''}
 Ta DERNIÈRE phrase doit être tournée vers l'avenir et adresser ces conseils. DEUX façons d'y arriver :
 A) REFORMULER ta dernière phrase prévue : si elle porte déjà sur un thème lié à un conseil JAUNE/NEUTRE coché (ex: "il se contente du minimum sans approfondir" ↔ conseil "approfondir"), CHANGE SON ORIENTATION du constat (présent) vers la priorité (futur) : "Il devra approfondir son travail pour progresser l'année prochaine." — c'est la MÊME information, juste tournée vers l'avenir.
 B) Si un conseil ROUGE est coché (cf. ci-dessus), AJOUTER une phrase de conclusion ferme et distincte spécifiquement pour ce point, en plus de la reformulation éventuelle pour les conseils jaunes.
-Le texte final doit se terminer sur une note tournée vers l'avenir — JAMAIS sur un simple constat ("...nécessitant des rappels constants.", "...manque de maturité évident."). C'est NON-NÉGOCIABLE.` : ''}
+Le texte final doit se terminer sur une note tournée vers l'avenir — JAMAIS sur un simple constat ("...nécessitant des rappels constants.", "...manque de maturité évident."). C'est NON-NÉGOCIABLE.
+${checkedConseils.length>checkedConseilsActionable.length ? `(Des conseils POSITIFS sont aussi cochés — cf. règle 8h pour leur formulation, à combiner naturellement avec ce qui précède.)` : ''}` : (checkedConseils.length ? `
+✅ Conseils positifs cochés (${checkedConseils.join(', ')}) — la conclusion suit la règle 8h (Félicitations/Encouragements). Le comportement déjà en place pour les profils positifs reste inchangé.` : `
+⛔ VÉRIFICATION FINALE — AUCUN CONSEIL COCHÉ : ta DERNIÈRE phrase est-elle quand même une conclusion (cap pour la suite, encouragement, ou constat global type "Il en a les capacités.") plutôt qu'une simple observation supplémentaire ? Le profil global (verdict + ${checkedPos.length} point(s) positif(s), ${checkedNeg.length} point(s) à travailler) doit se refléter dans une conclusion brève et cohérente — cf. règle 8r. Même sans pill spécifique, une conclusion COURTE est obligatoire.`)}
 9. Répondre UNIQUEMENT avec l'appréciation, sans guillemets ni commentaire.`;}
 
 function buildClassPrompt(cls,period){
