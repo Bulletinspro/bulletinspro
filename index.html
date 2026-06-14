@@ -5429,38 +5429,71 @@ function hasHallucination(txt, checkedNeg, checkedPos, verdictId){
 }
 
 // ── FILET DE SÉCURITÉ — CONCLUSION (2e appel API ciblé) ────────────────────
-function buildConclusionFixPrompt(txt, st, cls, period, checkedConseilsActionable, checkedConseilsRed){
+function buildConclusionFixPrompt(txt, st, cls, period, checkedConseilsActionable, checkedConseilsRed, checkedNeg, checkedPos){
   const tone=getStTone(st)||cls.tone||'equilibre';
-  const toneLabel={ferme:'ferme et direct',equilibre:'équilibré',encourageant:'positif et encourageant'}[tone];
   const isRedouble = !!(st.redoublement && st.redoublement[period]);
   const nextYearLabel = NEXT_YEAR_LABEL[cls.classYear];
   const yearMention = isRedouble ? "l'année prochaine" : (nextYearLabel || "l'année prochaine");
   const limit=Math.min(1000,cls.charLimit||750);
-  const redPart = checkedConseilsRed.length ? checkedConseilsRed[0].split('—')[0].trim() : null;
 
-  return `Voici une appréciation scolaire rédigée pour un élève. Ta tâche est UNIQUEMENT de vérifier/corriger sa CONCLUSION — ne touche pas au reste sauf si nécessaire pour faire de la place.
+  // Tous les conseils ROUGES (sans hiérarchie entre eux)
+  const redLower = checkedConseilsRed.map(c=>c.split('—')[0].trim()).map(r=>r.charAt(0).toLowerCase()+r.slice(1));
+
+  // Conseils jaunes/neutres — gardés tels quels (des nuances différentes, ex: "approfondir davantage"
+  // vs "ne pas se contenter du minimum" sont DEUX idées distinctes, pas des doublons à fusionner).
+  const yellowActions = checkedConseilsActionable
+    .filter(c=>!checkedConseilsRed.includes(c))
+    .map(c => c.split('—')[0].trim())
+    .map(c => c.charAt(0).toLowerCase()+c.slice(1));
+
+  // Si comportement est un problème majeur (≥2 pills négatifs liés) ET qu'aucun conseil ne couvre
+  // concentration/respect, on peut l'ajouter implicitement — le profil global le justifie.
+  const comportementHeavy = checkedNeg.filter(c=>{
+    const low=c.toLowerCase();
+    return low.includes('bavard')||low.includes('perturb')||low.includes('dissip')||low.includes('maturité')||low.includes('attitude');
+  }).length>=2;
+  const hasConcentrationOrRespect = [...checkedConseilsRed,...checkedConseilsActionable].some(c=>{
+    const low=c.toLowerCase(); return low.includes('concentr')||low.includes('respect')||low.includes('règle');
+  });
+  if(comportementHeavy && !hasConcentrationOrRespect && redLower.length+yellowActions.length<2){
+    yellowActions.unshift('gagner en concentration et adopter une attitude plus posée');
+  }
+
+  let targetSentence;
+  const redPart = redLower.length ? redLower.join(' et ') : null;
+  if(redPart && yellowActions.length){
+    targetSentence = `${redPart.charAt(0).toUpperCase()+redPart.slice(1)} et ${yellowActions[0]} devront être des priorités pour bien aborder ${yearMention}.`;
+  } else if(redPart){
+    targetSentence = `${redPart.charAt(0).toUpperCase()+redPart.slice(1)} sera${redLower.length>1?'ont':''} essentiel${redLower.length>1?'s':''} pour bien aborder ${yearMention}.`;
+  } else if(yellowActions.length){
+    targetSentence = `Il faudra ${yellowActions[0]}${yellowActions[1]?` et ${yellowActions[1]}`:''} pour bien aborder ${yearMention}.`;
+  } else {
+    targetSentence = `Une implication accrue sera nécessaire pour bien aborder ${yearMention}.`;
+  }
+  if(isRedouble) targetSentence = targetSentence.replace(new RegExp(yearMention.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'g'), "l'année prochaine");
+
+  // Fermeté de la conclusion proportionnelle à la négativité globale du profil — pas seulement
+  // au nombre de conseils. Un profil qui penche négatif (checkedNeg >= checkedPos) ou avec au
+  // moins un conseil rouge justifie une conclusion FERME même si le ton général est plus doux.
+  const negativeLean = checkedNeg.length >= checkedPos.length || checkedConseilsRed.length>0;
+  const toneNote = negativeLean
+    ? `Le profil global de cet élève penche vers le négatif (${checkedNeg.length} point(s) à travailler vs ${checkedPos.length} point(s) positif(s)${checkedConseilsRed.length?', dont '+checkedConseilsRed.length+' point(s) rouge(s)/urgent(s)':''}). MÊME SI le ton général choisi pour l'appréciation est "${tone}", cette PHRASE DE CONCLUSION doit sonner FERME et DIRECTE — l'urgence de la situation prime sur le ton général pour cette dernière phrase.`
+    : `Le ton général de l'appréciation est "${tone}" — adapte la fermeté de la conclusion à ce ton (reste cohérent avec le reste du texte).`;
+
+  const sentences=txt.split(/(?<=[.!?])\s+/).filter(s=>s.trim());
+  const currentLast=sentences[sentences.length-1]||'';
+
+  return `Voici une appréciation scolaire. INSTRUCTION DIRECTE — pas de jugement à faire, exécute simplement :
 
 APPRÉCIATION ACTUELLE :
 "${txt}"
 
-CONSEILS À TRAITER EN CONCLUSION : ${checkedConseilsActionable.join(', ')}.
-${redPart ? `Dont un point ROUGE/URGENT : "${redPart}" — à traiter fermement.` : ''}
-TON SOUHAITÉ : ${toneLabel}.
-NIVEAU SUIVANT : ${isRedouble ? 'redoublement envisagé — NE PAS mentionner de classe suivante, rester neutre ("l\'année prochaine")' : yearMention}.
-LIMITE : ${limit} caractères au total.
+Remplace la DERNIÈRE phrase ("${currentLast}") par une conclusion basée sur ceci : "${targetSentence}"
+${toneNote}
+Tu peux légèrement adapter cette phrase (pronom/prénom déjà utilisé dans le texte, accord ${st.gender==='F'?'féminin':'masculin'}, fluidité avec ce qui précède, reformulation plus naturelle du sujet si besoin — ex: "le respect des règles" au lieu de "respect à adopter en urgence") mais GARDE son sens et son orientation vers l'avenir — ne reviens PAS à un simple constat du présent.
+Si le total dépasse ${limit} caractères, raccourcis légèrement une autre phrase du corps (sans changer son sens) pour compenser.
 
-VÉRIFICATION (les DEUX conditions doivent être vraies pour répondre "OUI") :
-1. La DERNIÈRE phrase est-elle tournée vers l'avenir (verbes au futur/conditionnel : "il faudra", "devra", "sera essentiel", "permettra", etc.) plutôt qu'un constat du présent/passé ?
-${redPart ? `2. Le point ROUGE/URGENT "${redPart}" est-il explicitement évoqué (même reformulé) QUELQUE PART dans le texte — corps OU conclusion ?` : '2. (pas de point rouge à vérifier ici)'}
-
-→ SI LES DEUX SONT VRAIES : renvoie le texte EXACTEMENT TEL QUEL, sans aucune modification.
-→ SINON : AJOUTE ou REMPLACE la dernière phrase par UNE conclusion qui adresse 1-2 des conseils ci-dessus${redPart ? ` — en PRIORITÉ le point rouge "${redPart}" s'il n'est pas encore mentionné` : ''}, tournée vers l'avenir. Exemples de formulations possibles (adapte, ne copie pas mot pour mot) :
-  • "Il faudra [action] et [action] pour bien aborder ${yearMention}."
-  • "Il/elle devra [action] pour aborder ${yearMention} avec de meilleures bases${checkedConseilsActionable.length && tone==='encourageant' ? ', il/elle en a les capacités.' : '.'}"
-  ${redPart ? `• "${redPart.charAt(0).toUpperCase()+redPart.slice(1)} sera essentiel pour bien aborder ${yearMention}."` : ''}
-Si l'ajout dépasserait la limite de caractères, RACCOURCIS légèrement une phrase existante du corps (en gardant son sens) pour faire de la place — ne sacrifie jamais la conclusion.
-
-Réponds UNIQUEMENT avec le texte final complet de l'appréciation (corps + conclusion), sans guillemets ni commentaire ni explication.`;
+Réponds UNIQUEMENT avec le texte COMPLET corrigé (corps + nouvelle conclusion), sans guillemets ni commentaire ni explication.`;
 }
 
 async function genOne(sid){
@@ -5496,14 +5529,16 @@ async function genOne(sid){
       // Vérif supplémentaire : un conseil ROUGE est-il évoqué QUELQUE PART dans le texte (corps ou conclusion) ?
       // Si non, forcer le 2e appel même si la dernière phrase semble déjà conclusive.
       if(hasFutureConclusion && checkedConseilsRed.length){
-        const redKeyword=checkedConseilsRed[0].split('—')[0].trim().split(/\s+/)[0].toLowerCase(); // 1er mot significatif, ex: "respect"
-        const redMentioned=finalTxt.toLowerCase().includes(redKeyword);
-        if(!redMentioned) hasFutureConclusion=false;
+        const allRedMentioned=checkedConseilsRed.every(r=>{
+          const kw=r.split('—')[0].trim().split(/\s+/)[0].toLowerCase();
+          return finalTxt.toLowerCase().includes(kw);
+        });
+        if(!allRedMentioned) hasFutureConclusion=false;
       }
       if(!hasFutureConclusion){
         try{
           ta.classList.add('gen'); ta.value='Finalisation de la conclusion…';
-          const fixPrompt=buildConclusionFixPrompt(finalTxt,st,cls,S.period,checkedConseilsActionable,checkedConseilsRed);
+          const fixPrompt=buildConclusionFixPrompt(finalTxt,st,cls,S.period,checkedConseilsActionable,checkedConseilsRed,checkedNeg,checkedPos);
           const fixed=fitToLimit((await callClaude(fixPrompt)).replace(/\n+/g,' ').trim(), cls.charLimit||750);
           if(fixed && fixed.length>50) finalTxt=fixed;
           ta.classList.remove('gen');
