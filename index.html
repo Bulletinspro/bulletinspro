@@ -4569,7 +4569,7 @@ function buildPrompt(st,cls,period,seed,memSamp){
 
   const tone=getStTone(st)||cls.tone||'equilibre';
   const toneDesc={
-    ferme:'ferme et direct(e) — les manquements sont nommés clairement, sans détour, mais dans un registre professionnel',
+    ferme:'ferme et direct(e) — les manquements sont nommés SANS ATTÉNUATION ni euphémisme. Éviter les formulations adoucies comme "demeurent satisfaisants sans refléter le potentiel" ; préférer un constat direct : "Les résultats ne sont pas à la hauteur de ses capacités." Le ton reste professionnel mais sans minimiser. Les points faibles sont énoncés comme des faits, pas suggérés.',
     equilibre:'équilibré(e) — les points positifs et les axes de progrès sont évoqués avec nuance',
     encourageant:'positif(ve) et encourageant(e) — valorise les efforts, souligne le potentiel, termine sur une note d\'espoir',
   }[tone];
@@ -4712,6 +4712,8 @@ function buildPrompt(st,cls,period,seed,memSamp){
 - Profil fragile, difficultés réelles, régression légère → "${Per} fragile." ou "${Per} décevant."
 - Profil en grande difficulté, régression importante → "${Per} insuffisant." ou "${Per} inquiétant."
 ATTENTION : si le niveau est "fragile" ou "insuffisant", ou si une régression est notée, NE PAS choisir "Bon ${per}" ou mieux. Le bilan doit refléter honnêtement la réalité.`;
+
+  const conclusionReminder = checkedConseils.length ? '\n🔴🔴🔴 RAPPEL CRITIQUE — CONCLUSION OBLIGATOIRE 🔴🔴🔴\nDes conseils ont été cochés (liste complète plus bas). L\'appréciation DOIT SE TERMINER par une phrase de conclusion distincte, tournée vers l\'avenir, qui adresse ces conseils. SANS CETTE PHRASE FINALE, LA RÉPONSE EST INCOMPLÈTE ET INVALIDE. Ne JAMAIS terminer sur la dernière observation du corps du texte (ex: "...manque de maturité évident.") sans cette phrase de conclusion après.' : '';
 
   // Extract first name — handles formats: "Victoire", "BUISSON Victoire", "Victoire BUISSON"
   let studentName = null;
@@ -4873,6 +4875,7 @@ Niveau : ${schoolLevelCtx} | ${pLabel} — ${periodCtx}${langLevelCtx}${langName
 NE PAS mentionner la matière dans l'appréciation — le professeur et l'élève savent dans quel cours ils sont.
 ${studentRef}${evalCtx?'\n'+evalCtx:''}
 ${verdictCtx}
+${conclusionReminder}
 
 PROFIL COMPLET (exhaustif — rien d'autre n'existe sur cet élève) :
 ${checked.length ? checked.map(i => '• ' + i).join('\n') : '• Profil standard'}
