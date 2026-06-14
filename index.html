@@ -4141,6 +4141,9 @@ function renderEditor(id){
     {id:'ae10',l:'Dépendant(e) de l\'accompagnement — autonomie à développer',v:'neutral'},
     {id:'ae11',l:'Les progrès restent limités même avec accompagnement',v:'neg'},
     {id:'ae12',l:'Difficultés importantes sans l\'AESH',v:'neg'},
+    {id:'ae13',l:'Résultats aux évaluations en grande partie soutenus par l\'AESH',v:'neutral'},
+    {id:'ae14',l:'Très passif(ve) en l\'absence d\'accompagnement',v:'neg'},
+    {id:'ae15',l:'Travail personnel à la maison très limité ou absent',v:'neg'},
   ];
   html+=`
     <div class="orient-card" style="border-color:var(--teal-b)">
@@ -4585,7 +4588,7 @@ function buildPrompt(st,cls,period,seed,memSamp){
   }:{
     1:"Premier trimestre — premier bilan. Pas de référence au passé. Ton : mise en route, potentiel.",
     2:"Deuxième trimestre — mi-parcours. Ton : évolution depuis le début d'année, cap pour la fin. Ne pas ajouter de contenu supplémentaire, juste nuancer le ton en ce sens.",
-    3:"Troisième trimestre — fin d'année. La dernière phrase conclut l'année et dit si l'élève est prêt(e) pour l'année prochaine. INTERDIT : \"au trimestre suivant\", \"prochain trimestre\", \"trimestre à venir\", \"classe supérieure\". Utilise \"l'année prochaine\" ou \"en seconde\" / \"au lycée\" si le niveau le justifie. Cette phrase remplace la conclusion habituelle, elle ne s'y ajoute pas.",
+    3:"Troisième trimestre — fin d'année. La dernière phrase conclut l'année. INTERDIT : formulations génériques/robotiques type \"des efforts sont attendus pour le prochain trimestre\", \"au trimestre suivant\", \"prochain trimestre\", \"trimestre à venir\", \"classe supérieure\". En revanche, une conclusion PERSONNELLE et chaleureuse évoquant l'année prochaine EST AUTORISÉE et encouragée, surtout pour un profil en difficulté : \"Il faudra repartir sur de bonnes bases l'année prochaine, il/elle en a les capacités.\", \"Cette dynamique positive est à poursuivre l'année prochaine.\" Utilise \"l'année prochaine\" ou \"en seconde\" / \"au lycée\" si le niveau le justifie. Cette phrase remplace la conclusion habituelle, elle ne s'y ajoute pas.",
   })[period]||'';
   const gender=st.gender==='F' ? 'FILLE — pronom : ELLE. Article démonstratif : CETTE (pas cet). Adjectifs au FÉMININ : sérieuse, appliquée, investie, motivée, régulière. JAMAIS "il", JAMAIS "cet élève" (toujours "cette élève").' : 'GARÇON — pronom : IL. Article démonstratif : CET (pas cette). Adjectifs au MASCULIN : sérieux, appliqué, investi, motivé, régulier. JAMAIS "elle", JAMAIS "cette élève" (toujours "cet élève").';
   const accord=st.gender==='F'?'féminin':'masculin';
@@ -4649,12 +4652,18 @@ function buildPrompt(st,cls,period,seed,memSamp){
       ae9:"N'ose pas demander d'aide sans l'AESH",
       ae10:"Dépendant(e) de l'accompagnement",
       ae11:"Progrès limités même avec accompagnement",
-      ae12:"Difficultés importantes sans l'AESH"
+      ae12:"Difficultés importantes sans l'AESH",
+      ae13:"Résultats aux évaluations en grande partie soutenus par l'AESH",
+      ae14:"Très passif(ve) en l'absence d'accompagnement",
+      ae15:"Travail personnel à la maison très limité ou absent"
     };
     const ca=Object.entries(st.aesh.obs||{}).filter(([,v])=>v).map(([k])=>AESH_LABELS[k]).filter(Boolean);
-    aeshCtx=ca.length
+    aeshCtx=(ca.length
       ? `\nACCOMPAGNEMENT AESH : Cet élève bénéficie d'un accompagnement AESH. Observations : ${ca.join(', ')}. Intègre cet élément avec tact et bienveillance si pertinent.`
-      : `\nACCOMPAGNEMENT AESH : Cet élève bénéficie d'un accompagnement AESH. Mentionne-le discrètement si cela éclaire le profil.`;
+      : `\nACCOMPAGNEMENT AESH : Cet élève bénéficie d'un accompagnement AESH. Mentionne-le discrètement si cela éclaire le profil.`)
+      + `\n⚠️ RÈGLE AESH — CADRAGE POSITIF : pour un élève accompagné par une AESH, des observations comme "manque d'autonomie", "attitude passive", "manque d'investissement", "travail à la maison limité" sont souvent CONSTITUTIVES du profil ayant justifié l'accompagnement — ce ne sont pas des manquements isolés à corriger. NE PAS les énumérer comme une liste de reproches successifs. Si plusieurs sont cochées, les regrouper en UNE seule mention sobre.
+- Si "Résultats aux évaluations en grande partie soutenus par l'AESH" est coché : le dire FACTUELLEMENT et positivement — "Avec l'accompagnement de son AESH, [il/elle] parvient à obtenir des résultats corrects aux évaluations." — JAMAIS le présenter comme "malgré ses difficultés il s'en sort à peine" ou minimiser le résultat. C'est une réussite RENDUE POSSIBLE par l'accompagnement, pas une réussite diminuée par celui-ci.
+- Si "Très passif(ve) en l'absence d'accompagnement" et/ou "Travail à la maison limité" sont cochés en plus : les regrouper avec le point précédent en une seule idée — "Avec l'AESH, [il/elle] progresse ; en autonomie, l'investissement reste à développer." Le ton final doit rester celui d'un progrès rendu possible, pas d'un constat d'échec malgré l'aide. Avoir une AESH n'est PAS présenté comme un obstacle à surmonter, mais comme un soutien qui permet la progression.`;
   }
   let orientCtx='';
   if(st.orient?.on){
@@ -4911,6 +4920,10 @@ RÈGLES DE SYNTHÈSE — OBLIGATOIRES :
 8h. ENCOURAGEMENTS / FÉLICITATIONS — si "Encouragements" est coché → terminer par une phrase courte intégrant le mot naturellement : "Des encouragements pour la suite.", "Encouragements pour la suite du parcours.", "Persévérer dans cette voie : encouragements." — JAMAIS le mot seul et isolé ("Encouragements." sans contexte). Si "Félicitations" est coché → terminer par "Félicitations." seul, pas "je félicite" ou "mérite des félicitations". Si "Félicitations" ET "Continuer sur cette lancée" sont tous deux cochés → intégrer "continuer sur cette lancée" dans le corps du texte, pas comme deuxième phrase de conclusion.
 8k. ANTI-ÉNUMÉRATION — éviter les constructions du type "X, mais Y : A et B, C, D" qui empilent les traits après deux points — ça sonne comme une liste à puces déguisée. Préférer scinder en deux phrases naturelles : "X. Cependant, Y — A et parfois B." Maximum 2 caractéristiques liées par "et" dans une même proposition ; au-delà, créer une nouvelle phrase.
 8l. PAS DE "MALGRÉ X, ET Y" — ne jamais accoler avec "et" une concession ("malgré", "bien que", "même si") et une observation différente sans lien logique direct : "malgré une légère baisse de résultats, et son travail reste sérieux" sonne comme deux idées recollées. Soit lier logiquement ("malgré une légère baisse, son travail reste sérieux" — sans "et", la concession porte directement sur la suite), soit séparer en deux phrases distinctes avec un connecteur ("Toutefois,", "Par ailleurs,").
+8m. SUBJONCTIF APRÈS CONCESSION — "bien que", "quoique", "encore que" exigent le SUBJONCTIF, jamais l'indicatif. "bien que de petits progrès soient notés" (PAS "sont notés"). "bien qu'il fasse des efforts" (PAS "qu'il fait"). En cas de doute sur la conjugaison du subjonctif, éviter "bien que" et utiliser "même si" + indicatif à la place : "même si de petits progrès sont notés".
+8n. CONNECTEURS PRÉCIS — ne jamais utiliser de connecteurs vagues comme "La même chose est remarqué(e) avec...", "Il en va de même pour...", "On note la même chose concernant..." — toujours nommer directement le sujet : "Son comportement reste également fluctuant : il/elle...". Vérifier l'accord du participe avec le sujet réel (une "chose" est féminin → "remarquée", jamais "remarqué").
+8o. PONCTUATION OBLIGATOIRE — chaque phrase se termine par un point avant la suivante. JAMAIS deux propositions complètes collées sans ponctuation : "...l'année prochaine il en a les capacités" est une erreur — il faut "...l'année prochaine. Il en a les capacités." ou "..., et il en a les capacités."
+8p. COHÉRENCE BILAN/CONTENU SUR LES VERDICTS MITIGÉS — si le bilan choisi est "en demi-teinte", "satisfaisant", "encourageant" (un verdict ÉQUILIBRÉ, ni très positif ni très négatif), le CORPS du texte doit refléter un VRAI équilibre : au moins une observation positive doit être mise en valeur autant que les points à travailler, pas juste mentionnée en une sub-clause puis noyée sous 4-5 points négatifs qui s'enchaînent. Si le profil coché est presque entièrement négatif, ne pas forcer un verdict "demi-teinte" à sonner équilibré — mais si l'enseignant CHOISIT "demi-teinte", respecter cet équilibre en donnant autant de poids (longueur, position) aux points positifs qu'aux points à améliorer.
 9. Répondre UNIQUEMENT avec l'appréciation, sans guillemets ni commentaire.`;}
 
 function buildClassPrompt(cls,period){
@@ -4920,7 +4933,7 @@ function buildClassPrompt(cls,period){
   const toneDesc={ferme:'ferme et exigeant',equilibre:'équilibré et professionnel',encourageant:'positif et valorisant'}[cls.tone||'equilibre'];
   const isLastPeriod = (cls.periodType==='semestre' && period===2) || (cls.periodType!=='semestre' && period===3);
   const periodRule = isLastPeriod
-    ? `6. C'est le DERNIER ${cls.periodType==='semestre'?'semestre':'trimestre'} — la conclusion bilan l'année. INTERDIT : "sont attendus", "il faudra", "devront", "l'année prochaine", toute projection future. Bilan de l'année, pas de conseils pour la suite.`
+    ? `6. C'est le DERNIER ${cls.periodType==='semestre'?'semestre':'trimestre'} — bilan de l'année. INTERDIT : formulations génériques et impersonnelles type "des efforts sont attendus pour le prochain trimestre", "dès la rentrée", "classe supérieure", "au trimestre suivant". En revanche, une phrase finale chaleureuse et personnelle exprimant un espoir collectif pour l'année prochaine EST AUTORISÉE et encouragée si le profil le justifie : "Cette dynamique est à poursuivre l'année prochaine.", "Le groupe a les capacités pour bien aborder la suite." Distinction clé : interdit = générique/robotique, autorisé = chaleureux/personnel.`
     : `6. Termine par un conseil ou un encouragement collectif pour la suite.`;
   const clsLimit = cls.classCharLimit || cls.charLimit || 650;
   const clsMin = Math.max(200, Math.round(clsLimit * 0.7));
