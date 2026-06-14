@@ -4555,13 +4555,17 @@ function buildPromptMeta(st,cls){
       else checkedPos.push(item.l);
     }
   }));
+  const checkedConseilsActionable=[], checkedConseilsRed=[];
   Object.entries(CORE_BOXES).forEach(([secKey,sec])=>sec.items.forEach(item=>{
-    if(st.boxes&&st.boxes[item.id]&&secKey!=='conseils'){
-      if(item.v==='neg'&&!checkedNeg.includes(item.l)) checkedNeg.push(item.l);
+    if(st.boxes&&st.boxes[item.id]){
+      if(secKey==='conseils'){
+        if(item.v==='neg') checkedConseilsRed.push(item.l);
+        if(item.v!=='pos') checkedConseilsActionable.push(item.l);
+      } else if(item.v==='neg'&&!checkedNeg.includes(item.l)) checkedNeg.push(item.l);
       else if(item.v!=='neg'&&!checkedPos.includes(item.l)) checkedPos.push(item.l);
     }
   }));
-  return {checkedNeg, checkedPos};
+  return {checkedNeg, checkedPos, checkedConseilsActionable, checkedConseilsRed};
 }
 
 function buildPrompt(st,cls,period,seed,memSamp){
@@ -5409,6 +5413,39 @@ function hasHallucination(txt, checkedNeg, checkedPos, verdictId){
   return false;
 }
 
+// ── FILET DE SÉCURITÉ — CONCLUSION (2e appel API ciblé) ────────────────────
+function buildConclusionFixPrompt(txt, st, cls, period, checkedConseilsActionable, checkedConseilsRed){
+  const tone=getStTone(st)||cls.tone||'equilibre';
+  const toneLabel={ferme:'ferme et direct',equilibre:'équilibré',encourageant:'positif et encourageant'}[tone];
+  const isRedouble = !!(st.redoublement && st.redoublement[period]);
+  const nextYearLabel = NEXT_YEAR_LABEL[cls.classYear];
+  const yearMention = isRedouble ? "l'année prochaine" : (nextYearLabel || "l'année prochaine");
+  const limit=Math.min(1000,cls.charLimit||750);
+  const redPart = checkedConseilsRed.length ? checkedConseilsRed[0].split('—')[0].trim() : null;
+
+  return `Voici une appréciation scolaire rédigée pour un élève. Ta tâche est UNIQUEMENT de vérifier/corriger sa CONCLUSION — ne touche pas au reste sauf si nécessaire pour faire de la place.
+
+APPRÉCIATION ACTUELLE :
+"${txt}"
+
+CONSEILS À TRAITER EN CONCLUSION : ${checkedConseilsActionable.join(', ')}.
+${redPart ? `Dont un point ROUGE/URGENT : "${redPart}" — à traiter fermement.` : ''}
+TON SOUHAITÉ : ${toneLabel}.
+NIVEAU SUIVANT : ${isRedouble ? 'redoublement envisagé — NE PAS mentionner de classe suivante, rester neutre ("l\'année prochaine")' : yearMention}.
+LIMITE : ${limit} caractères au total.
+
+VÉRIFICATION : la DERNIÈRE phrase de cette appréciation est-elle déjà une conclusion tournée vers l'avenir qui adresse les conseils ci-dessus (verbes au futur/conditionnel, "il faudra", "devra", "sera essentiel", etc.) ?
+
+→ SI OUI : renvoie le texte EXACTEMENT TEL QUEL, sans aucune modification.
+→ SI NON (la dernière phrase est un constat du présent/passé, ex: "...nécessitant des rappels constants.", "...manque de maturité évident.") : AJOUTE une phrase de conclusion finale qui adresse 1-2 des conseils ci-dessus, tournée vers l'avenir. Exemples de formulations possibles (adapte, ne copie pas mot pour mot) :
+  • "Il faudra [action] et [action] pour bien aborder ${yearMention}."
+  • "Il/elle devra [action] pour aborder ${yearMention} avec de meilleures bases${checkedConseilsActionable.length && tone==='encourageant' ? ', il/elle en a les capacités.' : '.'}"
+  ${redPart ? `• "${redPart.charAt(0).toUpperCase()+redPart.slice(1)} sera essentiel pour bien aborder ${yearMention}."` : ''}
+Si l'ajout dépasserait la limite de caractères, RACCOURCIS légèrement une phrase existante du corps (en gardant son sens) pour faire de la place — ne sacrifie jamais la conclusion.
+
+Réponds UNIQUEMENT avec le texte final complet de l'appréciation (corps + conclusion), sans guillemets ni commentaire ni explication.`;
+}
+
 async function genOne(sid){
   if(!checkGenLimit(1)) return;
   const cls=S.classes[S.active]; const st=getSt(sid); if(!st)return;
@@ -5431,6 +5468,27 @@ async function genOne(sid){
     const cleanTxt=stripHallucinatedSentences(txt,checkedNeg,checkedPos,getStudentVerdict(st));
     let finalTxt=(cleanTxt&&cleanTxt.length>50)?cleanTxt:txt;
     if(!finalTxt){toast('Erreur : génération vide');return;}
+
+    // FILET DE SÉCURITÉ — CONCLUSION : si des conseils actionnables sont cochés,
+    // vérifier que la dernière phrase est tournée vers l'avenir ; sinon, 2e appel ciblé.
+    const {checkedConseilsActionable, checkedConseilsRed}=buildPromptMeta(st,cls);
+    if(checkedConseilsActionable.length){
+      const sentences=finalTxt.split(/(?<=[.!?])\s+/).filter(s=>s.trim());
+      const lastSentence=sentences[sentences.length-1]||'';
+      const hasFutureConclusion=/\b(devra|devront|faudra|faudront|sera essentiel|sera important|sera indispensable|permettra|permettront|en a les capacités|en a la capacité|pour aborder|pour bien aborder|continuer ainsi|continuer sur cette lancée|priorité pour|priorité absolue|à venir|encouragements|moyens d'y arriver|tout ce qu'il faut|rien ne s'oppose|progrès suivront|à sa portée)\b/i.test(lastSentence);
+      if(!hasFutureConclusion){
+        try{
+          ta.classList.add('gen'); ta.value='Finalisation de la conclusion…';
+          const fixPrompt=buildConclusionFixPrompt(finalTxt,st,cls,S.period,checkedConseilsActionable,checkedConseilsRed);
+          const fixed=fitToLimit((await callClaude(fixPrompt)).replace(/\n+/g,' ').trim(), cls.charLimit||750);
+          if(fixed && fixed.length>50) finalTxt=fixed;
+          ta.classList.remove('gen');
+        }catch(e){
+          console.warn('Conclusion fix call failed, keeping original:',e);
+          ta.classList.remove('gen');
+        }
+      }
+    }
     // RGPD swap — replace placeholder with real name
     if(cls.useName && st.name){
       const parts=st.name.trim().split(/\s+/);
