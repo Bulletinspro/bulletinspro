@@ -4901,7 +4901,8 @@ RÈGLES DE SYNTHÈSE — OBLIGATOIRES :
 8. FUSION : 3 observations similaires (discret + participe peu + évite de prendre la parole) = UNE seule phrase courte et bienveillante. Ne pas les répéter en conclusion si déjà mentionnées.
 8b. CLICHÉS INTERDITS — ne jamais écrire : "ambiance de classe", "bonne ambiance en classe", "atmosphère de classe" sauf si explicitement coché. Ne pas inventer de contexte sur la classe. INTERDIT aussi : "Il est désormais essentiel que", "Il est impératif que", "Il est indispensable que", "Il est nécessaire de/que", "Il est important de/que", "impérativement", "doit impérativement", "dès le prochain ${per}", "pour le prochain ${per}" — trop impersonnel et lourd. Préférer : "Il devra", "Il lui faudra", "Un effort s'impose", "La priorité est de", ou reformuler directement : "Revoir les bases permettra de progresser". ÉGALEMENT INTERDITS en fin de phrase ou d'appréciation : "qu'il faut saluer", "à souligner", "à noter avec satisfaction", "ce qui est à saluer", "ce qui mérite d'être souligné", "qui mérite d'être salué(e)", "que l'on peut saluer" — trop ampoulés. Préférer une formulation directe : "C'est encourageant.", "C'est positif.", ou simplement énoncer le fait.
 8c. FAUTES ET NÉOLOGISMES INTERDITS — n'utilise que des mots français correctement orthographiés. INTERDIT : "davantée" (n'existe pas — utiliser "davantage"), "investissement" à la place de "implication", tout mot inventé. En cas de doute sur un mot, choisis une formulation plus simple.
-8c. ÉLISION CORRECTE — "que" + consonne = "que" (pas "qu'"). "que Mathis", "que Marie", "que Léa". "qu'" uniquement devant voyelle : "qu'il", "qu'elle", "qu'un". JAMAIS "qu'Mathis", "qu'Léa".
+8c. ÉLISION CORRECTE — "que"/"de" + consonne = pas d'élision. "que Mathis", "que Marie", "que Léa", "de Lilou", "de Marie", "de Théo". L'élision ("qu'", "d'") n'existe QUE devant une voyelle ou un h muet : "qu'il", "qu'elle", "qu'un", "d'Inès", "d'Hugo". JAMAIS "qu'Mathis", "qu'Léa", "d'Lilou", "d'Marie", "d'Théo" — ce sont des fautes graves.
+8j. VARIATION PRONOM/PRÉNOM/"CETTE ÉLÈVE" — après avoir utilisé le prénom une fois, privilégier le pronom (${citetEleve==='cette élève'?'elle':'il'}) pour la suite plutôt que de répéter "${citetEleve}". N'utiliser "${citetEleve}" qu'en début d'appréciation ou après une rupture de sujet (nouveau paragraphe d'idée). Ne jamais répéter "${citetEleve}" deux fois si le pronom suffit et que le sujet est clair.
 8d. INTENSITÉ PROPORTIONNELLE — respecter le degré exact de la pill cochée. "Bavarde parfois" = mention légère ("quelques bavardages ponctuels"). JAMAIS amplifier en "rappels fréquents", "perturbe régulièrement", "problème récurrent" si ce n'est pas coché. "Bavardages incessants" = mention forte. "Parfois perturbateur/trice" ≠ "très perturbateur". Ne jamais aggraver ce qui est coché.
 8e. COHÉRENCE ENTRE PILLS — si "Réagit bien aux rappels" est coché avec "Bavarde parfois" → dire "quelques bavardages, mais réagit bien quand on le signale" — les rappels ne sont PAS fréquents. Si coché avec "Bavardages incessants" ou "Très perturbateur" → "malgré des rappels fréquents nécessaires". La fréquence des rappels dépend de la sévérité du comportement coché.
 8f. PAS DE REDONDANCE — ne pas exprimer la même idée deux fois avec des mots différents. Si "travail sérieux et approfondi" est dit en phrase 1, ne pas redire "applique avec rigueur" ou "méthode rigoureuse" en phrase 2. Chaque phrase apporte une information nouvelle. Ne jamais répéter le verdict dans le corps de l'appréciation — "Il est en difficulté et son travail est insuffisant" après un verdict "Trimestre insuffisant" est une répétition inutile.
@@ -4930,7 +4931,7 @@ ${checked.length?checked.map(i=>'• '+i).join('\n'):'• Classe correcte dans l
 
 RÈGLES :
 1. Texte continu et fluide, entre ${clsMin} et ${clsLimit} caractères MAXIMUM. CRITIQUE : ne jamais dépasser ${clsLimit} caractères — compte précisément.
-2. Parle de la classe comme d'un collectif : "la classe", "les élèves", "ce groupe", "cette classe". JAMAIS le nom de la classe (${cls.name}) ni la matière — c'est évident pour les lecteurs.
+2. Parle de la classe comme d'un collectif : "la classe", "les élèves", "ce groupe", "cette classe". JAMAIS le nom de la classe (${cls.name}), ni la matière, ni le nombre d'élèves (${cls.students.length}) — c'est évident pour les lecteurs. INTERDIT de commencer par "Cette classe de X élèves" ou toute formulation chiffrée.
 3. Relie les idées avec des connecteurs logiques variés.
 4. Ton : ${toneDesc}.
 5. INTERDIT : "il est essentiel", "il est important", "il est nécessaire", "sont attendus pour permettre".
@@ -7028,7 +7029,10 @@ function saveEditCPE(){
 const STYLE_KEY='bp3_style_perso';
 
 function showStylePerso(){
-  const saved=localStorage.getItem(STYLE_KEY)||'';
+  // Restore from Drive if localStorage is empty
+  const saved=localStorage.getItem(STYLE_KEY)||(S&&S._stylePerso)||'';
+  if(!localStorage.getItem(STYLE_KEY)&&saved) localStorage.setItem(STYLE_KEY,saved);
+  document.getElementById('style-perso-ta').value=saved;
   document.getElementById('style-perso-ta').value=saved;
   const status=document.getElementById('style-perso-status');
   if(saved.trim()){
@@ -7045,7 +7049,7 @@ function saveStylePerso(){
   const val=document.getElementById('style-perso-ta').value.trim();
   localStorage.setItem(STYLE_KEY, val);
   localStorage.setItem('bp3_style_set','true');
-  if(typeof gdScheduleSync==='function') gdScheduleSync();
+  if(S){S._stylePerso=val; save();} // sync to Drive
   closeMo('mo-style-perso');
   if(val) toast('✍️ Style enregistré — actif pour toutes les générations');
   else toast('Style effacé');
@@ -7057,7 +7061,9 @@ function clearStylePerso(){
 }
 
 function getStylePersoCtx(){
-  const raw=localStorage.getItem(STYLE_KEY)||'';
+  let raw=localStorage.getItem(STYLE_KEY)||'';
+  // Restore from Drive if localStorage empty
+  if(!raw&&S&&S._stylePerso){raw=S._stylePerso;localStorage.setItem(STYLE_KEY,raw);}
   if(!raw.trim()) return '';
   // Split by — separator or double newline, take up to 5 examples
   const examples=raw.split(/\n\s*—\s*\n|\n{3,}/).map(e=>e.trim()).filter(Boolean).slice(0,3);
