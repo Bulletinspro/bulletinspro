@@ -16,6 +16,7 @@
   --accent:#6b30d9; --accent-l:#f3eeff; --accent-b:#c4a8f0;
   --accent2:#a855f7;
   --warn:#ef4444; --warn-l:#fef2f2; --warn-b:#fca5a5;
+  --green:#16a34a; --green-l:#f0fdf4; --green-b:#bbf7d0;
   --amber:#d97706; --amber-l:#fffbeb; --amber-b:#fcd34d;
   --blue:#1e4d7a; --blue-l:#eaf0f8; --blue-b:#b4cde8;
   --purple:#7c3aed; --purple-l:#f5f3ff; --purple-b:#c4b5fd;
@@ -30,6 +31,7 @@ body.dark-mode {
   --bg:#0f0d1a; --surface:#1a1730; --ink:#e9e6f0; --muted:#9ca3af; --border:#2d2a3e;
   --accent-l:#2a1f4a; --accent-b:#5b3fa0;
   --warn-l:#2a1010; --warn-b:#7a2020;
+  --green-l:#0f2415; --green-b:#15803d;
   --amber-l:#1e1a0a; --amber-b:#5a4210;
   --blue-l:#0f1e2a; --blue-b:#1e3a5a;
   --purple-l:#1e1530; --purple-b:#4a2a7a;
@@ -191,7 +193,7 @@ body{font-family:'DM Sans',sans-serif;font-weight:300;background:var(--bg);color
 .tone-btn:hover{border-color:var(--accent);color:var(--accent);}
 .tone-btn.active.ferme{background:var(--warn-l);border-color:var(--warn-b);color:var(--warn);}
 .tone-btn.active.equilibre{background:var(--amber-l);border-color:var(--amber-b);color:var(--amber);}
-.tone-btn.active.encourageant{background:var(--green-l);border-color:#bbf7d0;color:var(--green);}
+.tone-btn.active.encourageant{background:var(--green-l);border-color:var(--green-b);color:var(--green);}
 .sel{padding:3px 8px;border:1px solid var(--border);border-radius:5px;font-family:'DM Sans',sans-serif;font-size:.75rem;background:var(--bg);outline:none;color:var(--ink);}
 .sel:focus{border-color:var(--accent);}
 
@@ -3870,9 +3872,9 @@ function renderEvoPills(st,id){
   const pills=[{id:'pr30',l:'↗ En hausse',v:'pos'},{id:'pr31',l:'→ Stable',v:'neutral'},{id:'pr32',l:'↘ En baisse',v:'neg'}];
   return pills.map(function(p){
     const sel=!!(st.boxes&&st.boxes[p.id]);
-    const col=p.v==='pos'?'var(--green)':p.v==='neg'?'var(--red)':'var(--amber)';
-    const bg=sel?(p.v==='pos'?'var(--green-l)':p.v==='neg'?'#fee2e2':'var(--amber-l)'):'var(--bg)';
-    const bc=sel?(p.v==='pos'?'#bbf7d0':p.v==='neg'?'#fca5a5':'#fed7aa'):'var(--border)';
+    const col=p.v==='pos'?'var(--green)':p.v==='neg'?'var(--warn)':'var(--amber)';
+    const bg=sel?(p.v==='pos'?'var(--green-l)':p.v==='neg'?'var(--warn-l)':'var(--amber-l)'):'var(--bg)';
+    const bc=sel?(p.v==='pos'?'var(--green-b)':p.v==='neg'?'var(--warn-b)':'var(--amber-b)'):'var(--border)';
     const fw=sel?'700':'400';
     return '<button onclick="togEvo(\''+id+'\',\''+p.id+'\')" style="padding:5px 12px;border:1.5px solid '+bc+';border-radius:20px;background:'+bg+';color:'+(sel?col:'var(--muted)')+';font-size:.78rem;font-weight:'+fw+';cursor:pointer;transition:all .15s">'+p.l+'</button>';
   }).join('');
@@ -5316,7 +5318,7 @@ function updateGenCounter(){
     txt=r+' / '+ANNUAL_LIMIT+' générations'; title=`${r} restantes — reset le 1er septembre`;
     if(r<=50){bg='#fee2e2';bc='#fca5a5';col='#b91c1c';}
     else if(r<=200){bg='#fff7ed';bc='#fed7aa';col='#c2410c';}
-    else{bg='var(--green-l)';bc='#bbf7d0';col='var(--green)';}
+    else{bg='var(--green-l)';bc='var(--green-b)';col='var(--green)';}
   } else {
     const r=getRemainingGens();
     txt=r+' / '+FREE_LIMIT+' gratuites'; title=`${r} générations gratuites restantes`;
@@ -5584,6 +5586,7 @@ async function generateAll(){
   let minuteStart=Date.now();
   const TOKEN_LIMIT=120000; // 8b-instant: 131k tokens/min
   const TOKENS_PER_CALL=950;
+  const TOKENS_PER_FIXCALL=400; // filet de sécurité conclusion — prompt court
 
   const waitMs=(ms)=>new Promise(r=>setTimeout(r,ms));
 
@@ -5660,6 +5663,67 @@ async function generateAll(){
           if(!realName) realName=parts[parts.length-1];
           if(realName) realName=realName.charAt(0).toUpperCase()+realName.slice(1).toLowerCase();
           if(realName) txt=txt.replace(/Alex/g, realName);
+        }
+
+        // FILET DE SÉCURITÉ — CONCLUSION : même logique que genOne, adaptée au mode bulk.
+        const {checkedConseilsActionable, checkedConseilsRed, checkedNeg:cNeg, checkedPos:cPos}=buildPromptMeta(st,cls);
+        if(checkedConseilsActionable.length){
+          const sentencesB=txt.split(/(?<=[.!?])\s+/).filter(s=>s.trim());
+          const lastSentenceB=sentencesB[sentencesB.length-1]||'';
+          let hasFutureConclusionB=/\b(devra|devront|faudra|faudront|sera essentiel|sera important|sera indispensable|permettra|permettront|en a les capacités|en a la capacité|pour aborder|pour bien aborder|continuer ainsi|continuer sur cette lancée|priorité pour|priorité absolue|à venir|encouragements|moyens d'y arriver|tout ce qu'il faut|rien ne s'oppose|progrès suivront|à sa portée)\b/i.test(lastSentenceB);
+          if(hasFutureConclusionB && checkedConseilsRed.length){
+            const allRedMentionedB=checkedConseilsRed.every(rr=>{
+              const kw=rr.split('—')[0].trim().split(/\s+/)[0].toLowerCase();
+              return txt.toLowerCase().includes(kw);
+            });
+            if(!allRedMentionedB) hasFutureConclusionB=false;
+          }
+          if(!hasFutureConclusionB){
+            // Rate-limit check for the extra fix call
+            const elapsedB=Date.now()-minuteStart;
+            if(elapsedB>=60000){tokensThisMinute=0;minuteStart=Date.now();}
+            if(tokensThisMinute+TOKENS_PER_FIXCALL>TOKEN_LIMIT){
+              const waitSecB=Math.ceil((60000-elapsedB)/1000)+2;
+              await countdown(waitSecB, s=>`⏳ Pause rate limit — reprise dans <strong>${s}s</strong> &nbsp;·&nbsp; ${done}/${total} rédigées`);
+              tokensThisMinute=0;minuteStart=Date.now();
+            }
+            setBanner(`✏️ Finalisation conclusion <strong>${i+1}/${total}</strong> — ${st.name||'Élève n°'+st.num}…`);
+            try{
+              const fixPrompt=buildConclusionFixPrompt(txt,st,cls,S.period,checkedConseilsActionable,checkedConseilsRed,cNeg,cPos);
+              const r2=await fetch('https://openrouter.ai/api/v1/chat/completions',{
+                method:'POST',
+                headers:{'Content-Type':'application/json','Authorization':`Bearer ${_apiKey}`,'HTTP-Referer':'https://bulletinspro.github.io','X-Title':'BulletinsPro'},
+                body:JSON.stringify({
+                  model:'anthropic/claude-sonnet-4.5',
+                  max_tokens:800,
+                  messages:[
+                    {role:'system',content:'Tu corriges des appréciations scolaires françaises. Suis les instructions précisément, sans commentaire.'},
+                    {role:'user',content:fixPrompt}
+                  ]
+                })
+              });
+              if(r2.ok){
+                const d2=await r2.json();
+                let fixed=(d2.choices?.[0]?.message?.content||'').replace(/\n+/g,' ').trim();
+                fixed=fitToLimit(fixed, cls.charLimit||750);
+                if(fixed && fixed.length>50){
+                  txt=fixed;
+                  // Re-apply RGPD swap in case the fix call reintroduced the placeholder
+                  if(cls.useName && st.name){
+                    const parts2=st.name.trim().split(/\s+/);
+                    let realName2=parts2.find(p=>p!==p.toUpperCase()&&p.length>1);
+                    if(!realName2) realName2=parts2[parts2.length-1];
+                    if(realName2) realName2=realName2.charAt(0).toUpperCase()+realName2.slice(1).toLowerCase();
+                    if(realName2) txt=txt.replace(/Alex/g, realName2);
+                  }
+                }
+              }
+              tokensThisMinute+=TOKENS_PER_FIXCALL;
+            }catch(eFix){
+              console.warn('Bulk conclusion fix failed for',sid,eFix.message);
+              // Keep original txt — better than failing the whole student
+            }
+          }
         }
 
         // Save immediately to state
