@@ -5052,8 +5052,8 @@ function fitToLimit(txt, limit){
   return txt.slice(0, lastSpace).trim();
 }
 
-const _k='c2stb3ItdjEtMjVkZjQ3MDdjN2RmMmFlOTcwMGNjOTFlZjY0NGI5MjM3YzkyMzdkYzZmNjg0NTA1MjI5MDRlM2UxNDdiOGQ2OQ==';
-let _apiKey=atob(_k);
+// Appels LLM via le proxy (la clé OpenRouter est uniquement côté serveur)
+const API_URL='https://bulletinspro-api.bulletinspro.workers.dev/';
 
 // ── GENERATION COUNTER ────────────────────────────────────────────────────────
 const FREE_LIMIT = 25;        // Limite visiteurs sans code
@@ -5334,10 +5334,10 @@ async function callClaude(prompt, retries=3, bulkMode=false){
   const model = 'anthropic/claude-sonnet-4.5';
   for(let attempt=0; attempt<retries; attempt++){
     try{
-      const r=await fetch('https://openrouter.ai/api/v1/chat/completions',{
+      const r=await fetch(API_URL,{
         method:'POST',
         headers:{
-          'Content-Type':'application/json','Authorization':`Bearer ${_apiKey}`,'HTTP-Referer':'https://bulletinspro.github.io','X-Title':'BulletinsPro'
+          'Content-Type':'application/json','HTTP-Referer':'https://bulletinspro.github.io','X-Title':'BulletinsPro'
         },
         body:JSON.stringify({
           model: model,
@@ -5621,9 +5621,9 @@ async function generateAll(){
         try{
         const seed=STYLE_SEEDS[Math.floor(Math.random()*STYLE_SEEDS.length)];
         // Single attempt — no retries in bulk to avoid cascading 429s
-        const r=await fetch('https://openrouter.ai/api/v1/chat/completions',{
+        const r=await fetch(API_URL,{
           method:'POST',
-          headers:{'Content-Type':'application/json','Authorization':`Bearer ${_apiKey}`,'HTTP-Referer':'https://bulletinspro.github.io','X-Title':'BulletinsPro'},
+          headers:{'Content-Type':'application/json','HTTP-Referer':'https://bulletinspro.github.io','X-Title':'BulletinsPro'},
           body:JSON.stringify({
             model:'anthropic/claude-sonnet-4.5',
             max_tokens:800,
@@ -5690,9 +5690,9 @@ async function generateAll(){
             setBanner(`✏️ Finalisation conclusion <strong>${i+1}/${total}</strong> — ${st.name||'Élève n°'+st.num}…`);
             try{
               const fixPrompt=buildConclusionFixPrompt(txt,st,cls,S.period,checkedConseilsActionable,checkedConseilsRed,cNeg,cPos);
-              const r2=await fetch('https://openrouter.ai/api/v1/chat/completions',{
+              const r2=await fetch(API_URL,{
                 method:'POST',
-                headers:{'Content-Type':'application/json','Authorization':`Bearer ${_apiKey}`,'HTTP-Referer':'https://bulletinspro.github.io','X-Title':'BulletinsPro'},
+                headers:{'Content-Type':'application/json','HTTP-Referer':'https://bulletinspro.github.io','X-Title':'BulletinsPro'},
                 body:JSON.stringify({
                   model:'anthropic/claude-sonnet-4.5',
                   max_tokens:800,
@@ -6443,11 +6443,12 @@ INSTRUCTIONS :
 Exemple : {"tick":["pr2","tr1","tr2"],"suggest":["pa3","ob5","ob6","co1","pr8","co4"],"untick":[]}`;
 
   try{
-    const res=await fetch('https://openrouter.ai/api/v1/chat/completions',{
+    const res=await fetch(API_URL,{
       method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+_apiKey,'HTTP-Referer':'https://bulletinspro.github.io','X-Title':'BulletinsPro VTP'},
+      headers:{'Content-Type':'application/json','HTTP-Referer':'https://bulletinspro.github.io','X-Title':'BulletinsPro VTP'},
       body:JSON.stringify({model:'anthropic/claude-sonnet-4-5',max_tokens:800,messages:[{role:'user',content:prompt}]})
     });
+    if(!res.ok){const ej=await res.json().catch(()=>({}));if(ej.error&&ej.error.message)toast('⏳ '+ej.error.message,5000);throw new Error('API '+res.status);}
     const data=await res.json();
     const raw=data.choices?.[0]?.message?.content?.trim()||'{}';
     let result;
@@ -6600,7 +6601,8 @@ OBSERVATIONS :
 ${pillList.map(p=>`${p.id}: ${p.label}`).join('\n')}
 Retourne UNIQUEMENT ce JSON : {"tick":[],"suggest":[],"untick":[]}`;
   try{
-    const res=await fetch('https://openrouter.ai/api/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+_apiKey,'HTTP-Referer':'https://bulletinspro.github.io','X-Title':'BulletinsPro VTP PP'},body:JSON.stringify({model:'anthropic/claude-sonnet-4-5',max_tokens:400,messages:[{role:'user',content:prompt}]})});
+    const res=await fetch(API_URL,{method:'POST',headers:{'Content-Type':'application/json','HTTP-Referer':'https://bulletinspro.github.io','X-Title':'BulletinsPro VTP PP'},body:JSON.stringify({model:'anthropic/claude-sonnet-4-5',max_tokens:400,messages:[{role:'user',content:prompt}]})});
+    if(!res.ok){const ej=await res.json().catch(()=>({}));if(ej.error&&ej.error.message)toast('⏳ '+ej.error.message,5000);throw new Error('API '+res.status);}
     const data=await res.json();
     let result;try{result=JSON.parse(data.choices?.[0]?.message?.content?.trim()||'{}');}catch{result={tick:[],suggest:[],untick:[]};}
     if(!st.boxes)st.boxes={};
@@ -7768,7 +7770,8 @@ OBSERVATIONS :
 ${pillList.map(p=>`${p.id}: ${p.label}`).join('\n')}
 Retourne UNIQUEMENT : {"tick":[],"suggest":[],"untick":[]}`;
   try{
-    const res=await fetch('https://openrouter.ai/api/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+_apiKey,'HTTP-Referer':'https://bulletinspro.github.io','X-Title':'BulletinsPro CPE'},body:JSON.stringify({model:'anthropic/claude-sonnet-4-5',max_tokens:300,messages:[{role:'user',content:prompt}]})});
+    const res=await fetch(API_URL,{method:'POST',headers:{'Content-Type':'application/json','HTTP-Referer':'https://bulletinspro.github.io','X-Title':'BulletinsPro CPE'},body:JSON.stringify({model:'anthropic/claude-sonnet-4-5',max_tokens:300,messages:[{role:'user',content:prompt}]})});
+    if(!res.ok){const ej=await res.json().catch(()=>({}));if(ej.error&&ej.error.message)toast('⏳ '+ej.error.message,5000);throw new Error('API '+res.status);}
     const data=await res.json();
     let result;try{result=JSON.parse(data.choices?.[0]?.message?.content?.trim()||'{}');}catch{result={tick:[],suggest:[],untick:[]};}
     if(!st.boxes)st.boxes={};
