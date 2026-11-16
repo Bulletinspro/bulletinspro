@@ -4632,7 +4632,8 @@ function buildPrompt(st,cls,period,seed,memSamp){
   const pLabel=cls.periodType==='semestre'?`semestre ${period}`:`trimestre ${period}`;
   const isRedouble = !!(st.redoublement && st.redoublement[period]);
   const nextYearLabel = NEXT_YEAR_LABEL[cls.classYear];
-  const nextYearInfo = isRedouble
+  const isFinalPeriod = (cls.periodType==='semestre' && period===2) || (cls.periodType!=='semestre' && period===3);
+  const nextYearInfo = !isFinalPeriod ? '' : isRedouble
     ? `\nREDOUBLEMENT ENVISAGÉ : la conclusion ne doit PAS évoquer "${nextYearLabel}" ni une progression de niveau — rester sur "l'année prochaine" de façon neutre, sans préciser la classe, ou évoquer un nouveau départ ("repartir sur de meilleures bases l'année prochaine").`
     : (nextYearLabel ? `\nNIVEAU SUIVANT : ${nextYearLabel}. Un professeur ne précise PAS systématiquement la classe suivante dans chaque conclusion — "l'année prochaine" générique suffit dans la majorité des cas. Réserver "${nextYearLabel}" UNIQUEMENT pour : (a) un profil nécessitant un vrai changement de dynamique (ex: "Le respect des règles sera essentiel pour bien aborder ${nextYearLabel}.") où nommer le niveau suivant donne du poids/de l'urgence, ou (b) un profil très positif où l'élève est clairement prêt(e) ("Elle est prête pour ${nextYearLabel}."). Pour un profil moyen/intermédiaire, "l'année prochaine" sans préciser le niveau reste préférable.` : '');
   const periodCtx=(cls.periodType==='semestre'?{
@@ -4993,7 +4994,7 @@ EXCEPTION — CONCLUSION FERME AVEC POINT PRÉCIS : "Il sera essentiel de [actio
 ${checkedConseilsActionable.length ? (() => {
   const isMixed = checkedPos.length>0 && checkedNeg.length>0;
   const actionsLower = checkedConseilsActionable.map(c => c.split('—')[0].trim()).map(c => c.charAt(0).toLowerCase()+c.slice(1));
-  const yearMention = isRedouble ? "l'année prochaine" : (nextYearLabel || "l'année prochaine");
+  const yearMention = !isFinalPeriod ? "la suite de l'année" : (isRedouble ? "l'année prochaine" : (nextYearLabel || "l'année prochaine"));
   const redLabel = checkedConseilsRed.length ? checkedConseilsRed[0].split('—')[0].trim() : null;
   const redLower = redLabel ? redLabel.charAt(0).toLowerCase()+redLabel.slice(1) : null;
   let out = '\n⛔ CONCLUSION OBLIGATOIRE — CONSEILS À TRAITER : '+checkedConseilsActionable.join(', ')+'.';
@@ -5435,7 +5436,8 @@ function buildConclusionFixPrompt(txt, st, cls, period, checkedConseilsActionabl
   const tone=getStTone(st)||cls.tone||'equilibre';
   const isRedouble = !!(st.redoublement && st.redoublement[period]);
   const nextYearLabel = NEXT_YEAR_LABEL[cls.classYear];
-  const yearMention = isRedouble ? "l'année prochaine" : (nextYearLabel || "l'année prochaine");
+  const isFinalPeriod = (cls.periodType==='semestre' && period===2) || (cls.periodType!=='semestre' && period===3);
+  const yearMention = !isFinalPeriod ? "la suite de l'année" : (isRedouble ? "l'année prochaine" : (nextYearLabel || "l'année prochaine"));
   const limit=Math.min(1000,cls.charLimit||750);
 
   // Tous les conseils ROUGES (sans hiérarchie entre eux)
@@ -5472,7 +5474,7 @@ function buildConclusionFixPrompt(txt, st, cls, period, checkedConseilsActionabl
   } else {
     targetSentence = `Une implication accrue sera nécessaire pour bien aborder ${yearMention}.`;
   }
-  if(isRedouble) targetSentence = targetSentence.replace(new RegExp(yearMention.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'g'), "l'année prochaine");
+  if(isRedouble && isFinalPeriod) targetSentence = targetSentence.replace(new RegExp(yearMention.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'g'), "l'année prochaine");
 
   // Fermeté de la conclusion proportionnelle à la négativité globale du profil — pas seulement
   // au nombre de conseils. Un profil qui penche négatif (checkedNeg >= checkedPos) ou avec au
