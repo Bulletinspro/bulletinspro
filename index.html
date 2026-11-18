@@ -4587,6 +4587,10 @@ function buildPromptMeta(st,cls){
   return {checkedNeg, checkedPos, checkedConseilsActionable, checkedConseilsRed};
 }
 
+// Fins de conclusion variées pour les périodes intermédiaires (T1/T2, S1) — tirées au hasard à chaque génération.
+const MID_GOALS=["pour progresser davantage","pour progresser","afin de progresser durablement","pour consolider ses acquis","pour gagner en assurance","pour atteindre un niveau plus solide","pour tirer pleinement parti de ses capacités","pour aborder la suite de l'année dans de meilleures conditions","pour la suite de l'année"];
+function pickMidGoals(n){const a=[...MID_GOALS].sort(()=>Math.random()-.5);return a.slice(0,n);}
+
 function buildPrompt(st,cls,period,seed,memSamp){
   const allBoxes=getSubjectBoxes(cls.subject, cls.langLevel, cls.classYear);
   const checkedPos=[], checkedNeg=[], checkedNeutral=[], checkedConseils=[], checkedConseilsRed=[], checkedConseilsActionable=[];
@@ -5003,9 +5007,14 @@ ${checkedConseilsActionable.length ? (() => {
   if(isMixed) out += ' (PROFIL MIXTE pos+neg — cas où la conclusion est le plus souvent oubliée. Sois vigilant.)';
   if(checkedConseilsRed.length) out += '\n🔥 Conseil ROUGE/URGENT présent : "'+checkedConseilsRed[0]+'" — ce point doit être nommé fermement dans la conclusion (ton "'+tone+'").';
   out += '\nTA DERNIÈRE PHRASE DOIT ÊTRE UNE CONCLUSION SUR CE MODÈLE — adapte le gabarit suivant à 1-2 des conseils ci-dessus (ne les énumère pas tous mécaniquement, choisis les plus pertinents) :';
-  out += '\n  • "Il faudra '+(actionsLower[0]||'approfondir le travail')+(actionsLower[1]?' et '+actionsLower[1]:'')+' pour bien aborder '+yearMention+'."';
-  out += '\n  • "Il/elle devra '+(actionsLower[0]||"s'investir davantage")+' pour aborder '+yearMention+' avec de meilleures bases'+(checkedPos.length>checkedNeg.length?', il/elle en a les capacités.':'.')+'"';
-  if(redLower) out += '\n  • "'+redLower.charAt(0).toUpperCase()+redLower.slice(1)+' sera essentiel pour bien aborder '+yearMention+'."';
+  const mg = isFinalPeriod ? null : pickMidGoals(3);
+  const g1 = mg ? mg[0] : 'pour bien aborder '+yearMention;
+  const g2 = mg ? mg[1] : 'pour aborder '+yearMention+' avec de meilleures bases';
+  const g3 = mg ? mg[2] : 'pour bien aborder '+yearMention;
+  out += '\n  • "Il faudra '+(actionsLower[0]||'approfondir le travail')+(actionsLower[1]?' et '+actionsLower[1]:'')+' '+g1+'."';
+  out += '\n  • "Il/elle devra '+(actionsLower[0]||"s'investir davantage")+' '+g2+(checkedPos.length>checkedNeg.length?', il/elle en a les capacités.':'.')+'"';
+  if(redLower) out += '\n  • "'+redLower.charAt(0).toUpperCase()+redLower.slice(1)+' sera essentiel '+g3+'."';
+  if(mg) out += '\nFIN DE PHRASE À VARIER (période intermédiaire) : ne pas terminer systématiquement par "la suite de l\'année". Une fin simple sans repère temporel ("pour progresser davantage", "pour consolider ses acquis", "pour gagner en assurance") est souvent la plus naturelle.';
   out += '\nNE PAS systématiquement référencer "les conseils du trimestre précédent" — si l\'espace est compté, SAUTE cette référence au passé et UTILISE la place pour la conclusion ci-dessus, qui est PLUS IMPORTANTE.';
   out += '\nTa réponse est INVALIDE si elle se termine par un simple constat (ex: "...manque de maturité évident.", "...n\'ont pas été suivis d\'effet.") sans une phrase de ce type après.';
   return out;
@@ -5465,16 +5474,17 @@ function buildConclusionFixPrompt(txt, st, cls, period, checkedConseilsActionabl
     yellowActions.unshift('gagner en concentration et adopter une attitude plus posée');
   }
 
+  const goal = isFinalPeriod ? 'pour bien aborder '+yearMention : pickMidGoals(1)[0];
   let targetSentence;
   const redPart = redLower.length ? redLower.join(' et ') : null;
   if(redPart && yellowActions.length){
-    targetSentence = `${redPart.charAt(0).toUpperCase()+redPart.slice(1)} et ${yellowActions[0]} devront être des priorités pour bien aborder ${yearMention}.`;
+    targetSentence = `${redPart.charAt(0).toUpperCase()+redPart.slice(1)} et ${yellowActions[0]} devront être des priorités ${goal}.`;
   } else if(redPart){
-    targetSentence = `${redPart.charAt(0).toUpperCase()+redPart.slice(1)} sera${redLower.length>1?'ont':''} essentiel${redLower.length>1?'s':''} pour bien aborder ${yearMention}.`;
+    targetSentence = `${redPart.charAt(0).toUpperCase()+redPart.slice(1)} sera${redLower.length>1?'ont':''} essentiel${redLower.length>1?'s':''} ${goal}.`;
   } else if(yellowActions.length){
-    targetSentence = `Il faudra ${yellowActions[0]}${yellowActions[1]?` et ${yellowActions[1]}`:''} pour bien aborder ${yearMention}.`;
+    targetSentence = `Il faudra ${yellowActions[0]}${yellowActions[1]?` et ${yellowActions[1]}`:''} ${goal}.`;
   } else {
-    targetSentence = `Une implication accrue sera nécessaire pour bien aborder ${yearMention}.`;
+    targetSentence = `Une implication accrue sera nécessaire ${goal}.`;
   }
   if(isRedouble && isFinalPeriod) targetSentence = targetSentence.replace(new RegExp(yearMention.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'g'), "l'année prochaine");
 
