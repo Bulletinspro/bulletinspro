@@ -3461,8 +3461,17 @@ function gdLogout(){
 // Phrase memory (session only)
 const mem = {}; // classId -> Set
 function getMem(cid){if(!mem[cid])mem[cid]=new Set();return mem[cid];}
-function addMem(cid,txt){
+function realFirstName(st){
+  if(!st||!st.name)return '';
+  const parts=st.name.trim().split(/\s+/);
+  let n=parts.find(p=>p!==p.toUpperCase()&&p.length>1)||parts[parts.length-1]||'';
+  return n?n.charAt(0).toUpperCase()+n.slice(1).toLowerCase():'';
+}
+function addMem(cid,txt,st){
   const m=getMem(cid);
+  // RGPD — la mémoire est renvoyée à l'IA : remettre le prénom réel en "Alex" avant de la stocker
+  const rn=realFirstName(st);
+  if(rn&&rn!=='Alex') txt=txt.split(rn).join('Alex');
   // Strip the first word if it looks like a name (capitalized, not a verdict word)
   const verdicts=['Excellent','Très','Bon','Trimestre','Un','Une','Cette','Cet','Il','Elle'];
   const words=txt.split(' ');
@@ -3470,7 +3479,7 @@ function addMem(cid,txt){
   const clean=words.slice(startIdx).join(' ');
   for(let i=0;i<clean.split(' ').length-3;i++){const w=clean.split(' ');m.add(w.slice(i,i+4).join(' ').toLowerCase());}
 }
-function sampMem(cid){const arr=[...getMem(cid)];if(!arr.length)return '';return arr.sort(()=>.5-Math.random()).slice(0,10).join(' | ');}
+function sampMem(cid){const arr=[...getMem(cid)].filter(x=>!x.includes('alex'));if(!arr.length)return '';return arr.sort(()=>.5-Math.random()).slice(0,10).join(' | ');}
 
 // ── BOOT — deferred; full init runs after all PP code is defined ──────────────
 load();
@@ -4941,7 +4950,7 @@ ${conclusionReminder}
 PROFIL COMPLET (exhaustif — rien d'autre n'existe sur cet élève) :
 ${checked.length ? checked.map(i => '• ' + i).join('\n') : '• Profil standard'}
 
-COMMENT UTILISER CE PROFIL — IMPORTANT : ces éléments dessinent le PROFIL GLOBAL de l'élève à comprendre dans son ensemble, ce ne sont PAS des phrases à transcrire une par une. "Exhaustif" signifie seulement : ne rien INVENTER au-delà de ce qui est listé ici — ce n'est PAS une exigence que chaque ligne apparaisse littéralement dans le texte. Si plusieurs observations cochées décrivent un MÊME trait avec des nuances proches (ex: "bavarde parfois" + "dissipé" + "se laisse distraire facilement"), elles indiquent ensemble l'INTENSITÉ de ce trait — à exprimer UNE SEULE FOIS avec le degré approprié, pas comme plusieurs mentions séparées qui sonneraient redondantes. Ce qui compte : que le PROFIL GLOBAL (sévérité, tendances dominantes, équilibre positif/négatif) soit fidèlement représenté dans un texte fluide et naturel — pas que chaque pill cochée ait sa phrase dédiée.
+COMMENT UTILISER CE PROFIL — IMPORTANT : ces éléments dessinent le PROFIL GLOBAL de l'élève à comprendre dans son ensemble, ce ne sont PAS des phrases à transcrire une par une. "Exhaustif" signifie seulement : ne rien INVENTER au-delà de ce qui est listé ici — ce n'est PAS une exigence que chaque ligne apparaisse littéralement dans le texte. Si plusieurs observations cochées décrivent un MÊME trait avec des nuances proches (ex: "bavarde parfois" + "dissipé" + "se laisse distraire facilement"), elles indiquent ensemble l'INTENSITÉ de ce trait — à exprimer UNE SEULE FOIS avec le degré approprié, pas comme plusieurs mentions séparées qui sonneraient redondantes. Ce qui compte : que le PROFIL GLOBAL (sévérité, tendances dominantes, équilibre positif/négatif) soit fidèlement représenté dans un texte fluide et naturel — pas que chaque pill cochée ait sa phrase dédiée. OBSERVATIONS PERSONNELLES DE L'ENSEIGNANT (formulées librement, souvent dans un style oral, ex : "absence d'effort en classe avec comme excuse perpétuelle de ne rien comprendre") : elles sont PRÉCIEUSES car elles rendent l'appréciation personnelle — GARDER leur idée précise (ici : l'élève se réfugie derrière le fait de ne pas comprendre), mais la REFORMULER en français écrit de bulletin et l'intégrer naturellement à la phrase, sans recopier mot pour mot. Ex : "Il se retranche trop souvent derrière le fait de ne pas comprendre au lieu de chercher à progresser."
 ${checkedNeg.length
   ? '\n⚠️ POINTS NÉGATIFS — les THÈMES suivants doivent transparaître dans le texte (regrouper les observations similaires en une seule formulation par thème, cf. règle ci-dessus) : '+checkedNeg.join(' | ')
   : '\n⛔ AUCUN défaut coché → INTERDITS : bavardage, distraction, difficulté, lacune.'}
@@ -4976,7 +4985,7 @@ RÈGLES DE SYNTHÈSE — OBLIGATOIRES :
 8b. CLICHÉS INTERDITS — ne jamais écrire : "ambiance de classe", "bonne ambiance en classe", "atmosphère de classe" sauf si explicitement coché. Ne pas inventer de contexte sur la classe. INTERDIT EN MILIEU DE TEXTE COMME CONNECTEUR VAGUE, sous toute conjugaison : "Il est/va être/sera désormais essentiel que/de [...]", "Il est/va être impératif que/de", "Il est/va être indispensable que/de", "Il est/va être nécessaire de/que", "Il est/va être important de/que", "impérativement", "doit impérativement", "dès le prochain ${per}", "pour le prochain ${per}" — trop impersonnel et lourd comme TRANSITION générique entre deux idées. Préférer : "Il devra", "Il lui faudra", "Un effort s'impose", "La priorité est de".
 EXCEPTION — CONCLUSION FERME AVEC POINT PRÉCIS : "Il sera essentiel de [action SPÉCIFIQUE nommée]" RESTE AUTORISÉ comme PHRASE DE CONCLUSION FINALE (pas en milieu de texte), notamment avec un ton "ferme" et un conseil rouge — ex: "Le respect des règles sera essentiel pour bien aborder la 3e." La différence : INTERDIT = connecteur vague mi-texte ("Il est désormais essentiel que [transition]..."), AUTORISÉ = conclusion finale précise nommant le point exact à travailler.
 ÉGALEMENT INTERDITS en fin de phrase ou d'appréciation : "qu'il faut saluer", "à souligner", "à noter avec satisfaction", "ce qui est à saluer", "ce qui mérite d'être souligné", "qui mérite d'être salué(e)", "que l'on peut saluer" — trop ampoulés. Préférer une formulation directe : "C'est encourageant.", "C'est positif.", ou simplement énoncer le fait. INTERDIT ÉGALEMENT : "rendent son travail agréable à suivre", "rend le travail agréable à suivre" — collocation étrange, "agréable à suivre" ne s'applique pas au "travail" d'un élève. Pour exprimer qu'un élève est agréable grâce à sa bonne volonté/attitude, dire plutôt : "ce qui en fait un élève agréable à avoir en cours", "sa présence en cours est appréciable", ou simplement énoncer la qualité sans cette tournure ("fait preuve d'une bonne volonté sincère et d'une attitude respectueuse").
-8c. CORRECTION LINGUISTIQUE (vérifications rapides) : Mots interdits — "davantée"→"davantage", "investissement"≠"implication", aucun mot inventé. Élision — "que"/"de" + consonne = PAS d'élision ("que Mathis", "de Lilou") ; "qu'"/"d'" seulement devant voyelle/h muet ("qu'il", "d'Inès"). Subjonctif après "bien que"/"quoique" ("bien que ce soit", pas "bien que c'est") — en cas de doute, "même si"+indicatif. Connecteurs — jamais "La même chose est remarqué(e) avec..." (nommer le sujet directement). Collocations — JAMAIS "investissement en surface", "investissement superficiel", "son investissement reste en surface" (un investissement n'a pas de surface : calque non idiomatique). Dire plutôt : "il/elle s'investit peu", "il/elle se contente du minimum", "le travail manque d'approfondissement", "il/elle reste dans l'exécution sans chercher à approfondir". Intensifs — pas de surenchère d'adverbes/adjectifs d'insistance : JAMAIS "manque nettement de" (dire "manque de"), JAMAIS "investissement réel" / "réel investissement" / "véritable investissement" accolés à un manque ; au maximum UN intensif ("nettement", "réel", "véritable", "vraiment", "réellement") par phrase, et seulement s'il apporte quelque chose. Ex. à éviter : "manque nettement d'approfondissement et d'investissement réel dans les apprentissages" → écrire "manque d'approfondissement et d'investissement dans les apprentissages". Ponctuation — un point entre chaque proposition complète, jamais deux phrases collées sans point ("...l'année prochaine. Il en a les capacités." pas "...prochaine il en a").
+8c. CORRECTION LINGUISTIQUE (vérifications rapides) : Mots interdits — "davantée"→"davantage", "investissement"≠"implication", aucun mot inventé. Élision — "que"/"de" + consonne = PAS d'élision ("que Mathis", "de Lilou") ; "qu'"/"d'" seulement devant voyelle/h muet ("qu'il", "d'Inès"). Subjonctif après "bien que"/"quoique" ("bien que ce soit", pas "bien que c'est") — en cas de doute, "même si"+indicatif. Connecteurs — jamais "La même chose est remarqué(e) avec..." (nommer le sujet directement). Enchaînement — pas d'accumulation de constats juxtaposés par des virgules ou un deux-points ("Son travail demeure insuffisant, en deçà de ses capacités, et les difficultés s'installent…", "Son investissement reste insuffisant : …") : relier les idées par un lien de cause/conséquence ou les répartir en phrases distinctes ; au maximum deux éléments coordonnés par phrase. Collocations — JAMAIS "investissement en surface", "investissement superficiel", "son investissement reste en surface" (un investissement n'a pas de surface : calque non idiomatique). Dire plutôt : "il/elle s'investit peu", "il/elle se contente du minimum", "le travail manque d'approfondissement", "il/elle reste dans l'exécution sans chercher à approfondir". Intensifs — pas de surenchère d'adverbes/adjectifs d'insistance : JAMAIS "manque nettement de" (dire "manque de"), JAMAIS "investissement réel" / "réel investissement" / "véritable investissement" accolés à un manque ; au maximum UN intensif ("nettement", "réel", "véritable", "vraiment", "réellement") par phrase, et seulement s'il apporte quelque chose. Ex. à éviter : "manque nettement d'approfondissement et d'investissement réel dans les apprentissages" → écrire "manque d'approfondissement et d'investissement dans les apprentissages". Ponctuation — un point entre chaque proposition complète, jamais deux phrases collées sans point ("...l'année prochaine. Il en a les capacités." pas "...prochaine il en a").
 8j. "${citetEleve}" = EXPRESSION RARE/EXCEPTIONNELLE — privilégier dans l'ordre : (1) le PRÉNOM (jusqu'à 2 fois si naturel), (2) le pronom "${st.gender==='F'?'elle':'il'}", (3) le sujet implicite ("Son travail...", "Ses résultats..."). "${citetEleve}" n'est utilisée QUE dans des cas spécifiques où elle apporte quelque chose : en ouverture avec un qualificatif ("${citetEleve==='cette élève'?'Cette élève sérieuse et appliquée':'Cet élève sérieux et appliqué'}, ...") ou pour marquer une rupture de sujet très nette. En dehors de ces cas, "${citetEleve}" sonne moins naturel que le prénom ou le pronom — NE JAMAIS l'utiliser plus d'une fois dans l'appréciation.
 8d. INTENSITÉ PROPORTIONNELLE — respecter le degré exact de la pill cochée. "Bavarde parfois" = mention légère ("quelques bavardages ponctuels"). JAMAIS amplifier en "rappels fréquents", "perturbe régulièrement", "problème récurrent" si ce n'est pas coché. "Bavardages incessants" = mention forte. "Parfois perturbateur/trice" ≠ "très perturbateur". Ne jamais aggraver ce qui est coché.
 8e. COHÉRENCE ENTRE PILLS — si "Réagit bien aux rappels" est coché avec "Bavarde parfois" → dire "quelques bavardages, mais réagit bien quand on le signale" — les rappels ne sont PAS fréquents. Si coché avec "Bavardages incessants" ou "Très perturbateur" → "malgré des rappels fréquents nécessaires". La fréquence des rappels dépend de la sévérité du comportement coché.
@@ -5014,6 +5023,7 @@ ${checkedConseilsActionable.length ? (() => {
   out += '\n  • "Il faudra '+(actionsLower[0]||'approfondir le travail')+(actionsLower[1]?' et '+actionsLower[1]:'')+' '+g1+'."';
   out += '\n  • "Il/elle devra '+(actionsLower[0]||"s'investir davantage")+' '+g2+(checkedPos.length>checkedNeg.length?', il/elle en a les capacités.':'.')+'"';
   if(redLower) out += '\n  • "'+redLower.charAt(0).toUpperCase()+redLower.slice(1)+' sera essentiel '+g3+'."';
+  out += '\nMAXIMUM DEUX ACTIONS dans la phrase finale, reliées par "et" ou par un lien logique ("revoir les bases pour reprendre confiance") — JAMAIS une liste de trois actions à la virgule ("revoir les bases, gagner en concentration et approfondir son travail"). Si plus de deux conseils sont cochés, garder les deux plus importants. Un point déjà développé dans le corps (ex : la concentration) n\'a pas besoin d\'être répété dans la conclusion.';
   if(mg) out += '\nFIN DE PHRASE À VARIER (période intermédiaire) : ne pas terminer systématiquement par "la suite de l\'année". Une fin simple sans repère temporel ("pour progresser davantage", "pour consolider ses acquis", "pour gagner en assurance") est souvent la plus naturelle.';
   out += '\nNE PAS systématiquement référencer "les conseils du trimestre précédent" — si l\'espace est compté, SAUTE cette référence au passé et UTILISE la place pour la conclusion ci-dessus, qui est PLUS IMPORTANTE.';
   out += '\nTa réponse est INVALIDE si elle se termine par un simple constat (ex: "...manque de maturité évident.", "...n\'ont pas été suivis d\'effet.") sans une phrase de ce type après.';
@@ -5574,7 +5584,7 @@ async function genOne(sid){
       if(realName) finalTxt=finalTxt.replace(/Alex/g, realName);
     }
     ta.value=finalTxt;
-    addMem(S.active,finalTxt); saveCmt(sid,finalTxt); updCC(sid,finalTxt);
+    addMem(S.active,finalTxt,st); saveCmt(sid,finalTxt); updCC(sid,finalTxt);
     incrementGenCount(1);
     updateGenCounter();
     renderStudentList();
@@ -5670,14 +5680,7 @@ async function generateAll(){
         let txt=(d.choices?.[0]?.message?.content||'').replace(/\n+/g,' ').trim();
         if(!txt) throw new Error('empty response');
         txt=fitToLimit(txt, cls.charLimit||750);
-        // RGPD swap — replace placeholder with real name
-        if(cls.useName && st.name){
-          const parts=st.name.trim().split(/\s+/);
-          let realName=parts.find(p=>p!==p.toUpperCase()&&p.length>1);
-          if(!realName) realName=parts[parts.length-1];
-          if(realName) realName=realName.charAt(0).toUpperCase()+realName.slice(1).toLowerCase();
-          if(realName) txt=txt.replace(/Alex/g, realName);
-        }
+        // (le remplacement "Alex" → vrai prénom est fait plus bas, APRÈS le filet de sécurité, pour que le vrai prénom ne parte jamais à l'IA)
 
         // FILET DE SÉCURITÉ — CONCLUSION : même logique que genOne, adaptée au mode bulk.
         const {checkedConseilsActionable, checkedConseilsRed, checkedNeg:cNeg, checkedPos:cPos}=buildPromptMeta(st,cls);
@@ -5722,14 +5725,6 @@ async function generateAll(){
                 fixed=fitToLimit(fixed, cls.charLimit||750);
                 if(fixed && fixed.length>50){
                   txt=fixed;
-                  // Re-apply RGPD swap in case the fix call reintroduced the placeholder
-                  if(cls.useName && st.name){
-                    const parts2=st.name.trim().split(/\s+/);
-                    let realName2=parts2.find(p=>p!==p.toUpperCase()&&p.length>1);
-                    if(!realName2) realName2=parts2[parts2.length-1];
-                    if(realName2) realName2=realName2.charAt(0).toUpperCase()+realName2.slice(1).toLowerCase();
-                    if(realName2) txt=txt.replace(/Alex/g, realName2);
-                  }
                 }
               }
               tokensThisMinute+=TOKENS_PER_FIXCALL;
@@ -5740,12 +5735,14 @@ async function generateAll(){
           }
         }
 
+        // RGPD swap — "Alex" → vrai prénom, une seule fois, juste avant l'enregistrement
+        if(cls.useName && st.name){const rn=realFirstName(st); if(rn) txt=txt.replace(/Alex/g, rn);}
         // Save immediately to state
         if(!st.comments)st.comments={};
         if(!st.commentTs)st.commentTs={};
         st.comments[S.period]=txt;
         st.commentTs[S.period]=Date.now();
-        addMem(S.active,txt);
+        addMem(S.active,txt,st);
         // Update DOM if visible
         const ta=document.getElementById('bta-'+sid);
         if(ta){ta.classList.remove('gen');ta.value=txt;}
@@ -5797,15 +5794,17 @@ async function genBulk(sid){
   try{
     const seed=STYLE_SEEDS[Math.floor(Math.random()*STYLE_SEEDS.length)];
     const raw=await callClaude(buildPrompt(st,cls,S.period,seed,sampMem(S.active)), 3, true);
-    const txt=fitToLimit(raw.replace(/\n+/g,' ').trim(), cls.charLimit||750);
+    let txt=fitToLimit(raw.replace(/\n+/g,' ').trim(), cls.charLimit||750);
     if(!txt) throw new Error('empty text after processing');
+    // RGPD swap — remplacer "Alex" par le vrai prénom (manquait sur le bouton ↻)
+    if(cls.useName && st.name){const rn=realFirstName(st); if(rn) txt=txt.replace(/Alex/g, rn);}
     // Save directly to state — don't depend on DOM being intact
     if(!st.comments)st.comments={};
     if(!st.commentTs)st.commentTs={};
     st.comments[S.period]=txt;
     st.commentTs[S.period]=Date.now();
     save();
-    addMem(S.active,txt);
+    addMem(S.active,txt,st);
     // Update DOM if textarea still exists (may have been re-rendered)
     const taFresh=document.getElementById('bta-'+sid);
     if(taFresh){taFresh.classList.remove('gen');taFresh.value=txt;}
