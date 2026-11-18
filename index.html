@@ -949,7 +949,7 @@ body{font-family:'DM Sans',sans-serif;font-weight:300;background:var(--bg);color
       <option value="note">Note sur 20</option>
       <option value="niveau">Niveau (Excellent → Très insuffisant)</option>
       <option value="competence">Compétences (4 niveaux)</option>
-      <option value="mix">Mixte (niveau + compétences)</option>
+      <option value="mix">Mixte (notes + compétences)</option>
     </select>
     <div class="mo-lbl">Nombre d'élèves (génération automatique des numéros)</div>
     <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px">
@@ -1091,7 +1091,7 @@ body{font-family:'DM Sans',sans-serif;font-weight:300;background:var(--bg);color
       <option value="note">Note sur 20</option>
       <option value="niveau">Niveau (Excellent → Très insuffisant)</option>
       <option value="competence">Compétences (4 niveaux)</option>
-      <option value="mix">Mixte (niveau + compétences)</option>
+      <option value="mix">Mixte (notes + compétences)</option>
     </select>
     <div class="mo-lbl">Limite de caractères par appréciation</div>
     <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px">
@@ -3656,7 +3656,13 @@ function openNewClass(){
   document.getElementById('nc-usename').checked=false;
   document.getElementById('nc-noje').checked=false;
   document.getElementById('nc-year').value='';
-  buildSubjectDropdown(document.getElementById('nc-subj'), '');
+  // Matière pré-sélectionnée : la dernière choisie, sinon la plus fréquente parmi les classes existantes
+  let lastSubj=''; try{lastSubj=localStorage.getItem('bp3_last_subj')||'';}catch(e){}
+  if(!lastSubj){const cnt={};Object.values(S.classes||{}).forEach(c=>{if(c.subject)cnt[c.subject]=(cnt[c.subject]||0)+1;});lastSubj=Object.keys(cnt).sort((a,b)=>cnt[b]-cnt[a])[0]||'';}
+  if(lastSubj&&!SUBJECTS[lastSubj])lastSubj='';
+  const ncSubj=document.getElementById('nc-subj');
+  buildSubjectDropdown(ncSubj, '');
+  if(lastSubj&&[...ncSubj.options].some(o=>o.value===lastSubj)) ncSubj.value=lastSubj;
   document.getElementById('mo-cls').classList.add('open');
   toggleLV('nc');
   setTimeout(()=>document.getElementById('nc-name').focus(),80);
@@ -3665,6 +3671,7 @@ function closeMo(id){document.getElementById(id).classList.remove('open');}
 function createClass(){
   const name=document.getElementById('nc-name').value.trim(); if(!name)return;
   const subject=document.getElementById('nc-subj').value;
+  try{if(subject)localStorage.setItem('bp3_last_subj',subject);}catch(e){}
   const langLevel=SUBJECTS[subject]?.type==='lang'?(document.querySelector('input[name="nc-lv"]:checked')?.value||'LV1'):null;
   const customLangName=subject==='autrelangue'?(document.getElementById('nc-customlang').value.trim()||''):'';
   const periodType=document.querySelector('input[name="nc-period"]:checked').value;
@@ -4325,14 +4332,13 @@ function renderEditor(id){
 
 function renderEvalInput(cls,st){
   const ev=cls.evalType;
-  if(ev==='note'){
-    return `<div style="display:flex;align-items:center;gap:7px"><span style="font-size:.78rem;color:var(--muted)">Moyenne :</span><input class="grade-inp" value="${getStGrade(st)}" placeholder="—" onchange="setSGrade('${st.id}',this.value)"><span style="font-size:.75rem;color:var(--muted)">/20</span></div>`;
+  if(ev==='note'||ev==='mix'){
+    return (ev==='mix'?'<div style="display:flex;flex-direction:column;gap:6px">':'')+`<div style="display:flex;align-items:center;gap:7px"><span style="font-size:.78rem;color:var(--muted)">Moyenne :</span><input class="grade-inp" value="${getStGrade(st)}" placeholder="—" onchange="setSGrade('${st.id}',this.value)"><span style="font-size:.75rem;color:var(--muted)">/20</span></div>`+(ev==='mix'?renderCompetences(st)+'</div>':'');
   }
-  if(ev==='niveau'||ev==='mix'){
+  if(ev==='niveau'){
     const levels=[['excellent','Excellent'],['bien','Bien'],['satisfaisant','Satisfaisant'],['fragile','Fragile','lv-fragile'],['insuffisant','Insuffisant','lv-insuf']];
     const btns=levels.map(([v,l,extra])=>`<button class="lvl-btn ${extra||''} ${st.level===v?'active':''}" onclick="setSLevel('${st.id}','${v}',this)">${l}</button>`).join('');
     let out=`<div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap"><span style="font-size:.78rem;color:var(--muted)">Niveau :</span><div class="level-row">${btns}</div></div>`;
-    if(ev==='mix') out+=renderCompetences(st);
     return out;
   }
   if(ev==='competence'){return renderCompetences(st);}
@@ -4696,8 +4702,8 @@ function buildPrompt(st,cls,period,seed,memSamp){
   const richProfile=thematicCount>=6;
   let evalCtx='';
   const _grade=getStGrade(st); const _level=getStLevel(st); const _comps=getStComps(st);
-  if(cls.evalType==='note'&&_grade) evalCtx=`Moyenne : ${_grade}/20. `;
-  if((cls.evalType==='niveau'||cls.evalType==='mix')&&_level) evalCtx+=`Niveau : ${_level}. `;
+  if((cls.evalType==='note'||cls.evalType==='mix')&&_grade) evalCtx=`Moyenne : ${_grade}/20. `;
+  if(cls.evalType==='niveau'&&_level) evalCtx+=`Niveau : ${_level}. `;
   if((cls.evalType==='competence'||cls.evalType==='mix')&&_comps?.global){
     const compLabels={'maitrise':'Maîtrisé','partiellement':'Partiellement maîtrisé','en_cours':'En cours','non_maitrise':'Non maîtrisé'};
     evalCtx+=`Compétences : ${compLabels[_comps.global]||_comps.global}. `;
@@ -6057,7 +6063,7 @@ function exportPDF(){
     const name=st.name||`Élève n°${st.num}`;
     const genre=st.gender==='M'?'M.':'Mme';
     let evalCell='';
-    if(cls.evalType==='note'&&st.grade){
+    if((cls.evalType==='note'||cls.evalType==='mix')&&st.grade){
       const n=parseFloat(st.grade);
       const col=n>=14?'#10b981':n>=10?'#6B2FD9':n>=8?'#f59e0b':'#ef4444';
       evalCell=`<td style="${tdStyle};width:55px;text-align:center"><span style="font-weight:700;font-size:13px;color:${col}">${st.grade}</span><span style="font-size:9px;color:#9ca3af">/20</span></td>`;
@@ -6147,7 +6153,7 @@ function exportPDF(){
   </div>
   <div class="info-card">
     <div class="info-card-label">Évaluation</div>
-    <div class="info-card-value">${{note:'Notes /20',niveau:'Niveaux',competence:'Compétences',mix:'Mixte'}[cls.evalType]||cls.evalType}</div>
+    <div class="info-card-value">${{note:'Notes /20',niveau:'Niveaux',competence:'Compétences',mix:'Mixte (notes + compétences)'}[cls.evalType]||cls.evalType}</div>
   </div>
 </div>
 
@@ -6161,7 +6167,7 @@ ${avg?`<div class="stats-bar">
     <tr>
       <th style="width:28px">N°</th>
       <th style="width:130px">Élève</th>
-      <th style="width:55px">${cls.evalType==='note'?'Note':'Niveau'}</th>
+      <th style="width:55px">${cls.evalType==='note'||cls.evalType==='mix'?'Note':'Niveau'}</th>
       <th>Appréciation du professeur</th>
     </tr>
   </thead>
