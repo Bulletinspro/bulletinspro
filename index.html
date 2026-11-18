@@ -6934,7 +6934,7 @@ const GG_F=new Set(('marie emma lea lucie camille alice chloe julie sarah laura 
 'constance delphine diane edith emeline erine eugenie gwenaelle gwendoline ilona irene jacqueline josiane jules? kim? klara '+
 'lilia liv livia lizie louisa louison lucia ludmila maddie maelle mae malia manel maria marina marwa maud maxine meline mina '+
 'mylene nais nadine naelia nelly nina ninon noa? nola paloma paula pia raphaelle rosalie rose sabrina sacha? samia sasha? selena '+
-'shana shaina sixtine soline soraya tess tessa thais thea theane tina tiana timea valeria valerie vanessa vera violette yna yuna zelie zoé').split(/\s+/).filter(w=>w&&!w.endsWith('?')).map(w=>ggNorm(w)));
+'anabelle anabel annabel albane siloe maelyne maeline maelyn eline eloane loane loana louanne romy maylis manoe ambrine aelys elyne kathleen cathy kathy katy allana alana alanna lana ilona nolwenn maiwenn gwenn katell cindy wendy mandy lindsay nancy tiffany jenny sandy lucy daisy maddy shirley ashley emily molly lily kelly maelly nelly elly ellie shana shaina sixtine soline soraya tess tessa thais thea theane tina tiana timea valeria valerie vanessa vera violette yna yuna zelie zoé').split(/\s+/).filter(w=>w&&!w.endsWith('?')).map(w=>ggNorm(w)));
 const GG_M=new Set(('lucas louis gabriel leo raphael arthur jules adam hugo maël mael noah paul liam ethan nathan tom theo timeo sacha? '+
 'mathis matheo mathys mateo enzo nolan axel evan ewan aaron antoine alexandre alexis adrien augustin baptiste basile benjamin bastien '+
 'clement come corentin damien dylan eliott eliot elias elie emile esteban etienne felix florian francois gaspard gauthier guillaume '+
@@ -6952,9 +6952,9 @@ const GG_M=new Set(('lucas louis gabriel leo raphael arthur jules adam hugo maë
 'gaetan gaston georges hector henri hippolyte ian ivan jade? jason joachim joan johan jonas jonathan josue jude kais kenzo '+
 'kenan lazare leandre lenaic leny lino lois louka luka lukas mahe marin mattheo matthis maximilien melvin milan mylan nils '+
 'noa? octave owen pablo patrice philemon raphaël sandro silvio soan sohan stanislas swan teo theodore tiago timothee titouan '+
-'ugo victorien virgile wael warren wesley wilson yoann zacharie zayn').split(/\s+/).filter(w=>w&&!w.endsWith('?')).map(w=>ggNorm(w)));
+'joe luca joshua mattia nikola mustapha moustapha yahya taha oussama ilya teddy jimmy tony remy johnny freddy willy eddy timothy billy harry henry jeremie ugo victorien virgile wael warren wesley wilson yoann zacharie zayn').split(/\s+/).filter(w=>w&&!w.endsWith('?')).map(w=>ggNorm(w)));
 function ggNorm(w){return w.normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z]/g,'');}
-function guessGender(name){
+function guessGender(name,allowEnding=true){
   if(!name)return null;
   let words=name.trim().split(/\s+/).filter(Boolean);
   // Les mots tout en MAJUSCULES sont en général le NOM de famille (export Pronote) — on les ignore s'il reste un prénom.
@@ -6965,20 +6965,28 @@ function guessGender(name){
     const first=ggNorm(w.split('-')[0]); // prénom composé : Jean-Marie → jean, Marie-Lou → marie
     if(GG_F.has(first))votes.add('F'); else if(GG_M.has(first))votes.add('M');
   });
-  return votes.size===1?[...votes][0]:null;
+  if(votes.size===1)return [...votes][0];
+  if(votes.size>1||!allowEnding)return null;
+  // Prénom inconnu : indice par la terminaison, sur le PREMIER mot seulement (le prénom) — fiable surtout pour les filles.
+  const f=ggNorm((words[0]||'').split('-')[0]);
+  const GG_MIXED=['andrea','noa','elia','sacha','sasha','ilia','mika','nikita','elya'];
+  if(GG_MIXED.includes(f))return null;
+  if(f.length>=3&&/(a|ine|yne|elle|ette|ie|ise|oe)$/.test(f))return 'F';
+  return null;
 }
 
 // Corrige une classe existante : passe en F les élèves restés sur M (valeur par défaut) dont le prénom est clairement féminin.
 function autoGenderClass(){
   const cls=S.classes[S.active]; if(!cls)return;
   const toF=cls.students.filter(s=>s.gender!=='F'&&guessGender(s.name)==='F');
+  const probable=toF.filter(s=>guessGender(s.name,false)!=='F').map(s=>s.name);
   const unknown=cls.students.filter(s=>s.name&&!guessGender(s.name)).map(s=>s.name);
   const noName=cls.students.filter(s=>!s.name).length;
   let info='';
   if(unknown.length)info+=`\n\nPrénoms non reconnus (à vérifier à la main) : ${unknown.join(', ')}`;
   if(noName)info+=`\n\n${noName} élève(s) sans prénom : impossible à détecter.`;
   if(!toF.length){alert('Aucun changement à faire : les filles reconnues sont déjà en F.'+info);return;}
-  if(!confirm(`Passer en F (fille) : ${toF.map(s=>s.name).join(', ')} ?`+info))return;
+  if(!confirm(`Passer en F (fille) : ${toF.map(s=>s.name+(probable.includes(s.name)?' (probable)':'')).join(', ')} ?`+(probable.length?'\n\n« probable » = prénom deviné d\'après sa terminaison : vérifiez.':'')+info))return;
   toF.forEach(s=>s.gender='F');
   save(); renderStudentList(); if(S.student)renderEditor(S.student);
   toast(`${toF.length} élève(s) passé(s) en F`);
