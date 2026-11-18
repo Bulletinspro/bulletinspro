@@ -3901,6 +3901,7 @@ function renderStudentsView(content){
         <button class="sort-btn active" id="sort-num" onclick="setSortMode('num')">N°</button>
         <button class="sort-btn" id="sort-alpha" onclick="setSortMode('alpha')">A-Z</button>
         <button class="sort-btn" id="sort-status" onclick="setSortMode('status')">✓</button>
+        <button class="sort-btn" onclick="autoGenderClass()" title="Détecter filles / garçons d'après les prénoms">♀♂</button>
       </div>
       <div class="add-row" id="add-row" style="display:none">
         <div class="add-form">
@@ -3937,7 +3938,8 @@ function addStudent(){
   if(cls.students.find(s=>s.num===num)){toast('Numéro déjà utilisé');return;}
   const id='s'+Date.now();
   const sname=nameEl?nameEl.value.trim():'';
-  cls.students.push({id,num,name:sname,gender:newG,boxes:{},grade:'',level:'',comps:{},tone:null,orient:{on:false,level:1,path:'',note:''},comments:{}});
+  let g=newG; if(sname&&newG==='M'&&guessGender(sname)==='F'){g='F';setTimeout(()=>toast(`${sname} : enregistrée en F (prénom féminin)`),300);}
+  cls.students.push({id,num,name:sname,gender:g,boxes:{},grade:'',level:'',comps:{},tone:null,orient:{on:false,level:1,path:'',note:''},comments:{}});
   cls.students.sort((a,b)=>a.num-b.num);
   numEl.value=''; if(nameEl)nameEl.value='';
   save(); renderStudentList(); document.getElementById('sc').textContent=cls.students.length; selectStudent(id);
@@ -6905,6 +6907,74 @@ function extractFirstName(fullName, order){
   }
 }
 
+// ── DÉTECTION DU GENRE PAR LE PRÉNOM (100 % local, rien n'est envoyé) ──────
+// Renvoie 'F', 'M' ou null (prénom inconnu, mixte, ou indices contradictoires).
+const GG_F=new Set(('marie emma lea lucie camille alice chloe julie sarah laura manon jade ines amelie elodie oceane pauline mathilde charlotte anais '+
+'louise rose anna mia ambre lina julia zoe lena eva juliette agathe romane clemence margaux margot louna lola nina victoire adele iris lou '+
+'capucine apolline elise eloise heloise clara celia leonie lise maelle maelys maeva noemie oriane salome justine morgane melissa marine '+
+'emilie aurelie audrey celine sophie claire valentine victoria gabrielle josephine louane lyna lilou lily lilie lisa elsa ella elena '+
+'anaelle axelle estelle gaelle joelle noelle isaline mathilda olivia stella luna alicia leana leane leelou maily mailys maya naelle nell '+
+'clementine coralie cassandre cassandra flavie fanny faustine garance helena hortense jeanne jessica jennifer kelly laurine lorene lorena '+
+'lucile ludivine madeleine marion melanie melina melodie mila myriam naomi nora ophelie perrine prune rachel rebecca solene suzanne '+
+'tiphaine typhaine yael yasmine yasmina inaya aya maryam meriem myriem amira samira nadia nawel naila salma sana sanae sofia sofiane? '+
+'fatima fatoumata aicha aminata khadija hafsa hajar imane assia asma lamia layla leila leyla lyana lya elina alya aliya amina ambrine '+
+'kenza kahina dounia djeneba mariam marwa malak malika rania razane ranya rayane? hiba houda ikram sirine syrine chaima chayma ilana '+
+'jasmine jade? emy emmy enola eden? giulia gianna bianca chiara alessia beatriz beatrice ana joana joanna mariana ines? carolina '+
+'catarina sara daniela andreia leonor matilde lara diana alexandra alexia anastasia ania anya oksana nathalie sandrine stephanie '+
+'virginie veronique sylvie isabelle catherine christine helene nadege odile cecile agnes annabelle anne annie berenice blanche '+
+'constance delphine diane edith emeline erine eugenie gwenaelle gwendoline ilona irene jacqueline josiane jules? kim? klara '+
+'lilia liv livia lizie louisa louison lucia ludmila maddie maelle mae malia manel maria marina marwa maud maxine meline mina '+
+'mylene nais nadine naelia nelly nina ninon noa? nola paloma paula pia raphaelle rosalie rose sabrina sacha? samia sasha? selena '+
+'shana shaina sixtine soline soraya tess tessa thais thea theane tina tiana timea valeria valerie vanessa vera violette yna yuna zelie zoé').split(/\s+/).filter(w=>w&&!w.endsWith('?')).map(w=>ggNorm(w)));
+const GG_M=new Set(('lucas louis gabriel leo raphael arthur jules adam hugo maël mael noah paul liam ethan nathan tom theo timeo sacha? '+
+'mathis matheo mathys mateo enzo nolan axel evan ewan aaron antoine alexandre alexis adrien augustin baptiste basile benjamin bastien '+
+'clement come corentin damien dylan eliott eliot elias elie emile esteban etienne felix florian francois gaspard gauthier guillaume '+
+'gabin ilan ilyes ilyas isaac jean julien jeremy jordan joseph kevin kylian kilian killian leon lenny loan logan lorenzo loris lucien '+
+'malo marius martin marceau marc marco mathias mathieu matthieu maxence maxime milo nicolas noe noam oscar pierre quentin remi robin '+
+'romain ruben sami samuel sebastien simon thibault thibaut thomas tristan valentin victor vincent william xavier yanis yannis yann '+
+'yohan youssef younes yassine yacine ayoub amine anas bilal hamza ibrahim idriss ismael ismail karim mehdi mohamed mohammed mohamad '+
+'moussa mamadou ousmane souleymane sofiane soufiane walid wassim zakaria zakariya rayan rayane ryan imran issa omar othmane amir '+
+'aymen ayman nassim nael naim adem ali mustafa mostafa hassan hussein bryan brayan diego joao tiago thiago rafael pedro rodrigo '+
+'goncalo duarte diogo miguel nuno andre andrea? luca matteo lorenzo giovanni alessandro francesco antonio carlos manuel jose juan '+
+'david daniel dimitri anthony arnaud aurelien bruno cedric christophe christian cyril denis didier eric fabien fabrice franck '+
+'frederic gael gilles gregory herve jacques jerome laurent lionel loic ludovic marcel michel olivier pascal patrick philippe '+
+'raymond regis richard roger serge stephane sylvain thierry yves alban albert alix? amaury ambroise anatole andy angelo anton '+
+'armand arsene aurele balthazar benoit blaise boris calvin charles charlie? colin constant cyprien elio elouan erwan evann ezio '+
+'gaetan gaston georges hector henri hippolyte ian ivan jade? jason joachim joan johan jonas jonathan josue jude kais kenzo '+
+'kenan lazare leandre lenaic leny lino lois louka luka lukas mahe marin mattheo matthis maximilien melvin milan mylan nils '+
+'noa? octave owen pablo patrice philemon raphaël sandro silvio soan sohan stanislas swan teo theodore tiago timothee titouan '+
+'ugo victorien virgile wael warren wesley wilson yoann zacharie zayn').split(/\s+/).filter(w=>w&&!w.endsWith('?')).map(w=>ggNorm(w)));
+function ggNorm(w){return w.normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z]/g,'');}
+function guessGender(name){
+  if(!name)return null;
+  let words=name.trim().split(/\s+/).filter(Boolean);
+  // Les mots tout en MAJUSCULES sont en général le NOM de famille (export Pronote) — on les ignore s'il reste un prénom.
+  const notCaps=words.filter(w=>w!==w.toUpperCase()||w.length<=1);
+  if(notCaps.length)words=notCaps;
+  const votes=new Set();
+  words.forEach(w=>{
+    const first=ggNorm(w.split('-')[0]); // prénom composé : Jean-Marie → jean, Marie-Lou → marie
+    if(GG_F.has(first))votes.add('F'); else if(GG_M.has(first))votes.add('M');
+  });
+  return votes.size===1?[...votes][0]:null;
+}
+
+// Corrige une classe existante : passe en F les élèves restés sur M (valeur par défaut) dont le prénom est clairement féminin.
+function autoGenderClass(){
+  const cls=S.classes[S.active]; if(!cls)return;
+  const toF=cls.students.filter(s=>s.gender!=='F'&&guessGender(s.name)==='F');
+  const unknown=cls.students.filter(s=>s.name&&!guessGender(s.name)).map(s=>s.name);
+  const noName=cls.students.filter(s=>!s.name).length;
+  let info='';
+  if(unknown.length)info+=`\n\nPrénoms non reconnus (à vérifier à la main) : ${unknown.join(', ')}`;
+  if(noName)info+=`\n\n${noName} élève(s) sans prénom : impossible à détecter.`;
+  if(!toF.length){alert('Aucun changement à faire : les filles reconnues sont déjà en F.'+info);return;}
+  if(!confirm(`Passer en F (fille) : ${toF.map(s=>s.name).join(', ')} ?`+info))return;
+  toF.forEach(s=>s.gender='F');
+  save(); renderStudentList(); if(S.student)renderEditor(S.student);
+  toast(`${toF.length} élève(s) passé(s) en F`);
+}
+
 function parseImportLine(line, autoNum){
   line=line.trim();
   if(!line)return null;
@@ -6938,9 +7008,8 @@ function parseImportLine(line, autoNum){
   }
 
   // Auto-detect gender from common French first names ending
-  const fn=name.split(' ')[0]?.toLowerCase()||'';
-  const femNames=['marie','emma','lea','lucie','camille','alice','chloe','chloé','julie','sarah','laura','manon','jade','inès','ines','amelie','amélie','elodie','élodie','oceane','océane','pauline','mathilde','charlotte','anais','anaïs'];
-  if(femNames.includes(fn))gender='F';
+  // Genre non précisé dans la ligne → détection par le prénom
+  if(gender==='M'&&!/[,;]\s*(M|G|GARCON|GARÇON)\s*$/i.test(line)){const g=guessGender(name);if(g)gender=g;}
 
   return {num,name,gender};
 }
@@ -7843,6 +7912,7 @@ function doImportCPEStudents(){
       name=parts.join(' ').trim();
     }else{name=line.replace(/^(\d+)[.\s]+/,'').trim();}
     if(!name){skipped++;return;}
+    if(gender==='M'&&!/[,;\t]\s*M\s*$/.test(line)){const g=guessGender(name);if(g)gender=g;}
     if(nameOrder==='nom_prenom'&&name.split(' ').length>=2){const w=name.split(' ');name=w.slice(1).join(' ')+' '+w[0];}
     else if(nameOrder==='auto'){const words=name.split(' ');const allCaps=words.filter(w=>w===w.toUpperCase()&&w.length>1);if(allCaps.length){const nom=allCaps.join(' ');const prenom=words.filter(w=>w!==w.toUpperCase()||w.length<=1).join(' ');name=prenom?`${prenom} ${nom}`:nom;}}
     if(!num)num=(c.students.length||0)+added+1;
@@ -8507,6 +8577,7 @@ function doImportPPStudents(){
       name=line.replace(/^(\d+)[.\s]+/,'').trim();
     }
     if(!name){skipped++;return;}
+    if(gender==='M'&&!/[,;\t]\s*M\s*$/.test(line)){const g=guessGender(name);if(g)gender=g;}
     if(nameOrder==='nom_prenom'||nameOrder==='auto'){
       const words=name.split(' ');
       if(nameOrder==='auto'){
