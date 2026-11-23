@@ -949,7 +949,7 @@ body{font-family:'DM Sans',sans-serif;font-weight:300;background:var(--bg);color
       <option value="note">Note sur 20</option>
       <option value="niveau">Niveau (Excellent → Très insuffisant)</option>
       <option value="competence">Compétences (4 niveaux)</option>
-      <option value="mix">Mixte (notes + compétences)</option>
+      <option value="mix">Mixte (niveau + compétences)</option>
     </select>
     <div class="mo-lbl">Nombre d'élèves (génération automatique des numéros)</div>
     <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px">
@@ -1091,7 +1091,7 @@ body{font-family:'DM Sans',sans-serif;font-weight:300;background:var(--bg);color
       <option value="note">Note sur 20</option>
       <option value="niveau">Niveau (Excellent → Très insuffisant)</option>
       <option value="competence">Compétences (4 niveaux)</option>
-      <option value="mix">Mixte (notes + compétences)</option>
+      <option value="mix">Mixte (niveau + compétences)</option>
     </select>
     <div class="mo-lbl">Limite de caractères par appréciation</div>
     <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px">
@@ -2144,7 +2144,7 @@ const SUBJECT_BOXES = {
         {id:'ar1',l:'Créativité et sens artistique remarquables',v:'pos'},
         {id:'ar2',l:'Très bonne maîtrise des techniques plastiques',v:'pos'},
         {id:'ar3',l:'Réalisations soignées et originales',v:'pos'},
-        {id:'ar4',l:'Bon investissement dans les projets artistiques',v:'pos'},
+        {id:'ar4',l:'Bonne investissement dans les projets artistiques',v:'pos'},
         {id:'ar5',l:'Pratique satisfaisante',v:'neutral'},
         {id:'ar6',l:'Des progrès dans la maîtrise technique',v:'neutral'},
         {id:'ar7',l:'Manque de soin dans les réalisations',v:'neg'},
@@ -3198,6 +3198,7 @@ async function gdInit(){
       gdShowLoginScreen(false);
       gdSetStatus('syncing','Reconnexion…');
       await gdLoadFromDrive();
+      bpRefreshStatus();
       return;
     }catch(e){ localStorage.removeItem('bp3_gd'); }
   }
@@ -3224,6 +3225,7 @@ function gdAuth(){
         gdSetStatus('syncing','Connexion…');
         await gdFetchUserInfo();
         await gdLoadFromDrive();
+        bpRefreshStatus();
       }
     });
   }
@@ -3461,17 +3463,8 @@ function gdLogout(){
 // Phrase memory (session only)
 const mem = {}; // classId -> Set
 function getMem(cid){if(!mem[cid])mem[cid]=new Set();return mem[cid];}
-function realFirstName(st){
-  if(!st||!st.name)return '';
-  const parts=st.name.trim().split(/\s+/);
-  let n=parts.find(p=>p!==p.toUpperCase()&&p.length>1)||parts[parts.length-1]||'';
-  return n?n.charAt(0).toUpperCase()+n.slice(1).toLowerCase():'';
-}
-function addMem(cid,txt,st){
+function addMem(cid,txt){
   const m=getMem(cid);
-  // RGPD — la mémoire est renvoyée à l'IA : remettre le prénom réel en "Alex" avant de la stocker
-  const rn=realFirstName(st);
-  if(rn&&rn!=='Alex') txt=txt.split(rn).join('Alex');
   // Strip the first word if it looks like a name (capitalized, not a verdict word)
   const verdicts=['Excellent','Très','Bon','Trimestre','Un','Une','Cette','Cet','Il','Elle'];
   const words=txt.split(' ');
@@ -3479,7 +3472,7 @@ function addMem(cid,txt,st){
   const clean=words.slice(startIdx).join(' ');
   for(let i=0;i<clean.split(' ').length-3;i++){const w=clean.split(' ');m.add(w.slice(i,i+4).join(' ').toLowerCase());}
 }
-function sampMem(cid){const arr=[...getMem(cid)].filter(x=>!x.includes('alex'));if(!arr.length)return '';return arr.sort(()=>.5-Math.random()).slice(0,10).join(' | ');}
+function sampMem(cid){const arr=[...getMem(cid)];if(!arr.length)return '';return arr.sort(()=>.5-Math.random()).slice(0,10).join(' | ');}
 
 // ── BOOT — deferred; full init runs after all PP code is defined ──────────────
 load();
@@ -3656,13 +3649,7 @@ function openNewClass(){
   document.getElementById('nc-usename').checked=false;
   document.getElementById('nc-noje').checked=false;
   document.getElementById('nc-year').value='';
-  // Matière pré-sélectionnée : la dernière choisie, sinon la plus fréquente parmi les classes existantes
-  let lastSubj=''; try{lastSubj=localStorage.getItem('bp3_last_subj')||'';}catch(e){}
-  if(!lastSubj){const cnt={};Object.values(S.classes||{}).forEach(c=>{if(c.subject)cnt[c.subject]=(cnt[c.subject]||0)+1;});lastSubj=Object.keys(cnt).sort((a,b)=>cnt[b]-cnt[a])[0]||'';}
-  if(lastSubj&&!SUBJECTS[lastSubj])lastSubj='';
-  const ncSubj=document.getElementById('nc-subj');
-  buildSubjectDropdown(ncSubj, '');
-  if(lastSubj&&[...ncSubj.options].some(o=>o.value===lastSubj)) ncSubj.value=lastSubj;
+  buildSubjectDropdown(document.getElementById('nc-subj'), '');
   document.getElementById('mo-cls').classList.add('open');
   toggleLV('nc');
   setTimeout(()=>document.getElementById('nc-name').focus(),80);
@@ -3671,7 +3658,6 @@ function closeMo(id){document.getElementById(id).classList.remove('open');}
 function createClass(){
   const name=document.getElementById('nc-name').value.trim(); if(!name)return;
   const subject=document.getElementById('nc-subj').value;
-  try{if(subject)localStorage.setItem('bp3_last_subj',subject);}catch(e){}
   const langLevel=SUBJECTS[subject]?.type==='lang'?(document.querySelector('input[name="nc-lv"]:checked')?.value||'LV1'):null;
   const customLangName=subject==='autrelangue'?(document.getElementById('nc-customlang').value.trim()||''):'';
   const periodType=document.querySelector('input[name="nc-period"]:checked').value;
@@ -3917,7 +3903,6 @@ function renderStudentsView(content){
         <button class="sort-btn active" id="sort-num" onclick="setSortMode('num')">N°</button>
         <button class="sort-btn" id="sort-alpha" onclick="setSortMode('alpha')">A-Z</button>
         <button class="sort-btn" id="sort-status" onclick="setSortMode('status')">✓</button>
-        <button class="sort-btn" onclick="autoGenderClass()" title="Détecter filles / garçons d'après les prénoms">♀♂</button>
       </div>
       <div class="add-row" id="add-row" style="display:none">
         <div class="add-form">
@@ -3954,8 +3939,7 @@ function addStudent(){
   if(cls.students.find(s=>s.num===num)){toast('Numéro déjà utilisé');return;}
   const id='s'+Date.now();
   const sname=nameEl?nameEl.value.trim():'';
-  let g=newG; if(sname&&newG==='M'&&guessGender(sname)==='F'){g='F';setTimeout(()=>toast(`${sname} : enregistrée en F (prénom féminin)`),300);}
-  cls.students.push({id,num,name:sname,gender:g,boxes:{},grade:'',level:'',comps:{},tone:null,orient:{on:false,level:1,path:'',note:''},comments:{}});
+  cls.students.push({id,num,name:sname,gender:newG,boxes:{},grade:'',level:'',comps:{},tone:null,orient:{on:false,level:1,path:'',note:''},comments:{}});
   cls.students.sort((a,b)=>a.num-b.num);
   numEl.value=''; if(nameEl)nameEl.value='';
   save(); renderStudentList(); document.getElementById('sc').textContent=cls.students.length; selectStudent(id);
@@ -4332,13 +4316,14 @@ function renderEditor(id){
 
 function renderEvalInput(cls,st){
   const ev=cls.evalType;
-  if(ev==='note'||ev==='mix'){
-    return (ev==='mix'?'<div style="display:flex;flex-direction:column;gap:6px">':'')+`<div style="display:flex;align-items:center;gap:7px"><span style="font-size:.78rem;color:var(--muted)">Moyenne :</span><input class="grade-inp" value="${getStGrade(st)}" placeholder="—" onchange="setSGrade('${st.id}',this.value)"><span style="font-size:.75rem;color:var(--muted)">/20</span></div>`+(ev==='mix'?renderCompetences(st)+'</div>':'');
+  if(ev==='note'){
+    return `<div style="display:flex;align-items:center;gap:7px"><span style="font-size:.78rem;color:var(--muted)">Moyenne :</span><input class="grade-inp" value="${getStGrade(st)}" placeholder="—" onchange="setSGrade('${st.id}',this.value)"><span style="font-size:.75rem;color:var(--muted)">/20</span></div>`;
   }
-  if(ev==='niveau'){
+  if(ev==='niveau'||ev==='mix'){
     const levels=[['excellent','Excellent'],['bien','Bien'],['satisfaisant','Satisfaisant'],['fragile','Fragile','lv-fragile'],['insuffisant','Insuffisant','lv-insuf']];
     const btns=levels.map(([v,l,extra])=>`<button class="lvl-btn ${extra||''} ${st.level===v?'active':''}" onclick="setSLevel('${st.id}','${v}',this)">${l}</button>`).join('');
     let out=`<div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap"><span style="font-size:.78rem;color:var(--muted)">Niveau :</span><div class="level-row">${btns}</div></div>`;
+    if(ev==='mix') out+=renderCompetences(st);
     return out;
   }
   if(ev==='competence'){return renderCompetences(st);}
@@ -4602,10 +4587,6 @@ function buildPromptMeta(st,cls){
   return {checkedNeg, checkedPos, checkedConseilsActionable, checkedConseilsRed};
 }
 
-// Fins de conclusion variées pour les périodes intermédiaires (T1/T2, S1) — tirées au hasard à chaque génération.
-const MID_GOALS=["pour progresser davantage","pour progresser","afin de progresser durablement","pour consolider ses acquis","pour gagner en assurance","pour atteindre un niveau plus solide","pour tirer pleinement parti de ses capacités","pour aborder la suite de l'année dans de meilleures conditions","pour la suite de l'année"];
-function pickMidGoals(n){const a=[...MID_GOALS].sort(()=>Math.random()-.5);return a.slice(0,n);}
-
 function buildPrompt(st,cls,period,seed,memSamp){
   const allBoxes=getSubjectBoxes(cls.subject, cls.langLevel, cls.classYear);
   const checkedPos=[], checkedNeg=[], checkedNeutral=[], checkedConseils=[], checkedConseilsRed=[], checkedConseilsActionable=[];
@@ -4653,8 +4634,7 @@ function buildPrompt(st,cls,period,seed,memSamp){
   const pLabel=cls.periodType==='semestre'?`semestre ${period}`:`trimestre ${period}`;
   const isRedouble = !!(st.redoublement && st.redoublement[period]);
   const nextYearLabel = NEXT_YEAR_LABEL[cls.classYear];
-  const isFinalPeriod = (cls.periodType==='semestre' && period===2) || (cls.periodType!=='semestre' && period===3);
-  const nextYearInfo = !isFinalPeriod ? '' : isRedouble
+  const nextYearInfo = isRedouble
     ? `\nREDOUBLEMENT ENVISAGÉ : la conclusion ne doit PAS évoquer "${nextYearLabel}" ni une progression de niveau — rester sur "l'année prochaine" de façon neutre, sans préciser la classe, ou évoquer un nouveau départ ("repartir sur de meilleures bases l'année prochaine").`
     : (nextYearLabel ? `\nNIVEAU SUIVANT : ${nextYearLabel}. Un professeur ne précise PAS systématiquement la classe suivante dans chaque conclusion — "l'année prochaine" générique suffit dans la majorité des cas. Réserver "${nextYearLabel}" UNIQUEMENT pour : (a) un profil nécessitant un vrai changement de dynamique (ex: "Le respect des règles sera essentiel pour bien aborder ${nextYearLabel}.") où nommer le niveau suivant donne du poids/de l'urgence, ou (b) un profil très positif où l'élève est clairement prêt(e) ("Elle est prête pour ${nextYearLabel}."). Pour un profil moyen/intermédiaire, "l'année prochaine" sans préciser le niveau reste préférable.` : '');
   const periodCtx=(cls.periodType==='semestre'?{
@@ -4702,8 +4682,8 @@ function buildPrompt(st,cls,period,seed,memSamp){
   const richProfile=thematicCount>=6;
   let evalCtx='';
   const _grade=getStGrade(st); const _level=getStLevel(st); const _comps=getStComps(st);
-  if((cls.evalType==='note'||cls.evalType==='mix')&&_grade) evalCtx=`Moyenne : ${_grade}/20. `;
-  if(cls.evalType==='niveau'&&_level) evalCtx+=`Niveau : ${_level}. `;
+  if(cls.evalType==='note'&&_grade) evalCtx=`Moyenne : ${_grade}/20. `;
+  if((cls.evalType==='niveau'||cls.evalType==='mix')&&_level) evalCtx+=`Niveau : ${_level}. `;
   if((cls.evalType==='competence'||cls.evalType==='mix')&&_comps?.global){
     const compLabels={'maitrise':'Maîtrisé','partiellement':'Partiellement maîtrisé','en_cours':'En cours','non_maitrise':'Non maîtrisé'};
     evalCtx+=`Compétences : ${compLabels[_comps.global]||_comps.global}. `;
@@ -4956,7 +4936,7 @@ ${conclusionReminder}
 PROFIL COMPLET (exhaustif — rien d'autre n'existe sur cet élève) :
 ${checked.length ? checked.map(i => '• ' + i).join('\n') : '• Profil standard'}
 
-COMMENT UTILISER CE PROFIL — IMPORTANT : ces éléments dessinent le PROFIL GLOBAL de l'élève à comprendre dans son ensemble, ce ne sont PAS des phrases à transcrire une par une. "Exhaustif" signifie seulement : ne rien INVENTER au-delà de ce qui est listé ici — ce n'est PAS une exigence que chaque ligne apparaisse littéralement dans le texte. Si plusieurs observations cochées décrivent un MÊME trait avec des nuances proches (ex: "bavarde parfois" + "dissipé" + "se laisse distraire facilement"), elles indiquent ensemble l'INTENSITÉ de ce trait — à exprimer UNE SEULE FOIS avec le degré approprié, pas comme plusieurs mentions séparées qui sonneraient redondantes. Ce qui compte : que le PROFIL GLOBAL (sévérité, tendances dominantes, équilibre positif/négatif) soit fidèlement représenté dans un texte fluide et naturel — pas que chaque pill cochée ait sa phrase dédiée. OBSERVATIONS PERSONNELLES DE L'ENSEIGNANT (formulées librement, souvent dans un style oral, ex : "absence d'effort en classe avec comme excuse perpétuelle de ne rien comprendre") : elles sont PRÉCIEUSES car elles rendent l'appréciation personnelle — GARDER leur idée précise (ici : l'élève se réfugie derrière le fait de ne pas comprendre), mais la REFORMULER en français écrit de bulletin et l'intégrer naturellement à la phrase, sans recopier mot pour mot. Ex : "Il se retranche trop souvent derrière le fait de ne pas comprendre au lieu de chercher à progresser."
+COMMENT UTILISER CE PROFIL — IMPORTANT : ces éléments dessinent le PROFIL GLOBAL de l'élève à comprendre dans son ensemble, ce ne sont PAS des phrases à transcrire une par une. "Exhaustif" signifie seulement : ne rien INVENTER au-delà de ce qui est listé ici — ce n'est PAS une exigence que chaque ligne apparaisse littéralement dans le texte. Si plusieurs observations cochées décrivent un MÊME trait avec des nuances proches (ex: "bavarde parfois" + "dissipé" + "se laisse distraire facilement"), elles indiquent ensemble l'INTENSITÉ de ce trait — à exprimer UNE SEULE FOIS avec le degré approprié, pas comme plusieurs mentions séparées qui sonneraient redondantes. Ce qui compte : que le PROFIL GLOBAL (sévérité, tendances dominantes, équilibre positif/négatif) soit fidèlement représenté dans un texte fluide et naturel — pas que chaque pill cochée ait sa phrase dédiée.
 ${checkedNeg.length
   ? '\n⚠️ POINTS NÉGATIFS — les THÈMES suivants doivent transparaître dans le texte (regrouper les observations similaires en une seule formulation par thème, cf. règle ci-dessus) : '+checkedNeg.join(' | ')
   : '\n⛔ AUCUN défaut coché → INTERDITS : bavardage, distraction, difficulté, lacune.'}
@@ -4991,7 +4971,7 @@ RÈGLES DE SYNTHÈSE — OBLIGATOIRES :
 8b. CLICHÉS INTERDITS — ne jamais écrire : "ambiance de classe", "bonne ambiance en classe", "atmosphère de classe" sauf si explicitement coché. Ne pas inventer de contexte sur la classe. INTERDIT EN MILIEU DE TEXTE COMME CONNECTEUR VAGUE, sous toute conjugaison : "Il est/va être/sera désormais essentiel que/de [...]", "Il est/va être impératif que/de", "Il est/va être indispensable que/de", "Il est/va être nécessaire de/que", "Il est/va être important de/que", "impérativement", "doit impérativement", "dès le prochain ${per}", "pour le prochain ${per}" — trop impersonnel et lourd comme TRANSITION générique entre deux idées. Préférer : "Il devra", "Il lui faudra", "Un effort s'impose", "La priorité est de".
 EXCEPTION — CONCLUSION FERME AVEC POINT PRÉCIS : "Il sera essentiel de [action SPÉCIFIQUE nommée]" RESTE AUTORISÉ comme PHRASE DE CONCLUSION FINALE (pas en milieu de texte), notamment avec un ton "ferme" et un conseil rouge — ex: "Le respect des règles sera essentiel pour bien aborder la 3e." La différence : INTERDIT = connecteur vague mi-texte ("Il est désormais essentiel que [transition]..."), AUTORISÉ = conclusion finale précise nommant le point exact à travailler.
 ÉGALEMENT INTERDITS en fin de phrase ou d'appréciation : "qu'il faut saluer", "à souligner", "à noter avec satisfaction", "ce qui est à saluer", "ce qui mérite d'être souligné", "qui mérite d'être salué(e)", "que l'on peut saluer" — trop ampoulés. Préférer une formulation directe : "C'est encourageant.", "C'est positif.", ou simplement énoncer le fait. INTERDIT ÉGALEMENT : "rendent son travail agréable à suivre", "rend le travail agréable à suivre" — collocation étrange, "agréable à suivre" ne s'applique pas au "travail" d'un élève. Pour exprimer qu'un élève est agréable grâce à sa bonne volonté/attitude, dire plutôt : "ce qui en fait un élève agréable à avoir en cours", "sa présence en cours est appréciable", ou simplement énoncer la qualité sans cette tournure ("fait preuve d'une bonne volonté sincère et d'une attitude respectueuse").
-8c. CORRECTION LINGUISTIQUE (vérifications rapides) : Mots interdits — "davantée"→"davantage", "investissement"≠"implication", aucun mot inventé. Élision — "que"/"de" + consonne = PAS d'élision ("que Mathis", "de Lilou") ; "qu'"/"d'" seulement devant voyelle/h muet ("qu'il", "d'Inès"). Subjonctif après "bien que"/"quoique" ("bien que ce soit", pas "bien que c'est") — en cas de doute, "même si"+indicatif. Connecteurs — jamais "La même chose est remarqué(e) avec..." (nommer le sujet directement). Enchaînement — pas d'accumulation de constats juxtaposés par des virgules ou un deux-points ("Son travail demeure insuffisant, en deçà de ses capacités, et les difficultés s'installent…", "Son investissement reste insuffisant : …") : relier les idées par un lien de cause/conséquence ou les répartir en phrases distinctes ; au maximum deux éléments coordonnés par phrase. Collocations — JAMAIS "investissement en surface", "investissement superficiel", "son investissement reste en surface" (un investissement n'a pas de surface : calque non idiomatique). Dire plutôt : "il/elle s'investit peu", "il/elle se contente du minimum", "le travail manque d'approfondissement", "il/elle reste dans l'exécution sans chercher à approfondir". Intensifs — pas de surenchère d'adverbes/adjectifs d'insistance : JAMAIS "manque nettement de" (dire "manque de"), JAMAIS la tournure "sans réel(le) X" / "sans véritable X" / "un réel manque de" (ex : "sans réel investissement", "sans réelle appropriation", "sans véritable implication") — dire simplement "sans chercher à aller plus loin", "sans approfondir", ou supprimer l'adjectif ; JAMAIS "investissement réel" accolé à un manque. Jargon de formation à éviter (les parents ne parlent pas ainsi) : le nom "appropriation" sous toute forme ("s'approprier" reste autorisé), et "les contenus" (dire "les notions", "le cours", "ce qui est vu en classe") ; ex. "appropriation des contenus", "maîtrise des contenus" → "sans chercher à aller plus loin", "sans approfondir les notions vues en cours" ; au maximum UN intensif ("nettement", "réel", "véritable", "vraiment", "réellement") par phrase, et seulement s'il apporte quelque chose. Ex. à éviter : "manque nettement d'approfondissement et d'investissement réel dans les apprentissages" → écrire "manque d'approfondissement et d'investissement dans les apprentissages". Ponctuation — un point entre chaque proposition complète, jamais deux phrases collées sans point ("...l'année prochaine. Il en a les capacités." pas "...prochaine il en a").
+8c. CORRECTION LINGUISTIQUE (vérifications rapides) : Mots interdits — "davantée"→"davantage", "investissement"≠"implication", aucun mot inventé. Élision — "que"/"de" + consonne = PAS d'élision ("que Mathis", "de Lilou") ; "qu'"/"d'" seulement devant voyelle/h muet ("qu'il", "d'Inès"). Subjonctif après "bien que"/"quoique" ("bien que ce soit", pas "bien que c'est") — en cas de doute, "même si"+indicatif. Connecteurs — jamais "La même chose est remarqué(e) avec..." (nommer le sujet directement). Ponctuation — un point entre chaque proposition complète, jamais deux phrases collées sans point ("...l'année prochaine. Il en a les capacités." pas "...prochaine il en a").
 8j. "${citetEleve}" = EXPRESSION RARE/EXCEPTIONNELLE — privilégier dans l'ordre : (1) le PRÉNOM (jusqu'à 2 fois si naturel), (2) le pronom "${st.gender==='F'?'elle':'il'}", (3) le sujet implicite ("Son travail...", "Ses résultats..."). "${citetEleve}" n'est utilisée QUE dans des cas spécifiques où elle apporte quelque chose : en ouverture avec un qualificatif ("${citetEleve==='cette élève'?'Cette élève sérieuse et appliquée':'Cet élève sérieux et appliqué'}, ...") ou pour marquer une rupture de sujet très nette. En dehors de ces cas, "${citetEleve}" sonne moins naturel que le prénom ou le pronom — NE JAMAIS l'utiliser plus d'une fois dans l'appréciation.
 8d. INTENSITÉ PROPORTIONNELLE — respecter le degré exact de la pill cochée. "Bavarde parfois" = mention légère ("quelques bavardages ponctuels"). JAMAIS amplifier en "rappels fréquents", "perturbe régulièrement", "problème récurrent" si ce n'est pas coché. "Bavardages incessants" = mention forte. "Parfois perturbateur/trice" ≠ "très perturbateur". Ne jamais aggraver ce qui est coché.
 8e. COHÉRENCE ENTRE PILLS — si "Réagit bien aux rappels" est coché avec "Bavarde parfois" → dire "quelques bavardages, mais réagit bien quand on le signale" — les rappels ne sont PAS fréquents. Si coché avec "Bavardages incessants" ou "Très perturbateur" → "malgré des rappels fréquents nécessaires". La fréquence des rappels dépend de la sévérité du comportement coché.
@@ -5015,22 +4995,16 @@ EXCEPTION — CONCLUSION FERME AVEC POINT PRÉCIS : "Il sera essentiel de [actio
 ${checkedConseilsActionable.length ? (() => {
   const isMixed = checkedPos.length>0 && checkedNeg.length>0;
   const actionsLower = checkedConseilsActionable.map(c => c.split('—')[0].trim()).map(c => c.charAt(0).toLowerCase()+c.slice(1));
-  const yearMention = !isFinalPeriod ? "la suite de l'année" : (isRedouble ? "l'année prochaine" : (nextYearLabel || "l'année prochaine"));
+  const yearMention = isRedouble ? "l'année prochaine" : (nextYearLabel || "l'année prochaine");
   const redLabel = checkedConseilsRed.length ? checkedConseilsRed[0].split('—')[0].trim() : null;
   const redLower = redLabel ? redLabel.charAt(0).toLowerCase()+redLabel.slice(1) : null;
   let out = '\n⛔ CONCLUSION OBLIGATOIRE — CONSEILS À TRAITER : '+checkedConseilsActionable.join(', ')+'.';
   if(isMixed) out += ' (PROFIL MIXTE pos+neg — cas où la conclusion est le plus souvent oubliée. Sois vigilant.)';
   if(checkedConseilsRed.length) out += '\n🔥 Conseil ROUGE/URGENT présent : "'+checkedConseilsRed[0]+'" — ce point doit être nommé fermement dans la conclusion (ton "'+tone+'").';
   out += '\nTA DERNIÈRE PHRASE DOIT ÊTRE UNE CONCLUSION SUR CE MODÈLE — adapte le gabarit suivant à 1-2 des conseils ci-dessus (ne les énumère pas tous mécaniquement, choisis les plus pertinents) :';
-  const mg = isFinalPeriod ? null : pickMidGoals(3);
-  const g1 = mg ? mg[0] : 'pour bien aborder '+yearMention;
-  const g2 = mg ? mg[1] : 'pour aborder '+yearMention+' avec de meilleures bases';
-  const g3 = mg ? mg[2] : 'pour bien aborder '+yearMention;
-  out += '\n  • "Il faudra '+(actionsLower[0]||'approfondir le travail')+(actionsLower[1]?' et '+actionsLower[1]:'')+' '+g1+'."';
-  out += '\n  • "Il/elle devra '+(actionsLower[0]||"s'investir davantage")+' '+g2+(checkedPos.length>checkedNeg.length?', il/elle en a les capacités.':'.')+'"';
-  if(redLower) out += '\n  • "'+redLower.charAt(0).toUpperCase()+redLower.slice(1)+' sera essentiel '+g3+'."';
-  out += '\nMAXIMUM DEUX ACTIONS dans la phrase finale, reliées par "et" ou par un lien logique ("revoir les bases pour reprendre confiance") — JAMAIS une liste de trois actions à la virgule ("revoir les bases, gagner en concentration et approfondir son travail"). Si plus de deux conseils sont cochés, garder les deux plus importants. Un point déjà développé dans le corps (ex : la concentration) n\'a pas besoin d\'être répété dans la conclusion.';
-  if(mg) out += '\nFIN DE PHRASE À VARIER (période intermédiaire) : ne pas terminer systématiquement par "la suite de l\'année". Une fin simple sans repère temporel ("pour progresser davantage", "pour consolider ses acquis", "pour gagner en assurance") est souvent la plus naturelle.';
+  out += '\n  • "Il faudra '+(actionsLower[0]||'approfondir le travail')+(actionsLower[1]?' et '+actionsLower[1]:'')+' pour bien aborder '+yearMention+'."';
+  out += '\n  • "Il/elle devra '+(actionsLower[0]||"s'investir davantage")+' pour aborder '+yearMention+' avec de meilleures bases'+(checkedPos.length>checkedNeg.length?', il/elle en a les capacités.':'.')+'"';
+  if(redLower) out += '\n  • "'+redLower.charAt(0).toUpperCase()+redLower.slice(1)+' sera essentiel pour bien aborder '+yearMention+'."';
   out += '\nNE PAS systématiquement référencer "les conseils du trimestre précédent" — si l\'espace est compté, SAUTE cette référence au passé et UTILISE la place pour la conclusion ci-dessus, qui est PLUS IMPORTANTE.';
   out += '\nTa réponse est INVALIDE si elle se termine par un simple constat (ex: "...manque de maturité évident.", "...n\'ont pas été suivis d\'effet.") sans une phrase de ce type après.';
   return out;
@@ -5083,6 +5057,61 @@ function fitToLimit(txt, limit){
 // Appels LLM via le proxy (la clé OpenRouter est uniquement côté serveur)
 const API_URL='https://bulletinspro-api.bulletinspro.workers.dev/';
 
+// ── COMPTE + QUOTAS CÔTÉ SERVEUR ──────────────────────────────────────────────
+// Le serveur (Worker) est la seule autorité : il vérifie le compte Google, le code d'accès
+// et les quotas. Ce qui est affiché ici n'est qu'un reflet de son état.
+const BPSRV={status:null,quotaShown:0,t:null};
+async function bpRefreshStatus(){
+  try{
+    if(!GD||!GD.accessToken)return;
+    const r=await apiFetch(API_URL+'me',{method:'GET'});
+    if(!r.ok)return;
+    BPSRV.status=await r.json();
+    if(typeof updateGenCounter==='function')updateGenCounter();
+  }catch(e){}
+}
+function bpRefreshSoon(){clearTimeout(BPSRV.t);BPSRV.t=setTimeout(bpRefreshStatus,1500);}
+async function apiFetch(url,opts){
+  opts=opts||{};
+  const mk=()=>{
+    const h=Object.assign({},opts.headers||{});
+    if(GD&&GD.accessToken)h['X-BP-Auth']='Bearer '+GD.accessToken;
+    return Object.assign({},opts,{headers:h});
+  };
+  let r=await fetch(url,mk());
+  if(r.status===401){
+    try{await gdSilentRefresh();r=await fetch(url,mk());}catch(e){}
+    if(r.status===401){toast('⚠️ Session Google expirée — reconnectez-vous');}
+  }
+  if(r.status===403){
+    try{
+      const j=await r.clone().json();
+      if(j&&j.error&&j.error.code==='quota'&&Date.now()-BPSRV.quotaShown>15000){
+        BPSRV.quotaShown=Date.now();
+        bpRefreshStatus();
+        showGenLimitModal();
+      }
+    }catch(e){}
+  }
+  if(r.ok&&url===API_URL)bpRefreshSoon(); // seulement après une génération (sinon boucle infinie avec /me)
+  return r;
+}
+async function bpRedeemCode(code){
+  code=(code||'').toUpperCase().trim();
+  if(!code){toast('❌ Saisissez un code');return false;}
+  let r,d;
+  try{
+    r=await apiFetch(API_URL+'redeem',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code})});
+    d=await r.json().catch(()=>({}));
+  }catch(e){toast('❌ Connexion impossible — réessayez');return false;}
+  if(!r.ok){toast('❌ '+((d.error&&d.error.message)||'Code invalide'));return false;}
+  BPSRV.status=d.status;
+  const st=d.status||{};
+  toast(st.owner?'✅ Accès propriétaire — illimité !':'✅ Code activé — '+(st.plan_label||'')+(st.expires_at?' (jusqu\'au '+new Date(st.expires_at*1000).toLocaleDateString('fr-FR')+')':''));
+  updateGenCounter();
+  return true;
+}
+
 // ── GENERATION COUNTER ────────────────────────────────────────────────────────
 const FREE_LIMIT = 25;        // Limite visiteurs sans code
 const BETA_LIMIT = 200;       // Limite bêta testeurs
@@ -5124,6 +5153,7 @@ function getGenCount(){
 function incrementGenCount(n=1){
   if(typeof gtag!=='undefined') gtag('event','appreciation_generated',{event_category:'engagement',event_label:'app',value:n});
   // Don't increment counter for owner — truly unlimited
+  if(BPSRV.status){bpRefreshSoon();}
   if(hasOwnerAccess()){updateGenCounter();return 0;}
   const c=getGenCount()+n;
   localStorage.setItem(GEN_COUNT_KEY,String(c));
@@ -5158,12 +5188,14 @@ function incrementGenCount(n=1){
 }
 
 function hasOwnerAccess(){ 
+  if(BPSRV.status) return !!BPSRV.status.owner;
   if(localStorage.getItem(OWNER_KEY)==='true') return true;
   // Restore from Drive if available
   if(S&&S._ownerAccess){localStorage.setItem(OWNER_KEY,'true');return true;}
   return false;
 }
 function hasBetaAccess(){ 
+  if(BPSRV.status) return false;
   if(!BETA_ACTIVE && localStorage.getItem(BETA_KEY)==='true') return true;
   // Restore from Drive if available
   if(S&&S._betaCode){
@@ -5174,6 +5206,7 @@ function hasBetaAccess(){
   return false;
 }
 function hasPaidAccess(){
+  if(BPSRV.status) return !!(BPSRV.status.active && !BPSRV.status.owner);
   if(!BETA_ACTIVE && localStorage.getItem(BETA_KEY)==='true'){
     // Check expiry for paid codes
     const expiry=localStorage.getItem('bp3_paid_expiry')||S?._paidExpiry;
@@ -5191,6 +5224,12 @@ function hasPaidAccess(){
 }
 
 function getRemainingGens(){
+  if(BPSRV.status){
+    const sv=BPSRV.status;
+    if(sv.owner) return Infinity;
+    if(sv.active) return sv.remaining;
+    return sv.free_remaining;
+  }
   if(hasOwnerAccess()) return Infinity;
   if(hasBetaAccess()) return Math.max(0, BETA_LIMIT - getGenCount());
   if(hasPaidAccess()) return Math.max(0, ANNUAL_LIMIT - getGenCount());
@@ -5213,7 +5252,7 @@ function showGenLimitModal(){
   const existing = document.getElementById('gen-limit-modal');
   if(existing) { existing.classList.add('open'); return; }
   const isPaid = hasPaidAccess();
-  const isStandardPlan = isPaid && ANNUAL_LIMIT <= 800;
+  const isStandardPlan = isPaid && (BPSRV.status ? /^std/.test(BPSRV.status.plan||'') : ANNUAL_LIMIT <= 800);
   const mo = document.createElement('div');
   mo.id = 'gen-limit-modal';
   mo.className = 'mo';
@@ -5223,7 +5262,7 @@ function showGenLimitModal(){
   html += '<div style="font-size:2rem;margin-bottom:12px">' + (isPaid ? '📊' : '🎓') + '</div>';
   html += '<div class="mo-t" style="margin-bottom:8px">' + (isPaid ? 'Quota atteint' : 'Limite gratuite atteinte') + '</div>';
   html += '<p style="font-size:.88rem;color:var(--muted);margin-bottom:16px">';
-  html += isPaid ? ('Vous avez utilise vos <strong>' + ANNUAL_LIMIT + ' generations</strong> pour cette annee scolaire.')
+  html += isPaid ? ('Vous avez utilise vos <strong>' + (BPSRV.status ? BPSRV.status.total : ANNUAL_LIMIT) + ' generations</strong> pour cette periode. Contactez bulletins.pro.app@gmail.com pour renouveler.')
                  : ('Vous avez utilise vos <strong>' + FREE_LIMIT + ' appreciations gratuites</strong>.');
   html += '</p>';
 
@@ -5277,57 +5316,10 @@ function showGenLimitModal(){
   }
 }
 
-function activateBetaCode(){
+async function activateBetaCode(){
   const input = document.getElementById('beta-code-input');
-  const code = input?.value?.toUpperCase().trim();
-  const OWNER_CODES = ['ALEX75'];
-  const BETA_CODES = ['TESTEUR1','TESTEUR2','TESTEUR3'];
-  const PAID_CODES = ['BP-7K2M','BP-9XQR','BP-4VBN','BP-3WQT','BP-8ZLF','BP-2YNK','BP-6RJP','BP-5HCX','BP-1GTD','BP-0MWS','BP2025PRO'];
-
-  if(OWNER_CODES.includes(code)){
-    localStorage.setItem(OWNER_KEY,'true');
-    localStorage.setItem(BETA_KEY,'true');
-    S._ownerAccess=true; S._betaCode=code; save();
-    document.getElementById('gen-limit-modal')?.classList.remove('open');
-    toast('✅ Accès propriétaire activé — illimité !');
-    updateGenCounter();
-  } else if(BETA_CODES.includes(code)){
-    localStorage.setItem(BETA_KEY,'true');
-    S._betaCode=code; save();
-    document.getElementById('gen-limit-modal')?.classList.remove('open');
-    toast('✅ Accès bêta activé !');
-    updateGenCounter();
-  } else if(PAID_CODES.includes(code)){
-    // Check if this code was already used on this account
-    const usedCodes=JSON.parse(localStorage.getItem('bp3_used_codes')||'[]');
-    const existingCode=localStorage.getItem('bp3_paid_code');
-    const existingExpiry=localStorage.getItem('bp3_paid_expiry');
-    // Allow reactivation only if it's a NEW different code, or if no code was ever set
-    if(existingCode===code && existingExpiry && new Date()<new Date(existingExpiry)){
-      toast('✅ Ce code est déjà actif sur votre compte');
-      return;
-    }
-    if(usedCodes.includes(code) && existingCode===code){
-      toast('❌ Ce code a déjà été utilisé — contactez bulletins.pro.app@gmail.com pour renouveler');
-      return;
-    }
-    // Activate
-    const expiry = new Date();
-    expiry.setFullYear(expiry.getFullYear()+1);
-    usedCodes.push(code);
-    localStorage.setItem('bp3_used_codes', JSON.stringify(usedCodes));
-    localStorage.setItem(BETA_KEY,'true');
-    localStorage.setItem('bp3_paid_expiry', expiry.toISOString());
-    localStorage.setItem('bp3_paid_code', code);
-    S._paidExpiry=expiry.toISOString();
-    S._paidCode=code;
-    save();
-    document.getElementById('gen-limit-modal')?.classList.remove('open');
-    toast('✅ Accès activé — valide jusqu\'au '+expiry.toLocaleDateString('fr-FR'));
-    updateGenCounter();
-  } else {
-    toast('❌ Code invalide');
-  }
+  const ok = await bpRedeemCode(input?.value);
+  if(ok) document.getElementById('gen-limit-modal')?.classList.remove('open');
 }
 
 function updateGenCounter(){
@@ -5343,7 +5335,9 @@ function updateGenCounter(){
     bg=r<=20?'#fee2e2':'var(--accent-l)'; bc=r<=20?'#fca5a5':'var(--accent-b)'; col=r<=20?'#b91c1c':'var(--accent)';
   } else if(hasPaidAccess()){
     const r=getRemainingGens();
-    txt=r+' / '+ANNUAL_LIMIT+' générations'; title=`${r} restantes — reset le 1er septembre`;
+    const _tot=BPSRV.status?BPSRV.status.total:ANNUAL_LIMIT;
+    txt=r+' / '+_tot+' générations';
+    title=BPSRV.status&&BPSRV.status.expires_at?`${r} restantes — valable jusqu'au ${new Date(BPSRV.status.expires_at*1000).toLocaleDateString('fr-FR')}`:`${r} restantes`;
     if(r<=50){bg='#fee2e2';bc='#fca5a5';col='#b91c1c';}
     else if(r<=200){bg='#fff7ed';bc='#fed7aa';col='#c2410c';}
     else{bg='var(--green-l)';bc='var(--green-b)';col='var(--green)';}
@@ -5362,7 +5356,7 @@ async function callClaude(prompt, retries=3, bulkMode=false){
   const model = 'anthropic/claude-sonnet-4.5';
   for(let attempt=0; attempt<retries; attempt++){
     try{
-      const r=await fetch(API_URL,{
+      const r=await apiFetch(API_URL,{
         method:'POST',
         headers:{
           'Content-Type':'application/json','HTTP-Referer':'https://bulletinspro.github.io','X-Title':'BulletinsPro'
@@ -5463,8 +5457,7 @@ function buildConclusionFixPrompt(txt, st, cls, period, checkedConseilsActionabl
   const tone=getStTone(st)||cls.tone||'equilibre';
   const isRedouble = !!(st.redoublement && st.redoublement[period]);
   const nextYearLabel = NEXT_YEAR_LABEL[cls.classYear];
-  const isFinalPeriod = (cls.periodType==='semestre' && period===2) || (cls.periodType!=='semestre' && period===3);
-  const yearMention = !isFinalPeriod ? "la suite de l'année" : (isRedouble ? "l'année prochaine" : (nextYearLabel || "l'année prochaine"));
+  const yearMention = isRedouble ? "l'année prochaine" : (nextYearLabel || "l'année prochaine");
   const limit=Math.min(1000,cls.charLimit||750);
 
   // Tous les conseils ROUGES (sans hiérarchie entre eux)
@@ -5490,19 +5483,18 @@ function buildConclusionFixPrompt(txt, st, cls, period, checkedConseilsActionabl
     yellowActions.unshift('gagner en concentration et adopter une attitude plus posée');
   }
 
-  const goal = isFinalPeriod ? 'pour bien aborder '+yearMention : pickMidGoals(1)[0];
   let targetSentence;
   const redPart = redLower.length ? redLower.join(' et ') : null;
   if(redPart && yellowActions.length){
-    targetSentence = `${redPart.charAt(0).toUpperCase()+redPart.slice(1)} et ${yellowActions[0]} devront être des priorités ${goal}.`;
+    targetSentence = `${redPart.charAt(0).toUpperCase()+redPart.slice(1)} et ${yellowActions[0]} devront être des priorités pour bien aborder ${yearMention}.`;
   } else if(redPart){
-    targetSentence = `${redPart.charAt(0).toUpperCase()+redPart.slice(1)} sera${redLower.length>1?'ont':''} essentiel${redLower.length>1?'s':''} ${goal}.`;
+    targetSentence = `${redPart.charAt(0).toUpperCase()+redPart.slice(1)} sera${redLower.length>1?'ont':''} essentiel${redLower.length>1?'s':''} pour bien aborder ${yearMention}.`;
   } else if(yellowActions.length){
-    targetSentence = `Il faudra ${yellowActions[0]}${yellowActions[1]?` et ${yellowActions[1]}`:''} ${goal}.`;
+    targetSentence = `Il faudra ${yellowActions[0]}${yellowActions[1]?` et ${yellowActions[1]}`:''} pour bien aborder ${yearMention}.`;
   } else {
-    targetSentence = `Une implication accrue sera nécessaire ${goal}.`;
+    targetSentence = `Une implication accrue sera nécessaire pour bien aborder ${yearMention}.`;
   }
-  if(isRedouble && isFinalPeriod) targetSentence = targetSentence.replace(new RegExp(yearMention.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'g'), "l'année prochaine");
+  if(isRedouble) targetSentence = targetSentence.replace(new RegExp(yearMention.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'g'), "l'année prochaine");
 
   // Fermeté de la conclusion proportionnelle à la négativité globale du profil — pas seulement
   // au nombre de conseils. Un profil qui penche négatif (checkedNeg >= checkedPos) ou avec au
@@ -5590,7 +5582,7 @@ async function genOne(sid){
       if(realName) finalTxt=finalTxt.replace(/Alex/g, realName);
     }
     ta.value=finalTxt;
-    addMem(S.active,finalTxt,st); saveCmt(sid,finalTxt); updCC(sid,finalTxt);
+    addMem(S.active,finalTxt); saveCmt(sid,finalTxt); updCC(sid,finalTxt);
     incrementGenCount(1);
     updateGenCounter();
     renderStudentList();
@@ -5651,7 +5643,7 @@ async function generateAll(){
         try{
         const seed=STYLE_SEEDS[Math.floor(Math.random()*STYLE_SEEDS.length)];
         // Single attempt — no retries in bulk to avoid cascading 429s
-        const r=await fetch(API_URL,{
+        const r=await apiFetch(API_URL,{
           method:'POST',
           headers:{'Content-Type':'application/json','HTTP-Referer':'https://bulletinspro.github.io','X-Title':'BulletinsPro'},
           body:JSON.stringify({
@@ -5686,7 +5678,14 @@ async function generateAll(){
         let txt=(d.choices?.[0]?.message?.content||'').replace(/\n+/g,' ').trim();
         if(!txt) throw new Error('empty response');
         txt=fitToLimit(txt, cls.charLimit||750);
-        // (le remplacement "Alex" → vrai prénom est fait plus bas, APRÈS le filet de sécurité, pour que le vrai prénom ne parte jamais à l'IA)
+        // RGPD swap — replace placeholder with real name
+        if(cls.useName && st.name){
+          const parts=st.name.trim().split(/\s+/);
+          let realName=parts.find(p=>p!==p.toUpperCase()&&p.length>1);
+          if(!realName) realName=parts[parts.length-1];
+          if(realName) realName=realName.charAt(0).toUpperCase()+realName.slice(1).toLowerCase();
+          if(realName) txt=txt.replace(/Alex/g, realName);
+        }
 
         // FILET DE SÉCURITÉ — CONCLUSION : même logique que genOne, adaptée au mode bulk.
         const {checkedConseilsActionable, checkedConseilsRed, checkedNeg:cNeg, checkedPos:cPos}=buildPromptMeta(st,cls);
@@ -5713,7 +5712,7 @@ async function generateAll(){
             setBanner(`✏️ Finalisation conclusion <strong>${i+1}/${total}</strong> — ${st.name||'Élève n°'+st.num}…`);
             try{
               const fixPrompt=buildConclusionFixPrompt(txt,st,cls,S.period,checkedConseilsActionable,checkedConseilsRed,cNeg,cPos);
-              const r2=await fetch(API_URL,{
+              const r2=await apiFetch(API_URL,{
                 method:'POST',
                 headers:{'Content-Type':'application/json','HTTP-Referer':'https://bulletinspro.github.io','X-Title':'BulletinsPro'},
                 body:JSON.stringify({
@@ -5731,6 +5730,14 @@ async function generateAll(){
                 fixed=fitToLimit(fixed, cls.charLimit||750);
                 if(fixed && fixed.length>50){
                   txt=fixed;
+                  // Re-apply RGPD swap in case the fix call reintroduced the placeholder
+                  if(cls.useName && st.name){
+                    const parts2=st.name.trim().split(/\s+/);
+                    let realName2=parts2.find(p=>p!==p.toUpperCase()&&p.length>1);
+                    if(!realName2) realName2=parts2[parts2.length-1];
+                    if(realName2) realName2=realName2.charAt(0).toUpperCase()+realName2.slice(1).toLowerCase();
+                    if(realName2) txt=txt.replace(/Alex/g, realName2);
+                  }
                 }
               }
               tokensThisMinute+=TOKENS_PER_FIXCALL;
@@ -5741,14 +5748,12 @@ async function generateAll(){
           }
         }
 
-        // RGPD swap — "Alex" → vrai prénom, une seule fois, juste avant l'enregistrement
-        if(cls.useName && st.name){const rn=realFirstName(st); if(rn) txt=txt.replace(/Alex/g, rn);}
         // Save immediately to state
         if(!st.comments)st.comments={};
         if(!st.commentTs)st.commentTs={};
         st.comments[S.period]=txt;
         st.commentTs[S.period]=Date.now();
-        addMem(S.active,txt,st);
+        addMem(S.active,txt);
         // Update DOM if visible
         const ta=document.getElementById('bta-'+sid);
         if(ta){ta.classList.remove('gen');ta.value=txt;}
@@ -5800,17 +5805,15 @@ async function genBulk(sid){
   try{
     const seed=STYLE_SEEDS[Math.floor(Math.random()*STYLE_SEEDS.length)];
     const raw=await callClaude(buildPrompt(st,cls,S.period,seed,sampMem(S.active)), 3, true);
-    let txt=fitToLimit(raw.replace(/\n+/g,' ').trim(), cls.charLimit||750);
+    const txt=fitToLimit(raw.replace(/\n+/g,' ').trim(), cls.charLimit||750);
     if(!txt) throw new Error('empty text after processing');
-    // RGPD swap — remplacer "Alex" par le vrai prénom (manquait sur le bouton ↻)
-    if(cls.useName && st.name){const rn=realFirstName(st); if(rn) txt=txt.replace(/Alex/g, rn);}
     // Save directly to state — don't depend on DOM being intact
     if(!st.comments)st.comments={};
     if(!st.commentTs)st.commentTs={};
     st.comments[S.period]=txt;
     st.commentTs[S.period]=Date.now();
     save();
-    addMem(S.active,txt,st);
+    addMem(S.active,txt);
     // Update DOM if textarea still exists (may have been re-rendered)
     const taFresh=document.getElementById('bta-'+sid);
     if(taFresh){taFresh.classList.remove('gen');taFresh.value=txt;}
@@ -6063,7 +6066,7 @@ function exportPDF(){
     const name=st.name||`Élève n°${st.num}`;
     const genre=st.gender==='M'?'M.':'Mme';
     let evalCell='';
-    if((cls.evalType==='note'||cls.evalType==='mix')&&st.grade){
+    if(cls.evalType==='note'&&st.grade){
       const n=parseFloat(st.grade);
       const col=n>=14?'#10b981':n>=10?'#6B2FD9':n>=8?'#f59e0b':'#ef4444';
       evalCell=`<td style="${tdStyle};width:55px;text-align:center"><span style="font-weight:700;font-size:13px;color:${col}">${st.grade}</span><span style="font-size:9px;color:#9ca3af">/20</span></td>`;
@@ -6153,7 +6156,7 @@ function exportPDF(){
   </div>
   <div class="info-card">
     <div class="info-card-label">Évaluation</div>
-    <div class="info-card-value">${{note:'Notes /20',niveau:'Niveaux',competence:'Compétences',mix:'Mixte (notes + compétences)'}[cls.evalType]||cls.evalType}</div>
+    <div class="info-card-value">${{note:'Notes /20',niveau:'Niveaux',competence:'Compétences',mix:'Mixte'}[cls.evalType]||cls.evalType}</div>
   </div>
 </div>
 
@@ -6167,7 +6170,7 @@ ${avg?`<div class="stats-bar">
     <tr>
       <th style="width:28px">N°</th>
       <th style="width:130px">Élève</th>
-      <th style="width:55px">${cls.evalType==='note'||cls.evalType==='mix'?'Note':'Niveau'}</th>
+      <th style="width:55px">${cls.evalType==='note'?'Note':'Niveau'}</th>
       <th>Appréciation du professeur</th>
     </tr>
   </thead>
@@ -6462,7 +6465,7 @@ INSTRUCTIONS :
 Exemple : {"tick":["pr2","tr1","tr2"],"suggest":["pa3","ob5","ob6","co1","pr8","co4"],"untick":[]}`;
 
   try{
-    const res=await fetch(API_URL,{
+    const res=await apiFetch(API_URL,{
       method:'POST',
       headers:{'Content-Type':'application/json','HTTP-Referer':'https://bulletinspro.github.io','X-Title':'BulletinsPro VTP'},
       body:JSON.stringify({model:'anthropic/claude-sonnet-4-5',max_tokens:800,messages:[{role:'user',content:prompt}]})
@@ -6620,7 +6623,7 @@ OBSERVATIONS :
 ${pillList.map(p=>`${p.id}: ${p.label}`).join('\n')}
 Retourne UNIQUEMENT ce JSON : {"tick":[],"suggest":[],"untick":[]}`;
   try{
-    const res=await fetch(API_URL,{method:'POST',headers:{'Content-Type':'application/json','HTTP-Referer':'https://bulletinspro.github.io','X-Title':'BulletinsPro VTP PP'},body:JSON.stringify({model:'anthropic/claude-sonnet-4-5',max_tokens:400,messages:[{role:'user',content:prompt}]})});
+    const res=await apiFetch(API_URL,{method:'POST',headers:{'Content-Type':'application/json','HTTP-Referer':'https://bulletinspro.github.io','X-Title':'BulletinsPro VTP PP'},body:JSON.stringify({model:'anthropic/claude-sonnet-4-5',max_tokens:400,messages:[{role:'user',content:prompt}]})});
     if(!res.ok){const ej=await res.json().catch(()=>({}));if(ej.error&&ej.error.message)toast('⏳ '+ej.error.message,5000);throw new Error('API '+res.status);}
     const data=await res.json();
     let result;try{result=JSON.parse(data.choices?.[0]?.message?.content?.trim()||'{}');}catch{result={tick:[],suggest:[],untick:[]};}
@@ -6664,28 +6667,13 @@ function showCodeAccess(){
   setTimeout(()=>document.getElementById('code-access-input')?.focus(),100);
 }
 
-function activateCodeFromModal(){
+async function activateCodeFromModal(){
   const input=document.getElementById('code-access-input');
-  const code=input?.value?.toUpperCase().trim();
-  const OWNER_CODES=['ALEX75'];
-  const VALID_CODES=['BP-7K2M','BP-9XQR','BP-4VBN','BP-3WQT','BP-8ZLF','BP-2YNK','BP-6RJP','BP-5HCX','BP-1GTD','BP-0MWS','BP2025PRO','TESTEUR1','TESTEUR2','TESTEUR3'];
-  if(OWNER_CODES.includes(code)){
-    localStorage.setItem(BETA_KEY,'true');
-    localStorage.setItem(OWNER_KEY,'true');
+  const ok=await bpRedeemCode(input?.value);
+  if(ok){
     document.querySelector('.mo')?.remove();
-    toast('✅ Accès propriétaire — illimité !');
-    if(typeof gtag!=='undefined') gtag('event','code_activated',{event_category:'conversion',event_label:'owner'});
-    updateGenCounter();
-  } else if(VALID_CODES.includes(code)){
-    localStorage.setItem(BETA_KEY,'true');
-    document.querySelector('.mo')?.remove();
-    toast('✅ Accès bêta activé — 200 générations !');
-    if(typeof gtag!=='undefined') gtag('event','code_activated',{event_category:'conversion',event_label:'beta'});
-    updateGenCounter();
-  } else {
-    toast('❌ Code invalide');
-    input?.select();
-  }
+    if(typeof gtag!=='undefined') gtag('event','code_activated',{event_category:'conversion',event_label:'server'});
+  } else { input?.select(); }
 }
 
 function showStats(){
@@ -6922,82 +6910,6 @@ function extractFirstName(fullName, order){
   }
 }
 
-// ── DÉTECTION DU GENRE PAR LE PRÉNOM (100 % local, rien n'est envoyé) ──────
-// Renvoie 'F', 'M' ou null (prénom inconnu, mixte, ou indices contradictoires).
-const GG_F=new Set(('marie emma lea lucie camille alice chloe julie sarah laura manon jade ines amelie elodie oceane pauline mathilde charlotte anais '+
-'louise rose anna mia ambre lina julia zoe lena eva juliette agathe romane clemence margaux margot louna lola nina victoire adele iris lou '+
-'capucine apolline elise eloise heloise clara celia leonie lise maelle maelys maeva noemie oriane salome justine morgane melissa marine '+
-'emilie aurelie audrey celine sophie claire valentine victoria gabrielle josephine louane lyna lilou lily lilie lisa elsa ella elena '+
-'anaelle axelle estelle gaelle joelle noelle isaline mathilda olivia stella luna alicia leana leane leelou maily mailys maya naelle nell '+
-'clementine coralie cassandre cassandra flavie fanny faustine garance helena hortense jeanne jessica jennifer kelly laurine lorene lorena '+
-'lucile ludivine madeleine marion melanie melina melodie mila myriam naomi nora ophelie perrine prune rachel rebecca solene suzanne '+
-'tiphaine typhaine yael yasmine yasmina inaya aya maryam meriem myriem amira samira nadia nawel naila salma sana sanae sofia sofiane? '+
-'fatima fatoumata aicha aminata khadija hafsa hajar imane assia asma lamia layla leila leyla lyana lya elina alya aliya amina ambrine '+
-'kenza kahina dounia djeneba mariam marwa malak malika rania razane ranya rayane? hiba houda ikram sirine syrine chaima chayma ilana '+
-'jasmine jade? emy emmy enola eden? giulia gianna bianca chiara alessia beatriz beatrice ana joana joanna mariana ines? carolina '+
-'catarina sara daniela andreia leonor matilde lara diana alexandra alexia anastasia ania anya oksana nathalie sandrine stephanie '+
-'virginie veronique sylvie isabelle catherine christine helene nadege odile cecile agnes annabelle anne annie berenice blanche '+
-'constance delphine diane edith emeline erine eugenie gwenaelle gwendoline ilona irene jacqueline josiane jules? kim? klara '+
-'lilia liv livia lizie louisa louison lucia ludmila maddie maelle mae malia manel maria marina marwa maud maxine meline mina '+
-'mylene nais nadine naelia nelly nina ninon noa? nola paloma paula pia raphaelle rosalie rose sabrina sacha? samia sasha? selena '+
-'anabelle anabel annabel albane siloe maelyne maeline maelyn eline eloane loane loana louanne romy maylis manoe ambrine aelys elyne kathleen cathy kathy katy allana alana alanna lana ilona nolwenn maiwenn gwenn katell cindy wendy mandy lindsay nancy tiffany jenny sandy lucy daisy maddy shirley ashley emily molly lily kelly maelly nelly elly ellie shana shaina sixtine soline soraya tess tessa thais thea theane tina tiana timea valeria valerie vanessa vera violette yna yuna zelie zoé').split(/\s+/).filter(w=>w&&!w.endsWith('?')).map(w=>ggNorm(w)));
-const GG_M=new Set(('lucas louis gabriel leo raphael arthur jules adam hugo maël mael noah paul liam ethan nathan tom theo timeo sacha? '+
-'mathis matheo mathys mateo enzo nolan axel evan ewan aaron antoine alexandre alexis adrien augustin baptiste basile benjamin bastien '+
-'clement come corentin damien dylan eliott eliot elias elie emile esteban etienne felix florian francois gaspard gauthier guillaume '+
-'gabin ilan ilyes ilyas isaac jean julien jeremy jordan joseph kevin kylian kilian killian leon lenny loan logan lorenzo loris lucien '+
-'malo marius martin marceau marc marco mathias mathieu matthieu maxence maxime milo nicolas noe noam oscar pierre quentin remi robin '+
-'romain ruben sami samuel sebastien simon thibault thibaut thomas tristan valentin victor vincent william xavier yanis yannis yann '+
-'yohan youssef younes yassine yacine ayoub amine anas bilal hamza ibrahim idriss ismael ismail karim mehdi mohamed mohammed mohamad '+
-'moussa mamadou ousmane souleymane sofiane soufiane walid wassim zakaria zakariya rayan rayane ryan imran issa omar othmane amir '+
-'aymen ayman nassim nael naim adem ali mustafa mostafa hassan hussein bryan brayan diego joao tiago thiago rafael pedro rodrigo '+
-'goncalo duarte diogo miguel nuno andre andrea? luca matteo lorenzo giovanni alessandro francesco antonio carlos manuel jose juan '+
-'david daniel dimitri anthony arnaud aurelien bruno cedric christophe christian cyril denis didier eric fabien fabrice franck '+
-'frederic gael gilles gregory herve jacques jerome laurent lionel loic ludovic marcel michel olivier pascal patrick philippe '+
-'raymond regis richard roger serge stephane sylvain thierry yves alban albert alix? amaury ambroise anatole andy angelo anton '+
-'armand arsene aurele balthazar benoit blaise boris calvin charles charlie? colin constant cyprien elio elouan erwan evann ezio '+
-'gaetan gaston georges hector henri hippolyte ian ivan jade? jason joachim joan johan jonas jonathan josue jude kais kenzo '+
-'kenan lazare leandre lenaic leny lino lois louka luka lukas mahe marin mattheo matthis maximilien melvin milan mylan nils '+
-'noa? octave owen pablo patrice philemon raphaël sandro silvio soan sohan stanislas swan teo theodore tiago timothee titouan '+
-'joe luca joshua mattia nikola mustapha moustapha yahya taha oussama ilya teddy jimmy tony remy johnny freddy willy eddy timothy billy harry henry jeremie ugo victorien virgile wael warren wesley wilson yoann zacharie zayn').split(/\s+/).filter(w=>w&&!w.endsWith('?')).map(w=>ggNorm(w)));
-function ggNorm(w){return w.normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z]/g,'');}
-function guessGender(name,allowEnding=true){
-  if(!name)return null;
-  let words=name.trim().split(/\s+/).filter(Boolean);
-  // Les mots tout en MAJUSCULES sont en général le NOM de famille (export Pronote) — on les ignore s'il reste un prénom.
-  const notCaps=words.filter(w=>w!==w.toUpperCase()||w.length<=1);
-  if(notCaps.length)words=notCaps;
-  const votes=new Set();
-  words.forEach(w=>{
-    const first=ggNorm(w.split('-')[0]); // prénom composé : Jean-Marie → jean, Marie-Lou → marie
-    if(GG_F.has(first))votes.add('F'); else if(GG_M.has(first))votes.add('M');
-  });
-  if(votes.size===1)return [...votes][0];
-  if(votes.size>1||!allowEnding)return null;
-  // Prénom inconnu : indice par la terminaison, sur le PREMIER mot seulement (le prénom) — fiable surtout pour les filles.
-  const f=ggNorm((words[0]||'').split('-')[0]);
-  const GG_MIXED=['andrea','noa','elia','sacha','sasha','ilia','mika','nikita','elya'];
-  if(GG_MIXED.includes(f))return null;
-  if(f.length>=3&&/(a|ine|yne|elle|ette|ie|ise|oe)$/.test(f))return 'F';
-  return null;
-}
-
-// Corrige une classe existante : passe en F les élèves restés sur M (valeur par défaut) dont le prénom est clairement féminin.
-function autoGenderClass(){
-  const cls=S.classes[S.active]; if(!cls)return;
-  const toF=cls.students.filter(s=>s.gender!=='F'&&guessGender(s.name)==='F');
-  const probable=toF.filter(s=>guessGender(s.name,false)!=='F').map(s=>s.name);
-  const unknown=cls.students.filter(s=>s.name&&!guessGender(s.name)).map(s=>s.name);
-  const noName=cls.students.filter(s=>!s.name).length;
-  let info='';
-  if(unknown.length)info+=`\n\nPrénoms non reconnus (à vérifier à la main) : ${unknown.join(', ')}`;
-  if(noName)info+=`\n\n${noName} élève(s) sans prénom : impossible à détecter.`;
-  if(!toF.length){alert('Aucun changement à faire : les filles reconnues sont déjà en F.'+info);return;}
-  if(!confirm(`Passer en F (fille) : ${toF.map(s=>s.name+(probable.includes(s.name)?' (probable)':'')).join(', ')} ?`+(probable.length?'\n\n« probable » = prénom deviné d\'après sa terminaison : vérifiez.':'')+info))return;
-  toF.forEach(s=>s.gender='F');
-  save(); renderStudentList(); if(S.student)renderEditor(S.student);
-  toast(`${toF.length} élève(s) passé(s) en F`);
-}
-
 function parseImportLine(line, autoNum){
   line=line.trim();
   if(!line)return null;
@@ -7031,8 +6943,9 @@ function parseImportLine(line, autoNum){
   }
 
   // Auto-detect gender from common French first names ending
-  // Genre non précisé dans la ligne → détection par le prénom
-  if(gender==='M'&&!/[,;]\s*(M|G|GARCON|GARÇON)\s*$/i.test(line)){const g=guessGender(name);if(g)gender=g;}
+  const fn=name.split(' ')[0]?.toLowerCase()||'';
+  const femNames=['marie','emma','lea','lucie','camille','alice','chloe','chloé','julie','sarah','laura','manon','jade','inès','ines','amelie','amélie','elodie','élodie','oceane','océane','pauline','mathilde','charlotte','anais','anaïs'];
+  if(femNames.includes(fn))gender='F';
 
   return {num,name,gender};
 }
@@ -7864,7 +7777,7 @@ OBSERVATIONS :
 ${pillList.map(p=>`${p.id}: ${p.label}`).join('\n')}
 Retourne UNIQUEMENT : {"tick":[],"suggest":[],"untick":[]}`;
   try{
-    const res=await fetch(API_URL,{method:'POST',headers:{'Content-Type':'application/json','HTTP-Referer':'https://bulletinspro.github.io','X-Title':'BulletinsPro CPE'},body:JSON.stringify({model:'anthropic/claude-sonnet-4-5',max_tokens:300,messages:[{role:'user',content:prompt}]})});
+    const res=await apiFetch(API_URL,{method:'POST',headers:{'Content-Type':'application/json','HTTP-Referer':'https://bulletinspro.github.io','X-Title':'BulletinsPro CPE'},body:JSON.stringify({model:'anthropic/claude-sonnet-4-5',max_tokens:300,messages:[{role:'user',content:prompt}]})});
     if(!res.ok){const ej=await res.json().catch(()=>({}));if(ej.error&&ej.error.message)toast('⏳ '+ej.error.message,5000);throw new Error('API '+res.status);}
     const data=await res.json();
     let result;try{result=JSON.parse(data.choices?.[0]?.message?.content?.trim()||'{}');}catch{result={tick:[],suggest:[],untick:[]};}
@@ -7935,7 +7848,6 @@ function doImportCPEStudents(){
       name=parts.join(' ').trim();
     }else{name=line.replace(/^(\d+)[.\s]+/,'').trim();}
     if(!name){skipped++;return;}
-    if(gender==='M'&&!/[,;\t]\s*M\s*$/.test(line)){const g=guessGender(name);if(g)gender=g;}
     if(nameOrder==='nom_prenom'&&name.split(' ').length>=2){const w=name.split(' ');name=w.slice(1).join(' ')+' '+w[0];}
     else if(nameOrder==='auto'){const words=name.split(' ');const allCaps=words.filter(w=>w===w.toUpperCase()&&w.length>1);if(allCaps.length){const nom=allCaps.join(' ');const prenom=words.filter(w=>w!==w.toUpperCase()||w.length<=1).join(' ');name=prenom?`${prenom} ${nom}`:nom;}}
     if(!num)num=(c.students.length||0)+added+1;
@@ -8600,7 +8512,6 @@ function doImportPPStudents(){
       name=line.replace(/^(\d+)[.\s]+/,'').trim();
     }
     if(!name){skipped++;return;}
-    if(gender==='M'&&!/[,;\t]\s*M\s*$/.test(line)){const g=guessGender(name);if(g)gender=g;}
     if(nameOrder==='nom_prenom'||nameOrder==='auto'){
       const words=name.split(' ');
       if(nameOrder==='auto'){
