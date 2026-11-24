@@ -1445,12 +1445,10 @@ const CORE_BOXES = {
       {id:'pr7',l:'Progression notable',v:'pos'},
       {id:'pr8',l:'Progression régulière',v:'pos'},
       {id:'pr25',l:'Nette amélioration par rapport au trimestre précédent',v:'pos'},
-      {id:'pr26',l:'Évolution positive en comportement et en investissement',v:'pos'},
       {id:'pr28',l:'Bases globalement acquises',v:'pos'},
       {id:'pr29',l:'Notions bien maîtrisées dans l\'ensemble',v:'pos'},
       {id:'pr19',l:'Résultats obtenus dans une classe à l\'ambiance difficile — mérite d\'être souligné',v:'pos'},
       {id:'pr20',l:'Redressement positif en fin de trimestre — à confirmer',v:'neutral'},
-      {id:'pr21',l:'Sursaut encourageant en fin de trimestre',v:'neutral'},
       {id:'pr23',l:'Bons résultats malgré des absences — mérite d\'être souligné',v:'neutral'},
       {id:'pr4',l:'Résultats fragiles',v:'neutral'},
       {id:'pr9',l:'Progression stable',v:'neutral'},
@@ -1500,13 +1498,11 @@ const CORE_BOXES = {
       {id:'tr4b',l:'Manque d\'approfondissement',v:'neutral'},
       {id:'tr5',l:'Travail irrégulier',v:'neutral'},
       {id:'tr19',l:'Se contente du minimum requis',v:'neutral'},
-      {id:'tr20',l:'Travail accompli sans réel investissement',v:'neutral'},
       {id:'tr16',l:'En difficulté mais mobilisé(e)',v:'neutral'},
       {id:'tr17',l:'Difficultés persistantes malgré les efforts',v:'neutral'},
       {id:'tr6',l:'Investissement en deçà des capacités',v:'neg'},
       {id:'tr27',l:'Travail insuffisant',v:'neg'},
       {id:'tr8',l:'Absence d\'effort en classe',v:'neg'},
-      {id:'tr7',l:'Participation insuffisante en classe',v:'neg'},
       {id:'tr18',l:'En difficulté et sans effort apparent',v:'neg'},
       {id:'tr23',l:'Présent(e) physiquement mais absent(e) mentalement',v:'neg'},
       {id:'tr24',l:'S\'endort en classe',v:'neg'},
@@ -1525,7 +1521,6 @@ const CORE_BOXES = {
     items:[
       {id:'pa1',l:'Participe activement',v:'pos'},
       {id:'pa2',l:'Pose de bonnes questions',v:'pos'},
-      {id:'pa3',l:'Engagement actif',v:'pos'},
       {id:'pa11',l:'Moteur de la classe',v:'pos'},
       {id:'pa12',l:'Participation pertinente et réfléchie',v:'pos'},
       {id:'pa15',l:'À l\'écoute et attentif(ve) en classe',v:'pos'},
@@ -1555,9 +1550,11 @@ const CORE_BOXES = {
       {id:'qa13',l:'Semble avoir d\'autres préoccupations en ce moment',v:'neutral'},
       {id:'qa14',l:'Période personnelle difficile — bienveillance nécessaire',v:'neutral'},
       {id:'qa15',l:'Fragilité émotionnelle perceptible',v:'neutral'},
+      {id:'qa22',l:'Motivation fluctuante',v:'neutral'},
       {id:'qa8',l:'Manque de méthode',v:'neg'},
       {id:'qa9',l:'Manque d\'autonomie',v:'neg'},
       {id:'qa10',l:'Attitude passive — manque d\'enthousiasme général',v:'neg'},
+      {id:'qa23',l:'Manque de motivation',v:'neg'},
       {id:'qa16',l:'Graphie illisible — nuit à la compréhension',v:'neg'},
       {id:'qa17',l:'Graphie à améliorer — risque de pénalisation aux examens',v:'neg'},
       {id:'qa18',l:'Travaille trop vite — erreurs évitables par manque de relecture',v:'neg'},
@@ -1573,18 +1570,15 @@ const CORE_BOXES = {
       {id:'co2',l:'Attitude positive',v:'pos'},
       {id:'co3',l:'Respectueux(se) et sérieux(se)',v:'pos'},
       {id:'co10',l:'Fait preuve de maturité',v:'pos'},
-      {id:'co11',l:'Attitude constructive',v:'pos'},
       {id:'co13',l:'Élève agréable et sympathique',v:'pos'},
       {id:'co14',l:'Bonne intégration dans la classe',v:'pos'},
       {id:'pr26',l:'Évolution positive en comportement et en investissement',v:'pos'},
       {id:'co4',l:'Comportement correct',v:'neutral'},
       {id:'co12',l:'Discret(e) et réservé(e)',v:'neutral'},
-      {id:'co15',l:'Semble traverser une période difficile',v:'neutral'},
       {id:'co16',l:'Manque de confiance en lui/elle',v:'neutral'},
       {id:'co17',l:'Manque de maturité',v:'neutral'},
       {id:'co18',l:"Réagit bien aux rappels mais ne s'autorégule pas encore",v:'neutral'},
       {id:'co19',l:'Attitude fluctuante — peut être investi(e) comme perturbateur/trice selon les séances',v:'neutral'},
-      {id:'co20',l:"Comportement inégal — des séances sérieuses, d'autres à rappeler à l'ordre",v:'neutral'},
       {id:'co5',l:'Manque de concentration',v:'neutral'},
       {id:'co24',l:'Parfois dissipé(e) selon les séances',v:'neutral'},
       {id:'co23',l:'Dissipé(e) — se laisse facilement distraire',v:'neutral'},
@@ -1602,7 +1596,7 @@ const CORE_BOXES = {
       {id:'ob1',l:'Félicitations',v:'pos'},
       {id:'ob2',l:'Encouragements',v:'pos'},
       {id:'ob3',l:'Continuer sur cette lancée',v:'pos'},
-      {id:'ob20',l:'Amplifier et confirmer cette dynamique positive au prochain trimestre',v:'pos'},
+      {id:'ob20',l:'Amplifier et confirmer cette dynamique positive',v:'pos'},
       {id:'ob21',l:'Maintenir les efforts engagés en fin de trimestre',v:'pos'},
       {id:'ob24',l:'Prendre en compte les conseils donnés',v:'neutral'},
       {id:'ob26',l:'Se relire systématiquement avant de rendre',v:'neutral'},
@@ -1624,7 +1618,6 @@ const CORE_BOXES = {
       {id:'ob15',l:'Consolider les acquis avant d\'aller plus loin',v:'neutral'},
       {id:'ob23',l:'Persévérer malgré les difficultés',v:'neutral'},
       {id:'ob19',l:"S'investir davantage",v:'neutral'},
-      {id:'ob9',l:'Implication accrue nécessaire',v:'neg'},
       {id:'ob10',l:'Attitude constructive requise',v:'neg'},
       {id:'ob11',l:'Respect à adopter en urgence',v:'neg'},
       {id:'ob12',l:'Investissement indispensable pour progresser',v:'neg'},
@@ -3090,7 +3083,17 @@ const ORIENT_DESCS = {
 
 // ── STATE ─────────────────────────────────────────────────────────────────────
 let S = {classes:{}, active:null, student:null, period:1, view:'students'};
-const load = ()=>{ try{const d=localStorage.getItem('bp3');if(d)S=JSON.parse(d);}catch(e){} };
+// Pills fusionnées (vrais doublons) : les cases déjà cochées sont reportées sur la pill conservée
+const PILL_ALIASES={pa3:'pa1',co11:'co2',tr7:'pa6',co15:'qa14',tr20:'tr4',ob9:'ob19',pr21:'pr20',co20:'co19'};
+function migratePills(state){
+  try{
+    Object.values((state&&state.classes)||{}).forEach(cls=>(cls.students||[]).forEach(st=>{
+      if(!st||!st.boxes) return;
+      Object.keys(PILL_ALIASES).forEach(a=>{ if(st.boxes[a]){ st.boxes[PILL_ALIASES[a]]=true; delete st.boxes[a]; } });
+    }));
+  }catch(e){ console.warn('migratePills',e); }
+}
+const load = ()=>{ try{const d=localStorage.getItem('bp3');if(d)S=JSON.parse(d);migratePills(S);}catch(e){} };
 const save = ()=>{ try{localStorage.setItem('bp3',JSON.stringify(S));localStorage.setItem('bp3_local_saved_at',String(Date.now()));}catch(e){} gdScheduleSync(); };
 
 // ── GOOGLE DRIVE SYNC ─────────────────────────────────────────────────────────
@@ -3298,7 +3301,7 @@ async function gdLoadFromDrive(){
         });
       }
 
-      S=remote;
+      S=remote; migratePills(S);
       if(!S.cpe)S.cpe={};
       // Save to localStorage only — do NOT sync back to Drive (would overwrite other browser's changes)
       try{localStorage.setItem('bp3',JSON.stringify(S));}catch(e){}
@@ -4596,16 +4599,16 @@ const PROFILE_FORMS={
   tr4b:{bon:"un travail qui gagnerait à être approfondi",mitige:"un manque d'approfondissement",fragile:"un travail peu approfondi, qui limite la progression"},
   tr5:{bon:"un travail qui pourrait gagner en régularité",mitige:"un travail irrégulier",fragile:"un travail irrégulier, qui nuit à la progression"},
   tr19:{bon:"pourrait s'investir davantage au-delà de l'essentiel",mitige:"se limite à l'essentiel",fragile:"se contente du minimum demandé"},
-  tr20:{bon:"un travail effectué, qui gagnerait à être plus investi",mitige:"un travail accompli sans grand investissement",fragile:"un travail effectué sans investissement personnel"},
   pa9:{bon:"pourrait s'impliquer davantage au-delà de ce qui est demandé",mitige:"s'implique peu au-delà de ce qui est demandé",fragile:"ne s'implique pas au-delà de ce qui est demandé"},
   tr25:{bon:"des leçons à apprendre plus sérieusement",mitige:"des leçons insuffisamment apprises, qui laissent des lacunes",fragile:"des leçons insuffisamment apprises et des lacunes qui s'accumulent"},
   qa11:{bon:"un potentiel à exploiter davantage",mitige:"un potentiel encore sous-exploité",fragile:"un potentiel sous-exploité faute d'ambition"},
   qa18:{bon:"gagnerait à se relire davantage pour éviter quelques erreurs",mitige:"travaille rapidement, avec des erreurs qu'une relecture éviterait",fragile:"des erreurs évitables par manque de relecture"},
   qa10:{bon:"pourrait se montrer plus enthousiaste",mitige:"une attitude plutôt passive",fragile:"une attitude passive, sans enthousiasme"},
+  qa22:{bon:"une motivation qui varie selon les séances",mitige:"une motivation fluctuante",fragile:"une motivation inégale qui freine le travail"},
+  qa23:{bon:"gagnerait à se montrer plus motivé(e)",mitige:"manque de motivation",fragile:"un manque de motivation qui pénalise le travail et la progression"},
   co17:{bon:"gagnerait à faire preuve de plus de maturité",mitige:"manque encore de maturité",fragile:"un manque de maturité qui nécessite des rappels"},
   co18:{bon:"réagit bien quand on le lui signale",mitige:"réagit bien aux remarques mais a encore du mal à s'autoréguler",fragile:"réagit aux rappels mais ne s'autorégule pas encore"},
   co19:{bon:"une attitude qui varie selon les séances",mitige:"une attitude fluctuante, tantôt investie, tantôt dissipée",fragile:"une attitude fluctuante qui pénalise le travail"},
-  co20:{bon:"un comportement parfois inégal",mitige:"un comportement inégal selon les séances",fragile:"un comportement inégal, avec des séances où il faut recadrer"},
   co23:{bon:"se laisse parfois distraire",mitige:"se laisse facilement distraire, ce qui nuit à la concentration",fragile:"un manque de concentration en classe, qui freine la progression"},
   co21:{bon:"des retards à corriger",mitige:"des retards qui perturbent parfois le cours",fragile:"des retards fréquents qui perturbent le déroulement du cours"},
   co22:{bon:"doit prendre le cours dans son intégralité",mitige:"ne prend pas toujours le cours en entier, ce qui crée des lacunes",fragile:"un cours incomplet, avec des lacunes qui s'accumulent"},
@@ -4813,7 +4816,7 @@ function buildPrompt(st,cls,period,seed,memSamp){
     fragile:'Registre mesuré : les points positifs restent modestes ("quelques efforts", "de la bonne volonté"), sans intensif ; les points à travailler sont dits clairement, sans aggraver au-delà de ce qui est coché ; ton bienveillant.',
   }[_profil];
   const intensityCtx=`\nINTENSITÉ DES FORMULATIONS (profil retenu : ${_profil}) — les adjectifs et intensifs présents dans les libellés cochés ("sincère", "remarquable", "exemplaire", "réel", "irréprochable"…) ne sont PAS à recopier : c'est le PROFIL GLOBAL qui fixe l'intensité, pas le libellé. ${_intensRule}`;
-  const _absIds=['pr14','pr22','pr15','pr17','pr18','ob30','ob31'];
+  const _absIds=['pr14','pr22','pr15','pr17','pr18','as4','as5','as8','as9','ob30','ob31'];
   const _absOn=_absIds.some(id=>st.boxes&&st.boxes[id]);
   const absencesCtx=_absOn?`\nABSENCES / SUIVI IMPOSSIBLE — SENSIBLE : l'élève est très souvent absent(e) ou son niveau est difficile à évaluer. NE JAMAIS lui demander d'être "plus présent(e)", "plus assidu(e)", ni parler d'"absentéisme" ou de "manque de sérieux" : la cause peut être médicale ou personnelle (santé, phobie scolaire, contexte familial) — ne la suppose jamais et ne la nomme pas. Reste factuel et bienveillant : dire que le niveau reste difficile à évaluer faute d'éléments, que le suivi des cours est interrompu, et que sans rattrapage du travail manqué l'écart risque de se creuser. Conclure sur le rattrapage ou un accompagnement (ex : "Un rattrapage du travail manqué sera nécessaire pour ne pas se laisser distancer."), jamais sur une injonction de présence.`:'';
   const _noMarks=['pr33','pr34','pr35'].some(id=>st.boxes&&st.boxes[id]);
