@@ -1612,7 +1612,8 @@ const CORE_BOXES = {
       {id:'ob22',l:'Gagner en concentration',v:'neutral'},
       {id:'ob18',l:'Mieux s\'organiser dans son travail',v:'neutral'},
       {id:'ob13',l:'Approfondir davantage le travail',v:'neutral'},
-      {id:'ob25',l:'Mieux apprendre et retenir ses leçons',v:'neutral'},
+      {id:'ob25',l:'Apprendre ses leçons plus régulièrement',v:'neutral'},
+      {id:'ob29',l:'Trouver une méthode pour mieux mémoriser',v:'neutral'},
       {id:'ob14',l:'Aller plus loin dans la réflexion',v:'neutral'},
       {id:'ob15',l:'Consolider les acquis avant d\'aller plus loin',v:'neutral'},
       {id:'ob23',l:'Persévérer malgré les difficultés',v:'neutral'},
@@ -4582,6 +4583,28 @@ function submitQuickRate(id, rating, btn){
 }
 
 // ── PROMPT BUILDERS ───────────────────────────────────────────────────────────
+// ── FORMULATIONS SELON LE PROFIL (pills sensibles) ─────────────────────────
+// bon = profils excellent + bon ; mitige ; fragile. Servent de repère au modèle (à reformuler, jamais recopier).
+const PROFILE_FORMS={
+  tr4:{bon:"un travail sérieux, qui gagnerait à être davantage investi",mitige:"un travail satisfaisant mais encore peu investi",fragile:"un travail qui manque d'investissement"},
+  tr4b:{bon:"un travail qui gagnerait à être approfondi",mitige:"un manque d'approfondissement",fragile:"un travail peu approfondi, qui limite la progression"},
+  tr5:{bon:"un travail qui pourrait gagner en régularité",mitige:"un travail irrégulier",fragile:"un travail irrégulier, qui nuit à la progression"},
+  tr19:{bon:"pourrait s'investir davantage au-delà de l'essentiel",mitige:"se limite à l'essentiel",fragile:"se contente du minimum demandé"},
+  tr20:{bon:"un travail effectué, qui gagnerait à être plus investi",mitige:"un travail accompli sans grand investissement",fragile:"un travail effectué sans investissement personnel"},
+  pa9:{bon:"pourrait s'impliquer davantage au-delà de ce qui est demandé",mitige:"s'implique peu au-delà de ce qui est demandé",fragile:"ne s'implique pas au-delà de ce qui est demandé"},
+  tr25:{bon:"des leçons à apprendre plus sérieusement",mitige:"des leçons insuffisamment apprises, qui laissent des lacunes",fragile:"des leçons insuffisamment apprises et des lacunes qui s'accumulent"},
+  qa11:{bon:"un potentiel à exploiter davantage",mitige:"un potentiel encore sous-exploité",fragile:"un potentiel sous-exploité faute d'ambition"},
+  qa18:{bon:"gagnerait à se relire davantage pour éviter quelques erreurs",mitige:"travaille rapidement, avec des erreurs qu'une relecture éviterait",fragile:"des erreurs évitables par manque de relecture"},
+  qa10:{bon:"pourrait se montrer plus enthousiaste",mitige:"une attitude plutôt passive",fragile:"une attitude passive, sans enthousiasme"},
+  co17:{bon:"gagnerait à faire preuve de plus de maturité",mitige:"manque encore de maturité",fragile:"un manque de maturité qui nécessite des rappels"},
+  co18:{bon:"réagit bien quand on le lui signale",mitige:"réagit bien aux remarques mais a encore du mal à s'autoréguler",fragile:"réagit aux rappels mais ne s'autorégule pas encore"},
+  co19:{bon:"une attitude qui varie selon les séances",mitige:"une attitude fluctuante, tantôt investie, tantôt dissipée",fragile:"une attitude fluctuante qui pénalise le travail"},
+  co20:{bon:"un comportement parfois inégal",mitige:"un comportement inégal selon les séances",fragile:"un comportement inégal, avec des séances où il faut recadrer"},
+  co23:{bon:"se laisse parfois distraire",mitige:"se laisse facilement distraire, ce qui nuit à la concentration",fragile:"un manque de concentration en classe, qui freine la progression"},
+  co21:{bon:"des retards à corriger",mitige:"des retards qui perturbent parfois le cours",fragile:"des retards fréquents qui perturbent le déroulement du cours"},
+  co22:{bon:"doit prendre le cours dans son intégralité",mitige:"ne prend pas toujours le cours en entier, ce qui crée des lacunes",fragile:"un cours incomplet, avec des lacunes qui s'accumulent"},
+};
+
 function buildPromptMeta(st,cls){
   const allBoxes=getSubjectBoxes(cls.subject, cls.langLevel, cls.classYear);
   const checkedNeg=[], checkedPos=[];
@@ -4783,6 +4806,11 @@ function buildPrompt(st,cls,period,seed,memSamp){
     fragile:'Registre mesuré : les points positifs restent modestes ("quelques efforts", "de la bonne volonté"), sans intensif ; les points à travailler sont dits clairement, sans aggraver au-delà de ce qui est coché ; ton bienveillant.',
   }[_profil];
   const intensityCtx=`\nINTENSITÉ DES FORMULATIONS (profil retenu : ${_profil}) — les adjectifs et intensifs présents dans les libellés cochés ("sincère", "remarquable", "exemplaire", "réel", "irréprochable"…) ne sont PAS à recopier : c'est le PROFIL GLOBAL qui fixe l'intensité, pas le libellé. ${_intensRule}`;
+  const _regKey=(_profil==='excellent'||_profil==='bon')?'bon':_profil;
+  const _coreLabels={};
+  Object.values(CORE_BOXES).forEach(sec=>sec.items.forEach(it=>{_coreLabels[it.id]=it.l;}));
+  const _formLines=Object.keys(st.boxes||{}).filter(id=>st.boxes[id]&&PROFILE_FORMS[id]&&_coreLabels[id]).map(id=>'• '+_coreLabels[id].split('—')[0].trim()+' → '+PROFILE_FORMS[id][_regKey]);
+  const formsCtx=_formLines.length?`\nFORMULATIONS ADAPTÉES AU PROFIL (${_profil}) — voici comment dire chaque observation ci-dessous POUR CE PROFIL. Ce sont des repères d'intensité : reformule avec tes propres mots, ne recopie jamais mot pour mot, et ne reprends pas la même tournure d'un élève à l'autre.\n${_formLines.join('\n')}`:'';
   // Check if a comparison pill is ticked (hausse/stable/baisse)
   const compPills = ['pr30','pr31','pr32'];
   const compChecked = compPills.find(id => st.boxes && st.boxes[id]);
@@ -4976,7 +5004,7 @@ ${checkedNeg.length
 ${checkedNeutral.length ? '\n⚠️ OBSERVATIONS INTERMÉDIAIRES — thèmes à représenter (regrouper les similaires) : '+checkedNeutral.join(' | ') : ''}
 ${isDiscreet ? '\n⛔ Discret/réservé → INTERDIRE : "participe activement", "participe régulièrement". Dire : "suit attentivement", "s\'implique discrètement".' : ''}
 ${checked.some(c=>c.toLowerCase().includes('régress')&&(isDiscreet||checkedNeg.length>=2)) ? '\n⚠️ RÉGRESSION + profil fragile : ne pas mentionner la régression brutalement. Dire plutôt : "des efforts supplémentaires permettront de retrouver une dynamique positive" ou "il lui faudra redoubler d\'efforts pour inverser la tendance". L\'objectif est d\'encourager, pas de décourager.' : ''}
-${aeshCtx}${orientCtx}${classCtx}${prevCtx}${compCtx}${freeNotesCtx}${intensityCtx}${memCtx}${styleCtx}
+${aeshCtx}${orientCtx}${classCtx}${prevCtx}${compCtx}${freeNotesCtx}${intensityCtx}${formsCtx}${memCtx}${styleCtx}
 
 RÈGLES DE SYNTHÈSE — OBLIGATOIRES :
 0. Longueur : maximum ${targetMax} caractères. Synthétise — 4-5 observations liées = 1 phrase fluide.
@@ -5013,7 +5041,7 @@ EXCEPTION — CONCLUSION FERME AVEC POINT PRÉCIS : "Il sera essentiel de [actio
 8f. PAS DE REDONDANCE — ne pas exprimer la même idée deux fois avec des mots différents. Si "travail sérieux et approfondi" est dit en phrase 1, ne pas redire "applique avec rigueur" ou "méthode rigoureuse" en phrase 2. Chaque phrase apporte une information nouvelle. Ne jamais répéter le verdict dans le corps de l'appréciation — "Il est en difficulté et son travail est insuffisant" après un verdict "Trimestre insuffisant" est une répétition inutile.
 ⚠️ CAS FRÉQUENT — REDONDANCE SUR UN POINT NÉGATIF : "travail irrégulier" + "manque d'approfondissement" + "se contente du minimum requis" sont TROIS FAÇONS DE DIRE LA MÊME CHOSE (le travail n'est pas assez poussé). Choisis-en UNE SEULE formulation, pas un cumul des trois — ex: "son travail manque encore d'approfondissement." (une seule phrase, pas trois ; "strict nécessaire"/"minimum" UNIQUEMENT si une pill le dit). Même logique pour le comportement : "bavardages incessants" + "comportement très perturbateur" + "nuisent à la concentration" + "rappels constants" + "manque de maturité" sont 5 angles du MÊME constat — UNE phrase suffit, dont l'intensité suit le profil et les pills réellement cochées (ex. profil positif : "Son comportement manque parfois de maturité." ; ne reprends "très perturbateur", "incessants" ou "constants" QUE si coché) (pas besoin d'ajouter "nuit à la concentration" ET "manque de maturité" en plus). Cette compression est ESSENTIELLE : elle libère de la place pour la CONCLUSION (règle 8r), qui est PRIORITAIRE sur l'exhaustivité du corps. Si tu approches la limite de caractères et n'as pas encore écrit ta conclusion, COMPRESSE le corps en éliminant ces reformulations redondantes plutôt que de sacrifier la conclusion.
 8i. NE PAS COPIER LES LABELS — reformuler les observations avec des mots naturels. JAMAIS recopier mot pour mot le libellé d'une observation. Ex: "Très bonnes connaissances" → dire "Ses connaissances sont solides et bien ancrées" ou "Il maîtrise bien le programme". "Participation orale riche et pertinente" → "Il s'exprime avec aisance et apporte des contributions de qualité".
-8v. SOBRIÉTÉ — LES PILLS SONT DES IDÉES, PAS DES FORMULES. (a) Dans un libellé, tout ce qui suit un tiret "—" est une EXPLICATION pour l'enseignant : ne jamais le recopier ni le paraphraser de près (ex : "Approfondir les apprentissages — ne pas se contenter du minimum" → dire simplement "approfondir davantage son travail" ; ne JAMAIS écrire "ne pas se contenter du minimum", "se limite au strict nécessaire", "au strict minimum" ni "se contente de" sauf si "Ne s'implique pas au-delà du strict nécessaire" ou "Se contente du minimum requis" est coché, ni suggérer que l'élève fait le minimum). (b) L'intensité des adjectifs ("sincère", "remarquable", "exemplaire"…) dépend du PROFIL (cf. bloc INTENSITÉ DES FORMULATIONS), jamais du libellé de la pill. (c0) TRAVAIL ≠ APPRENTISSAGES : "travail" = ce que l'élève fait (devoirs, exercices, régularité, soin, approfondissement) ; "apprendre/retenir ses leçons" = ce qu'il mémorise et maîtrise. Si les deux sont cochés, ce sont DEUX idées distinctes à garder séparées (ex : "Il devra approfondir son travail et mieux apprendre ses leçons"), sans les fondre ni les répéter l'une par l'autre. (c) Une consigne de conseil est un cap à donner, pas un constat : "Approfondir", "Gagner en confiance" = conseil formulé simplement, jamais présenté comme un défaut déjà décrit si la pill correspondante n'est pas cochée. (d) MATURITÉ / RAPPELS : "Manque de maturité — a besoin de rappels pour se recentrer" se dit avec douceur selon le profil (excellent/bon/mitigé → "gagnerait à gagner en maturité", "a parfois besoin d'être recentré(e)" ; fragile → "a besoin de rappels"). JAMAIS "rappels réguliers", "rappels fréquents", "constamment", "sans cesse" sauf si un comportement coché le dit explicitement (bavardages incessants, très perturbateur). Même principe pour toute fréquence ("régulièrement", "souvent", "fréquemment") : ne jamais l'ajouter si elle n'est pas dans la pill cochée. (e) AUCUN renforcement ajouté : jamais "trop", "trop souvent", "bien trop", "reste en surface", "en surface", "de surface" sauf si une pill le dit mot pour mot. "Manque d'approfondissement" se dit simplement : "son travail manque d'approfondissement" ou "gagnerait à être approfondi" — sans "trop souvent", sans "en surface". Un point à travailler se formule à l'intensité de la pill cochée, jamais au-dessus. En cas de doute, la formulation la plus simple et la plus sobre l'emporte.
+8v. SOBRIÉTÉ — LES PILLS SONT DES IDÉES, PAS DES FORMULES. (a) Dans un libellé, tout ce qui suit un tiret "—" est une EXPLICATION pour l'enseignant : ne jamais le recopier ni le paraphraser de près (ex : "Approfondir les apprentissages — ne pas se contenter du minimum" → dire simplement "approfondir davantage son travail" ; ne JAMAIS écrire "ne pas se contenter du minimum", "se limite au strict nécessaire", "au strict minimum" ni "se contente de" sauf si "Ne s'implique pas au-delà du strict nécessaire" ou "Se contente du minimum requis" est coché, ni suggérer que l'élève fait le minimum). (b) L'intensité des adjectifs ("sincère", "remarquable", "exemplaire"…) dépend du PROFIL (cf. bloc INTENSITÉ DES FORMULATIONS), jamais du libellé de la pill. (c0) TRAVAIL ≠ APPRENTISSAGES : "travail" = ce que l'élève fait (devoirs, exercices, régularité, soin, approfondissement) ; "apprendre/retenir ses leçons" = ce qu'il mémorise et maîtrise. Si les deux sont cochés, ce sont DEUX idées distinctes à garder séparées (ex : "Il devra approfondir son travail et mieux apprendre ses leçons"), sans les fondre ni les répéter l'une par l'autre. (c) Une consigne de conseil est un cap à donner, pas un constat : "Approfondir", "Gagner en confiance" = conseil formulé simplement, jamais présenté comme un défaut déjà décrit si la pill correspondante n'est pas cochée. (d) MATURITÉ / RAPPELS : "Manque de maturité — a besoin de rappels pour se recentrer" se dit avec douceur selon le profil (excellent/bon/mitigé → "gagnerait à gagner en maturité", "a parfois besoin d'être recentré(e)" ; fragile → "a besoin de rappels"). JAMAIS "rappels réguliers", "rappels fréquents", "constamment", "sans cesse" sauf si un comportement coché le dit explicitement (bavardages incessants, très perturbateur). Même principe pour toute fréquence ("régulièrement", "souvent", "fréquemment") : ne jamais l'ajouter si elle n'est pas dans la pill cochée. (f) LIBELLÉS AVEC TIRET (toute pill du type "Idée — précision") : seule l'idée avant le tiret compte ; la précision après le tiret n'est jamais reprise telle quelle. Elle sert uniquement à te faire comprendre le sens. La formulation finale se décide en regardant le PROFIL ENTIER (bilan choisi, équilibre des pills, remarque personnelle, ton) et change d'une appréciation à l'autre : ne reprends jamais la même tournure pour la même pill chez deux élèves. (e) AUCUN renforcement ajouté : jamais "trop", "trop souvent", "bien trop", "reste en surface", "en surface", "de surface" sauf si une pill le dit mot pour mot. "Manque d'approfondissement" se dit simplement : "son travail manque d'approfondissement" ou "gagnerait à être approfondi" — sans "trop souvent", sans "en surface". Un point à travailler se formule à l'intensité de la pill cochée, jamais au-dessus. En cas de doute, la formulation la plus simple et la plus sobre l'emporte.
 8g. BREVET / BAC / EXAMENS — ne jamais mentionner le Brevet, le Bac, ou tout examen sauf si une pill "Brevet" ou "Bac" est explicitement cochée. Même en 3e ou Terminale, ne pas inférer l'examen du niveau scolaire. De même, ne jamais écrire "attentes du lycée", "exigences du lycée", "niveau lycée", "attentes du collège" sauf si explicitement coché.
 8h. ENCOURAGEMENTS / FÉLICITATIONS — si "Encouragements" est coché, le sens réel est : l'enseignant CROIT en la capacité de l'élève à progresser et veut l'exprimer. La conclusion doit transmettre cette CONFIANCE — le mot "Encouragements" lui-même n'est PAS obligatoire et sonne souvent comme une étiquette collée. VARIER parmi ces formulations (ne pas toujours choisir la même) : "Il/elle en est tout à fait capable.", "Il/elle en a les capacités.", "Il/elle a les moyens d'y arriver avec un peu plus de persévérance.", "Les capacités sont là pour progresser.", "Rien ne s'oppose à de réels progrès avec un peu plus de constance.", "Avec un peu plus de régularité, les progrès suivront.", "Cette progression est tout à fait à sa portée.", "Il/elle a tout ce qu'il faut pour y arriver." Choisir la formulation la plus naturelle selon le contexte de la phrase précédente — éviter la répétition d'une génération à l'autre. Si le mot "encouragements" est utilisé malgré tout, l'intégrer pleinement dans une phrase avec du sens, jamais comme sous-titre plaqué ("Encouragements pour cette persévérance." est interdit). Si "Félicitations" est coché → terminer par "Félicitations." seul, pas "je félicite" ou "mérite des félicitations". Si "Félicitations" ET "Continuer sur cette lancée" sont tous deux cochés → intégrer "continuer sur cette lancée" dans le corps du texte, pas comme deuxième phrase de conclusion.
 8k. STRUCTURE DES PHRASES — ANTI-LISTE (règle consolidée) :
@@ -5438,7 +5466,21 @@ const HALLUCINATION_KEYWORDS = [
 
 const HALLUCINATION_POSITIVE = ['félicitations','félicitati'];
 
-function stripHallucinatedSentences(txt, checkedNeg, checkedPos, verdictId){
+// Un mot "sensible" (bavardage, distraction, concentration, perturbation) est autorisé s'il est justifié
+// par une pill cochée (négative, neutre ou positive), un conseil coché ou la remarque personnelle du professeur.
+function halluRoot(kw){
+  if(kw.startsWith('bavar')) return 'bavar';
+  if(kw.startsWith('distra')) return 'distr';
+  if(kw.includes('concentr')) return 'concentr';
+  if(kw.startsWith('perturb')) return 'perturb';
+  return kw;
+}
+function kwAllowed(kw, checkedNeg, checkedPos, extra){
+  const root=halluRoot(kw);
+  const pool=[...checkedNeg,...checkedPos].join(' ').toLowerCase()+' '+(extra||'').toLowerCase();
+  return pool.includes(root);
+}
+function stripHallucinatedSentences(txt, checkedNeg, checkedPos, verdictId, extra){
   const excellentVerdict=['vd1','vd2'].includes(verdictId||'');
   const felicitationsTicked=checkedPos.some(p=>p.toLowerCase().includes('félicit'));
   const isDiscreet=([...checkedNeg,...checkedPos]).some(s=>s.toLowerCase().includes('discret')||s.toLowerCase().includes('réservé')||s.toLowerCase().includes('exprime peu'));
@@ -5448,8 +5490,8 @@ function stripHallucinatedSentences(txt, checkedNeg, checkedPos, verdictId){
   const filtered=sentences.filter(s=>{
     const sl=s.toLowerCase();
     // Remove hallucinated bavardages if not ticked
-    const hasBavard=HALLUCINATION_KEYWORDS.some(kw=>sl.includes(kw));
-    if(hasBavard && !checkedNeg.some(n=>n.toLowerCase().includes('bavard'))) return false;
+    const hitKw=HALLUCINATION_KEYWORDS.filter(kw=>sl.includes(kw));
+    if(hitKw.some(kw=>!kwAllowed(kw,checkedNeg,checkedPos,extra))) return false;
     // Remove félicitations if not appropriate
     if(sl.includes('félicit') && !felicitationsTicked && !excellentVerdict) return false;
     // Remove active participation if discreet
@@ -5462,14 +5504,14 @@ function stripHallucinatedSentences(txt, checkedNeg, checkedPos, verdictId){
   return filtered.join(' ').trim();
 }
 
-function hasHallucination(txt, checkedNeg, checkedPos, verdictId){
+function hasHallucination(txt, checkedNeg, checkedPos, verdictId, extra){
   const t=txt.toLowerCase();
   const checkedAll=[...checkedNeg,...checkedPos].map(s=>s.toLowerCase());
 
   // Check negative hallucinations
   const negHallucination = HALLUCINATION_KEYWORDS.some(kw=>{
     if(!t.includes(kw)) return false;
-    return !checkedNeg.some(neg=>neg.toLowerCase().includes(kw.substring(0,5)));
+    return !kwAllowed(kw,checkedNeg,checkedPos,extra);
   });
   if(negHallucination) return true;
 
@@ -5575,17 +5617,19 @@ async function genOne(sid){
     const seed=STYLE_SEEDS[Math.floor(Math.random()*STYLE_SEEDS.length)];
     const prompt=buildPrompt(st,cls,S.period,seed,sampMem(S.active));
     const {checkedNeg, checkedPos}=buildPromptMeta(st,cls);
+    const _metaA=buildPromptMeta(st,cls);
+    const extraAllowed=((st.freeNotes||'')+' '+_metaA.checkedConseilsActionable.join(' ')).toLowerCase();
     const minLen=Math.max(Math.round((cls.charLimit||750)*0.70),(cls.charLimit||750)-200);
     let txt='';
     for(let attempt=0;attempt<5;attempt++){
       txt=fitToLimit((await callClaude(prompt)).replace(/\n+/g,' ').trim(), cls.charLimit||750);
-      const hallucinated=hasHallucination(txt,checkedNeg,checkedPos,getStudentVerdict(st));
+      const hallucinated=hasHallucination(txt,checkedNeg,checkedPos,getStudentVerdict(st),extraAllowed);
       if(!hallucinated) break;
       console.warn('Hallucination detected, retrying...');
     }
     ta.classList.remove('gen');
     // Safety strip — only apply if result is non-empty
-    const cleanTxt=stripHallucinatedSentences(txt,checkedNeg,checkedPos,getStudentVerdict(st));
+    const cleanTxt=stripHallucinatedSentences(txt,checkedNeg,checkedPos,getStudentVerdict(st),extraAllowed);
     let finalTxt=(cleanTxt&&cleanTxt.length>50)?cleanTxt:txt;
     if(!finalTxt){toast('Erreur : génération vide');return;}
 
