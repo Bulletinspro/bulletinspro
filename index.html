@@ -1631,38 +1631,44 @@ const CORE_BOXES = {
 const SUBJECT_BOXES = {
   lang: {
     oral: {
-      label:'Expression orale & Prononciation',
+      label:'Expression orale, compréhension & prononciation',
       items:[
         {id:'lo1',l:'Bonne expression orale',v:'pos'},
         {id:'lo2',l:'Prononciation travaillée',v:'pos'},
         {id:'lo3',l:'Bon niveau de langue à l\'oral',v:'pos'},
         {id:'lo4',l:'Aisance à l\'oral',v:'pos'},
+        {id:'lo13',l:'Bonne compréhension orale',v:'pos'},
         {id:"lo7",l:"Discret(e), s'exprime peu en cours",v:"neutral"},
         {id:"lo9",l:"Des efforts à l'oral — en progrès",v:"neutral"},
         {id:"lo10",l:"Participation orale encourageante",v:"neutral"},
         {id:"lo11",l:"S'exprime mais avec des hésitations",v:"neutral"},
         {id:"lo12",l:"Compréhension orale satisfaisante",v:"neutral"},
+        {id:"lo14",l:"Compréhension orale en cours de consolidation",v:"neutral"},
         {id:"lo5",l:"Hésitant(e) à l'oral",v:"neg"},
         {id:"lo6",l:"Prononciation à travailler",v:"neg"},
         {id:"lo8",l:"Accent et intonation à améliorer",v:"neg"},
+        {id:"lo15",l:"Difficultés en compréhension orale",v:"neg"},
       ]
     },
     ecrit: {
-      label:'Expression écrite & Compréhension',
+      label:'Expression écrite & compréhension écrite',
       items:[
         {id:'ec1',l:'Bonne compréhension écrite',v:'pos'},
         {id:'ec2',l:'Expression écrite fluide',v:'pos'},
         {id:'ec3',l:'Vocabulaire riche et varié',v:'pos'},
         {id:'ec4',l:'Grammaire maîtrisée',v:'pos'},
         {id:'ec5',l:'Bon niveau de langue à l\'écrit',v:'pos'},
+        {id:'ec14',l:'Vocabulaire appris régulièrement',v:'pos'},
         {id:"ec10",l:"Des progrès à l'écrit — en bonne voie",v:"neutral"},
         {id:"ec11",l:"Expression écrite en progression",v:"neutral"},
-        {id:"ec12",l:"Compréhension en cours de consolidation",v:"neutral"},
+        {id:"ec12",l:"Compréhension écrite en cours de consolidation",v:"neutral"},
         {id:"ec13",l:"Rédaction correcte mais perfectible",v:"neutral"},
-        {id:"ec6",l:"Difficultés en compréhension",v:"neg"},
+        {id:'ec15',l:'Vocabulaire en cours d\'acquisition',v:'neutral'},
+        {id:"ec6",l:"Difficultés en compréhension écrite",v:"neg"},
         {id:"ec7",l:"Erreurs grammaticales fréquentes",v:"neg"},
         {id:"ec8",l:"Vocabulaire limité",v:"neg"},
         {id:"ec9",l:"Expression écrite à développer",v:"neg"},
+        {id:'ec16',l:'Vocabulaire non appris régulièrement',v:'neg'},
       ]
     },
     bilingue: {
@@ -1698,11 +1704,13 @@ const SUBJECT_BOXES = {
         {id:'fl2',l:'Excellente compréhension des textes littéraires',v:'pos'},
         {id:'fl3',l:'Bonne culture littéraire',v:'pos'},
         {id:'fl4',l:'Analyse fine des textes — va au-delà du sens littéral',v:'pos'},
+        {id:'fl10',l:'Lectures cursives faites régulièrement',v:'pos'},
         {id:'fl5',l:'Lecture en cours de développement',v:'neutral'},
         {id:'fl6',l:'Compréhension correcte mais analyse à approfondir',v:'neutral'},
         {id:'fl7',l:'Lecture insuffisante — freine la progression',v:'neg'},
         {id:'fl8',l:'Difficultés à analyser et interpréter les textes',v:'neg'},
         {id:'fl9',l:'Peu de lecture personnelle — lacunes culturelles perceptibles',v:'neg'},
+        {id:'fl11',l:'Lectures imposées non faites',v:'neg'},
       ]
     },
     ecrit: {
@@ -1716,7 +1724,7 @@ const SUBJECT_BOXES = {
         {id:'fe6',l:'Rédaction correcte mais manque de personnalité',v:'neutral'},
         {id:'fe7',l:'Structure à améliorer — manque de cohérence',v:'neutral'},
         {id:'fe8',l:'Difficultés à développer ses idées à l\'écrit',v:'neg'},
-        {id:'fe9',l:'Expression écrite très fragile',v:'neg'},
+        {id:'fe9',l:'Expression écrite fragile',v:'neg'},
         {id:'fe10',l:'Travail de rédaction insuffisant',v:'neg'},
       ]
     },
@@ -1838,11 +1846,14 @@ const SUBJECT_BOXES = {
         {id:'mn1',l:'Très bonne maîtrise des notions du programme',v:'pos'},
         {id:'mn2',l:'Notions bien comprises et bien appliquées',v:'pos'},
         {id:'mn3',l:'Bonne assimilation des nouvelles notions',v:'pos'},
+        {id:'mn9',l:'À l\'aise en géométrie',v:'pos'},
         {id:'mn4',l:'Notions globalement acquises',v:'neutral'},
         {id:'mn5',l:'Quelques notions à consolider',v:'neutral'},
+        {id:'mn10',l:'Géométrie à consolider',v:'neutral'},
         {id:'mn6',l:'Des lacunes importantes dans les notions de base',v:'neg'},
         {id:'mn7',l:'Notions mal assimilées malgré les explications',v:'neg'},
         {id:'mn8',l:'Difficultés persistantes sur des notions fondamentales',v:'neg'},
+        {id:'mn11',l:'Difficultés avec les figures et les propriétés géométriques',v:'neg'},
       ]
     },
     redaction: {
@@ -1878,10 +1889,13 @@ const SUBJECT_BOXES = {
         {id:'hk2',l:'Solides repères chronologiques et spatiaux',v:'pos'},
         {id:'hk3',l:'Bonne culture générale',v:'pos'},
         {id:'hk4',l:'Bonne maîtrise du vocabulaire disciplinaire',v:'pos'},
+        {id:'hk10',l:'Repères chronologiques maîtrisés',v:'pos'},
         {id:'hk5',l:'Connaissances satisfaisantes',v:'neutral'},
         {id:'hk6',l:'Repères en cours de consolidation',v:'neutral'},
+        {id:'hk11',l:'Repères chronologiques à consolider',v:'neutral'},
         {id:'hk7',l:'Lacunes dans les connaissances et les repères',v:'neg'},
         {id:'hk9',l:'Vocabulaire disciplinaire à acquérir',v:'neg'},
+        {id:'hk12',l:'Repères chronologiques mal acquis',v:'neg'},
       ]
     },
     documents: {
@@ -1904,8 +1918,8 @@ const SUBJECT_BOXES = {
         {id:'hr4',l:'Rédaction correcte mais manque de développement',v:'neutral'},
         {id:'hr5',l:'Des efforts à la rédaction — en progrès',v:'neutral'},
         {id:'hr6',l:'Difficultés à rédiger une réponse organisée',v:'neg'},
-        {id:'hr7',l:'Réponses trop courtes ou non développées',v:'neg'},
-        {id:'hr8',l:'Expression écrite très fragile',v:'neg'},
+        {id:'hr7',l:'Réponses courtes ou peu développées',v:'neg'},
+        {id:'hr8',l:'Expression écrite fragile',v:'neg'},
         {id:'hr9',l:'Lenteur à l\'écrit — ne termine pas les épreuves',v:'neg'},
       ]
     },
@@ -2116,9 +2130,11 @@ const SUBJECT_BOXES = {
         {id:'ei3',l:'S\'implique avec enthousiasme',v:'pos'},
         {id:'ei4',l:'Investissement correct',v:'neutral'},
         {id:'ei5',l:'S\'implique davantage selon les activités',v:'neutral'},
+        {id:'ei9',l:'Évaluation limitée (dispense ou inaptitude partielle)',v:'neutral'},
         {id:'ei6',l:'Manque d\'investissement dans certaines activités',v:'neg'},
         {id:'ei7',l:'Peu investi(e) — ne se donne pas les moyens de progresser',v:'neg'},
         {id:'ei8',l:'Refuse de participer à certaines activités',v:'neg'},
+        {id:'ei10',l:'Tenue de sport souvent oubliée',v:'neg'},
       ]
     },
     collectif: {
@@ -2279,7 +2295,7 @@ const SUBJECT_BOXES = {
         {id:'sr2',l:'Argumentation économique construite et nuancée',v:'pos'},
         {id:'sr3',l:'Rédaction satisfaisante',v:'neutral'},
         {id:'sr4',l:'Difficultés à structurer un raisonnement économique',v:'neg'},
-        {id:'sr5',l:'Rédaction trop superficielle — manque de développement',v:'neg'},
+        {id:'sr5',l:'Rédaction superficielle — manque de développement',v:'neg'},
       ]
     },
     actualite: {
@@ -2356,7 +2372,7 @@ const SUBJECT_BOXES = {
         {id:'pl6',l:'Plan correct mais développement insuffisant',v:'neutral'},
         {id:'pl11',l:'Des idées pertinentes mais manque de rigueur dans la construction',v:'neutral'},
         {id:'pl7',l:'Difficultés à problématiser',v:'neg'},
-        {id:'pl8',l:'Argumentation trop superficielle',v:'neg'},
+        {id:'pl8',l:'Argumentation superficielle',v:'neg'},
         {id:'pl9',l:'Hors-sujet récurrents',v:'neg'},
         {id:'pl12',l:'Peu ou pas de références philosophiques mobilisées',v:'neg'},
       ]
@@ -2381,7 +2397,7 @@ const SUBJECT_BOXES = {
         {id:'pv2',l:'Expression écrite claire, rigoureuse et bien construite',v:'pos'},
         {id:'pv3',l:'Vocabulaire philosophique en cours d\'acquisition',v:'neutral'},
         {id:'pv4',l:'Expression correcte mais manque de précision conceptuelle',v:'neutral'},
-        {id:'pv5',l:'Vocabulaire trop vague — manque de précision philosophique',v:'neg'},
+        {id:'pv5',l:'Vocabulaire vague — manque de précision philosophique',v:'neg'},
         {id:'pv6',l:'Expression écrite à améliorer pour un niveau Terminale',v:'neg'},
       ]
     },
@@ -2524,7 +2540,7 @@ const SUBJECT_BOXES = {
         {id:'lo3',l:'Prise de parole spontanée et de qualité',v:'pos'},
         {id:'lo4',l:'Expression orale satisfaisante',v:'neutral'},
         {id:'lo5',l:'Doit oser davantage s\'exprimer en langue',v:'neg'},
-        {id:'lo6',l:'Expression orale trop hésitante pour ce niveau',v:'neg'},
+        {id:'lo6',l:'Expression orale hésitante pour ce niveau',v:'neg'},
       ]
     },
     ecrit: {
@@ -2567,7 +2583,7 @@ const SUBJECT_BOXES = {
         {id:'hp3',l:'Fait des liens pertinents entre littérature et philosophie',v:'pos'},
         {id:'hp4',l:'Dissertation satisfaisante',v:'neutral'},
         {id:'hp5',l:'Difficultés à articuler littérature et philosophie',v:'neg'},
-        {id:'hp6',l:'Raisonnement trop superficiel',v:'neg'},
+        {id:'hp6',l:'Raisonnement superficiel',v:'neg'},
       ]
     },
     textes: {
@@ -2617,7 +2633,7 @@ const SUBJECT_BOXES = {
         {id:'ha2',l:'Sait mobiliser des exemples précis et pertinents',v:'pos'},
         {id:'ha3',l:'Analyse satisfaisante',v:'neutral'},
         {id:'ha4',l:'Difficultés à construire un raisonnement géopolitique',v:'neg'},
-        {id:'ha5',l:'Exemples trop généraux — manque de précision',v:'neg'},
+        {id:'ha5',l:'Exemples généraux — manque de précision',v:'neg'},
       ]
     },
     sources: {
@@ -4614,6 +4630,15 @@ const PROFILE_FORMS={
   co23:{bon:"se laisse parfois distraire",mitige:"se laisse facilement distraire, ce qui nuit à la concentration",fragile:"un manque de concentration en classe, qui freine la progression"},
   co21:{bon:"des retards à corriger",mitige:"des retards qui perturbent parfois le cours",fragile:"des retards fréquents qui perturbent le déroulement du cours"},
   co22:{bon:"doit prendre le cours dans son intégralité",mitige:"ne prend pas toujours le cours en entier, ce qui crée des lacunes",fragile:"un cours incomplet, avec des lacunes qui s'accumulent"},
+ ei9:{bon:"une évaluation limitée à une partie des activités",mitige:"une évaluation limitée à une partie des activités",fragile:"une évaluation limitée à une partie des activités"},
+ ei10:{bon:"une tenue de sport à ne pas oublier",mitige:"une tenue de sport régulièrement oubliée",fragile:"une tenue de sport souvent oubliée, ce qui limite la participation"},
+ ec15:{bon:"un vocabulaire en cours d'acquisition",mitige:"un vocabulaire encore en cours d'acquisition",fragile:"un vocabulaire encore peu acquis"},
+ ec16:{bon:"un vocabulaire à apprendre plus régulièrement",mitige:"un vocabulaire pas assez régulièrement appris",fragile:"un vocabulaire non appris régulièrement, ce qui freine la progression"},
+ mn10:{bon:"une géométrie à consolider",mitige:"des notions de géométrie à consolider",fragile:"des notions de géométrie encore fragiles"},
+ mn11:{bon:"quelques difficultés avec les figures et les propriétés",mitige:"des difficultés avec les figures et les propriétés géométriques",fragile:"des difficultés marquées avec les figures et les propriétés géométriques"},
+ fl11:{bon:"quelques lectures imposées à faire",mitige:"des lectures imposées non faites",fragile:"des lectures imposées régulièrement non faites"},
+ hk11:{bon:"des repères chronologiques à consolider",mitige:"des repères chronologiques encore à consolider",fragile:"des repères chronologiques encore fragiles"},
+ hk12:{bon:"quelques repères chronologiques à revoir",mitige:"des repères chronologiques mal acquis",fragile:"des repères chronologiques peu acquis, à reprendre régulièrement"},
  pr4:{bon:"des résultats à consolider",mitige:"des résultats encore fragiles",fragile:"des résultats fragiles, qui demandent un soutien régulier"},
  pr9:{bon:"une progression régulière",mitige:"une progression stable, sans accélération",fragile:"une progression qui se maintient mais reste lente"},
  pr10:{bon:"une progression un peu irrégulière",mitige:"une progression irrégulière",fragile:"une progression irrégulière, qui ne s'installe pas"},
@@ -4767,7 +4792,7 @@ function buildPrompt(st,cls,period,seed,memSamp){
     ['autonomie','méthode','organisation'],
     ['comportement','attitude','maturité','perturbat'],
     ['assiduité','absent','ponctualité'],
-    ['oral','prononciation','expression orale','aisance'],
+    ['oral','prononciation','expression orale','aisance','compréhension orale'],
     ['écrit','grammaire','vocabulaire','compréhension écrite'],
     ['curiosité','esprit critique','créativité'],
     ['AESH','accompagnement'],
@@ -4878,6 +4903,7 @@ function buildPrompt(st,cls,period,seed,memSamp){
   const noMarksCtx=_noMarks?`\nÉVALUATION LIMITÉE : le professeur dispose de peu d'éléments (pas d'évaluations notées ce trimestre, élève encore peu connu et/ou élève arrivé(e) en cours de trimestre, donc en période d'adaptation). N'invente NI difficultés NI niveau NI résultats : reste strictement sur les observations cochées (écoute, sérieux, réserve, attitude…). Dis simplement que le niveau est difficile à évaluer à ce stade et reste à confirmer. Une élève réservée n'est pas "en difficulté" : ne suppose aucune difficulté sans pill qui le dise. Ton bienveillant, conclusion encourageante (confiance, prise de parole) seulement si un conseil correspondant est coché.`:'';
   const _regKey=(_profil==='excellent'||_profil==='bon')?'bon':_profil;
   const _coreLabels={};
+  try{Object.values(getSubjectBoxes(cls.subject,cls.langLevel,cls.classYear)).forEach(sec=>{if(sec&&sec.items)sec.items.forEach(it=>{_coreLabels[it.id]=it.l;});});}catch(e){}
   Object.values(CORE_BOXES).forEach(sec=>sec.items.forEach(it=>{_coreLabels[it.id]=it.l;}));
   const _formLines=Object.keys(st.boxes||{}).filter(id=>st.boxes[id]&&PROFILE_FORMS[id]&&_coreLabels[id]).map(id=>'• '+_coreLabels[id].split('—')[0].trim()+' → '+PROFILE_FORMS[id][_regKey]);
   const formsCtx=_formLines.length?`\nFORMULATIONS ADAPTÉES AU PROFIL (${_profil}) — voici comment dire chaque observation ci-dessous POUR CE PROFIL. Ce sont des repères d'intensité : reformule avec tes propres mots, ne recopie jamais mot pour mot, et ne reprends pas la même tournure d'un élève à l'autre.\n${_formLines.join('\n')}`:'';
