@@ -4297,8 +4297,7 @@ function renderEditor(id){
     <div class="card" style="margin-bottom:8px">
       <div class="st-freetext-wrap">
         <label style="font-size:.72rem;color:var(--muted);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.06em;display:block;margin-bottom:5px">✏️ Remarque personnelle <span style="text-transform:none;letter-spacing:0;opacity:.7">(facultatif — sera intégré dans l'appréciation)</span></label>
-        <textarea class="st-freetext" placeholder="Ex : a beaucoup progressé à l'oral ce trimestre, très investi dans le projet de groupe, fait de gros efforts en mathématiques…" onchange="setStFreeNotes('${id}',this.value)" oninput="setStFreeNotes('${id}',this.value)">${st.freeNotes||''}</textarea>
-        <div style="font-size:.68rem;color:var(--muted);margin-top:5px">🔒 Évitez les informations médicales ou familiales sensibles, et n'écrivez pas de nom d'élève : cette remarque est transmise à l'IA.</div>
+        <textarea class="st-freetext" placeholder="Ex : a beaucoup progressé à l'oral ce trimestre, contexte familial difficile, fait de gros efforts malgré ses difficultés…" onchange="setStFreeNotes('${id}',this.value)" oninput="setStFreeNotes('${id}',this.value)">${st.freeNotes||''}</textarea>
       </div>
     </div>`;
 
@@ -5012,7 +5011,8 @@ EXCEPTION — CONCLUSION FERME AVEC POINT PRÉCIS : "Il sera essentiel de [actio
 ${checkedConseilsActionable.length ? (() => {
   const isMixed = checkedPos.length>0 && checkedNeg.length>0;
   const actionsLower = checkedConseilsActionable.map(c => c.split('—')[0].trim()).map(c => c.charAt(0).toLowerCase()+c.slice(1));
-  const yearMention = isRedouble ? "l'année prochaine" : (nextYearLabel || "l'année prochaine");
+  const isLastPerYM = (cls.periodType==='semestre' && period===2) || (cls.periodType!=='semestre' && period===3);
+  const yearMention = !isLastPerYM ? "la suite de l'année" : (isRedouble ? "l'année prochaine" : (nextYearLabel || "l'année prochaine"));
   const redLabel = checkedConseilsRed.length ? checkedConseilsRed[0].split('—')[0].trim() : null;
   const redLower = redLabel ? redLabel.charAt(0).toLowerCase()+redLabel.slice(1) : null;
   let out = '\n⛔ CONCLUSION OBLIGATOIRE — CONSEILS À TRAITER : '+checkedConseilsActionable.join(', ')+'.';
@@ -5474,7 +5474,8 @@ function buildConclusionFixPrompt(txt, st, cls, period, checkedConseilsActionabl
   const tone=getStTone(st)||cls.tone||'equilibre';
   const isRedouble = !!(st.redoublement && st.redoublement[period]);
   const nextYearLabel = NEXT_YEAR_LABEL[cls.classYear];
-  const yearMention = isRedouble ? "l'année prochaine" : (nextYearLabel || "l'année prochaine");
+  const isLastPerYM = (cls.periodType==='semestre' && period===2) || (cls.periodType!=='semestre' && period===3);
+  const yearMention = !isLastPerYM ? "la suite de l'année" : (isRedouble ? "l'année prochaine" : (nextYearLabel || "l'année prochaine"));
   const limit=Math.min(1000,cls.charLimit||750);
 
   // Tous les conseils ROUGES (sans hiérarchie entre eux)
@@ -5511,7 +5512,7 @@ function buildConclusionFixPrompt(txt, st, cls, period, checkedConseilsActionabl
   } else {
     targetSentence = `Une implication accrue sera nécessaire pour bien aborder ${yearMention}.`;
   }
-  if(isRedouble) targetSentence = targetSentence.replace(new RegExp(yearMention.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'g'), "l'année prochaine");
+  if(isRedouble && isLastPerYM) targetSentence = targetSentence.replace(new RegExp(yearMention.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'g'), "l'année prochaine");
 
   // Fermeté de la conclusion proportionnelle à la négativité globale du profil — pas seulement
   // au nombre de conseils. Un profil qui penche négatif (checkedNeg >= checkedPos) ou avec au
