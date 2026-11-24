@@ -8526,8 +8526,8 @@ const PP_STYLE_SEEDS = [
   "Commence par un bilan global de l'implication de l'élève dans la classe.",
   "Commence par évoquer la progression observée à travers les matières.",
   "Commence par une remarque sur l'attitude générale et la vie scolaire.",
-  "Commence par noter le profil global de l'élève tel que perçu par l'équipe pédagogique.",
-  "Commence par évoquer les points forts qui ressortent du conseil de classe.",
+  "Commence par le profil global de l'élève tel qu'il ressort de toutes les matières.",
+  "Commence par évoquer les points forts qui ressortent dans plusieurs matières.",
   "Commence par une observation sur les compétences transversales.",
 ];
 
@@ -9067,20 +9067,20 @@ function buildPPPrompt(st,pp,period,seed,memSamp){
 ÉLÈVE : ${gender}, accord au ${accord} OBLIGATOIRE. ${pLabel} — Classe : ${pp.name}.
 ${vieScoCxt}${orientCtx}${nextYearCtxPP}${notesCtx}
 
-OBSERVATIONS SYNTHÉTISÉES DE L'ÉQUIPE PÉDAGOGIQUE :
+OBSERVATIONS SUR L'ÉLÈVE (toutes matières) :
 ${checked.length?checked.map(i=>'• '+i).join('\n'):'• Bilan général correct, sans remarque particulière'}
 
 STYLE D'ENTRÉE EN MATIÈRE : ${seed}
 ${memCtx}${styleCtx}
 RÈGLES STRICTES — toutes obligatoires :
 1. Ce texte est un BILAN GLOBAL rédigé par le professeur principal — pas une appréciation de matière.
-2. Le registre est institutionnel, synthétique, conclusif. C'est la voix de l'équipe pédagogique au complet.
+2. Registre naturel, simple et chaleureux, celui d'un professeur principal qui connaît bien l'élève et résume son profil sur toutes les matières. Le sujet des phrases est l'élève ("elle", "il", "cette élève", "cet élève"). INTERDIT : tournures administratives ou solennelles : "l'équipe pédagogique", "le conseil de classe", "l'ensemble des professeurs", "l'ensemble des enseignants", "nous constatons", "on soulignera", "au terme de ce trimestre/semestre", "sur l'ensemble des matières", "dans l'ensemble des disciplines". Les observations viennent des collègues : dis-le simplement ("dans plusieurs matières", "en classe") sans le formaliser.
 3. Texte FLUIDE et CONTINU, entre ${Math.round(ppCharLimit*0.6)} et ${ppCharLimit} caractères. JAMAIS de liste, de tirets, de points numérotés.
-4. Relie toutes les idées avec des connecteurs variés : "Cependant,", "Par ailleurs,", "Néanmoins,", "Tout en saluant…, on soulignera que", "Dans l'ensemble,", "Au fil du trimestre,", "L'équipe pédagogique souligne que", etc.
+4. Relie les idées avec des connecteurs simples et variés, sans les répéter d'un bilan à l'autre.
 5. Accord grammatical au ${accord} SANS EXCEPTION.
-6. Ne commence PAS par "Il / Elle" seul. Commence par une formule plus élaborée : "Au terme de ce trimestre,", "Le conseil de classe souligne…", "L'ensemble des professeurs…", "Au fil de ce semestre…", etc.
+6. Ne commence PAS par "Il / Elle" seul : ouvre par une idée sur le profil de l'élève (son investissement, son attitude, ses résultats, ses capacités) avec une tournure simple. Pas de formule d'ouverture solennelle.
 7. Ton : ${toneDesc}.
-8. Termine par un conseil, un encouragement ou une mise en garde ferme selon le ton.
+8. ${isLastPP?'Termine par un conseil, un encouragement ou une mise en garde ferme selon le ton.':'Termine par un encouragement ou un conseil CONCRET et tourné vers le progrès : il reste du temps pour progresser, c\'est cela qu\'il faut pousser (ex. : s\'appuyer sur ses points forts, un effort précis à engager). INTERDIT de conclure sur un constat sombre ou sur l\'enjeu d\'une échéance : pas de "éléments essentiels à la réussite", "indispensable pour réussir", "en fin de collège/lycée", "pour l\'examen", "pour la suite de la scolarité". Même avec un profil fragile, la dernière phrase donne confiance et une direction.'}
 9. Répondre UNIQUEMENT avec le bilan rédigé, sans guillemets, sans titre, sans commentaire.${profileWordingCtx(PP_BOXES,st.boxes,PP_FORMS,'eleve')}${sharedWordingRules(pp.periodType,period,checked,!!(st.viesco&&parseInt(st.viesco.absences)>0))}`;
 }
 
