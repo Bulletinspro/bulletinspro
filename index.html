@@ -1614,6 +1614,8 @@ const CORE_BOXES = {
       {id:'ob13',l:'Approfondir davantage le travail',v:'neutral'},
       {id:'ob25',l:'Apprendre ses leçons plus régulièrement',v:'neutral'},
       {id:'ob29',l:'Trouver une méthode pour mieux mémoriser',v:'neutral'},
+      {id:'ob30',l:'Rattraper le travail manqué pour ne pas se laisser distancer',v:'neutral'},
+      {id:'ob31',l:'Faire le point avec l\'équipe pour mettre en place un accompagnement',v:'neutral'},
       {id:'ob14',l:'Aller plus loin dans la réflexion',v:'neutral'},
       {id:'ob15',l:'Consolider les acquis avant d\'aller plus loin',v:'neutral'},
       {id:'ob23',l:'Persévérer malgré les difficultés',v:'neutral'},
@@ -4807,6 +4809,9 @@ function buildPrompt(st,cls,period,seed,memSamp){
     fragile:'Registre mesuré : les points positifs restent modestes ("quelques efforts", "de la bonne volonté"), sans intensif ; les points à travailler sont dits clairement, sans aggraver au-delà de ce qui est coché ; ton bienveillant.',
   }[_profil];
   const intensityCtx=`\nINTENSITÉ DES FORMULATIONS (profil retenu : ${_profil}) — les adjectifs et intensifs présents dans les libellés cochés ("sincère", "remarquable", "exemplaire", "réel", "irréprochable"…) ne sont PAS à recopier : c'est le PROFIL GLOBAL qui fixe l'intensité, pas le libellé. ${_intensRule}`;
+  const _absIds=['pr14','pr22','pr15','pr17','pr18','ob30','ob31'];
+  const _absOn=_absIds.some(id=>st.boxes&&st.boxes[id]);
+  const absencesCtx=_absOn?`\nABSENCES / SUIVI IMPOSSIBLE — SENSIBLE : l'élève est très souvent absent(e) ou son niveau est difficile à évaluer. NE JAMAIS lui demander d'être "plus présent(e)", "plus assidu(e)", ni parler d'"absentéisme" ou de "manque de sérieux" : la cause peut être médicale ou personnelle (santé, phobie scolaire, contexte familial) — ne la suppose jamais et ne la nomme pas. Reste factuel et bienveillant : dire que le niveau reste difficile à évaluer faute d'éléments, que le suivi des cours est interrompu, et que sans rattrapage du travail manqué l'écart risque de se creuser. Conclure sur le rattrapage ou un accompagnement (ex : "Un rattrapage du travail manqué sera nécessaire pour ne pas se laisser distancer."), jamais sur une injonction de présence.`:'';
   const _regKey=(_profil==='excellent'||_profil==='bon')?'bon':_profil;
   const _coreLabels={};
   Object.values(CORE_BOXES).forEach(sec=>sec.items.forEach(it=>{_coreLabels[it.id]=it.l;}));
@@ -5005,7 +5010,7 @@ ${checkedNeg.length
 ${checkedNeutral.length ? '\n⚠️ OBSERVATIONS INTERMÉDIAIRES — thèmes à représenter (regrouper les similaires) : '+checkedNeutral.join(' | ') : ''}
 ${isDiscreet ? '\n⛔ Discret/réservé → INTERDIRE : "participe activement", "participe régulièrement". Dire : "suit attentivement", "s\'implique discrètement".' : ''}
 ${checked.some(c=>c.toLowerCase().includes('régress')&&(isDiscreet||checkedNeg.length>=2)) ? '\n⚠️ RÉGRESSION + profil fragile : ne pas mentionner la régression brutalement. Dire plutôt : "des efforts supplémentaires permettront de retrouver une dynamique positive" ou "il lui faudra redoubler d\'efforts pour inverser la tendance". L\'objectif est d\'encourager, pas de décourager.' : ''}
-${aeshCtx}${orientCtx}${classCtx}${prevCtx}${compCtx}${freeNotesCtx}${intensityCtx}${formsCtx}${memCtx}${styleCtx}
+${aeshCtx}${orientCtx}${classCtx}${prevCtx}${compCtx}${freeNotesCtx}${intensityCtx}${formsCtx}${absencesCtx}${memCtx}${styleCtx}
 
 RÈGLES DE SYNTHÈSE — OBLIGATOIRES :
 0. Longueur : ${((checked.length+(st.freeNotes&&st.freeNotes.trim()?2:0))>=5)?`entre ${targetMin} et ${targetMax} caractères — exploite cet espace : chaque point coché et la remarque personnelle du professeur doivent apparaître, chacun développé dans une phrase complète (pas une simple mention). Ne raccourcis pas l'appréciation quand il y a matière à dire`:`maximum ${targetMax} caractères`}. Synthétise — 4-5 observations liées = 1 phrase fluide.
