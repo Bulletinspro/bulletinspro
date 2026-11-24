@@ -4782,7 +4782,7 @@ function buildPrompt(st,cls,period,seed,memSamp){
 
   const memCtx=memSamp?`\nEXPRESSIONS DÉJÀ UTILISÉES POUR CETTE CLASSE (à éviter absolument pour garantir la variété) :\n${memSamp}`:'';
   const styleCtx=getStylePersoCtx();
-  const freeNotesCtx=st.freeNotes&&st.freeNotes.trim()?`\nREMARQUE PERSONNELLE DU PROFESSEUR (à intégrer naturellement dans l'appréciation sans recopier mot pour mot — reformuler et tisser dans le texte) : ${st.freeNotes.trim()}`:'';
+  const freeNotesCtx=st.freeNotes&&st.freeNotes.trim()?`\n📝 REMARQUE PERSONNELLE DU PROFESSEUR — OBLIGATOIRE : son idée centrale DOIT apparaître dans l'appréciation, dans une phrase qui lui est consacrée (reformulée avec tact et dans tes mots, sans recopier). Ce que le professeur sait de l'élève compte plus qu'une pill : ne l'omets jamais, même si le texte reste court. Si la remarque est dure ou psychologique (ex. "persuadé d'être nul", "voué à l'échec"), traduis-la avec bienveillance, sans ces mots, sans diagnostic ni jugement, et tourne-la vers la confiance et les capacités. Remarque : ${st.freeNotes.trim()}`:'';
   const per = cls.periodType==='semestre' ? 'semestre' : 'trimestre';
   const Per = cls.periodType==='semestre' ? 'Semestre' : 'Trimestre';
   // Previous appreciation context for continuity between terms
@@ -5094,6 +5094,7 @@ ${checkedConseilsActionable.length ? (() => {
 })() : (checkedConseils.length ? `
 ✅ Conseils positifs cochés (${checkedConseils.join(', ')}) — la conclusion suit la règle 8h (Félicitations/Encouragements). Le comportement déjà en place pour les profils positifs reste inchangé.` : `
 ⛔ VÉRIFICATION FINALE — AUCUN CONSEIL COCHÉ : ta DERNIÈRE phrase est-elle quand même une conclusion (cap pour la suite, encouragement, ou constat global type "Il en a les capacités.") plutôt qu'une simple observation supplémentaire ? Le profil global (verdict + ${checkedPos.length} point(s) positif(s), ${checkedNeg.length} point(s) à travailler) doit se refléter dans une conclusion brève et cohérente — cf. règle 8r. Même sans pill spécifique, une conclusion COURTE est obligatoire.`)}
+${st.freeNotes&&st.freeNotes.trim()?`\n8z. VÉRIFICATION FINALE — REMARQUE PERSONNELLE : relis la remarque du professeur ("${st.freeNotes.trim().replace(/"/g,"'")}"). L'appréciation doit contenir une phrase qui en exprime le sens (reformulé avec tact, bienveillant, sans mots durs). Si ce n'est pas le cas, ajoute-la avant de répondre.`:''}
 9. Répondre UNIQUEMENT avec l'appréciation, sans guillemets ni commentaire.`;}
 
 function buildClassPrompt(cls,period){
