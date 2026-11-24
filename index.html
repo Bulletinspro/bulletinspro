@@ -825,11 +825,13 @@ body{font-family:'DM Sans',sans-serif;font-weight:300;background:var(--bg);color
       <span class="cls-title" id="cls-title">Sélectionner une classe</span>
       <div class="period-row" id="period-row" style="display:none"></div>
     </div>
+    <div class="topbar-wrap" style="display:flex;gap:6px;align-items:center;flex-shrink:0">
+    <button class="dark-toggle" onclick="toggleDarkMode()" id="dark-toggle-btn" title="Mode sombre / clair">🌙</button>
     <div class="topbar-r" id="topbar-r" style="display:none">
       <span id="offline-badge" style="display:none;font-family:'DM Mono',monospace;font-size:.55rem;background:#fef4e0;border:1px solid #e8cc80;color:#8a5e00;padding:3px 8px;border-radius:5px;text-transform:uppercase;letter-spacing:.05em">📵 Hors-ligne</span>
-      <button class="dark-toggle" onclick="toggleDarkMode()" id="dark-toggle-btn" title="Mode sombre / clair">🌙</button>
       <button class="btn btn-b btn-sm" onclick="goGenAll()">⚡ Générer tout</button>
       <span id="gen-counter-badge" style="font-size:.72rem;font-weight:600;margin-left:4px;padding:3px 8px;border-radius:999px;border:1px solid var(--border);background:var(--bg)"></span>
+    </div>
     </div>
   </div>
   <div id="view-tabs" style="display:none">
@@ -9080,8 +9082,9 @@ RÈGLES STRICTES — toutes obligatoires :
 5. Accord grammatical au ${accord} SANS EXCEPTION.
 6. Ne commence PAS par "Il / Elle" seul : ouvre par une idée sur le profil de l'élève (son investissement, son attitude, ses résultats, ses capacités) avec une tournure simple. Pas de formule d'ouverture solennelle.
 7. Ton : ${toneDesc}.
-8. ${isLastPP?'Termine par un conseil, un encouragement ou une mise en garde ferme selon le ton.':'Termine par un encouragement ou un conseil CONCRET et tourné vers le progrès : il reste du temps pour progresser, c\'est cela qu\'il faut pousser (ex. : s\'appuyer sur ses points forts, un effort précis à engager). INTERDIT de conclure sur un constat sombre ou sur l\'enjeu d\'une échéance : pas de "éléments essentiels à la réussite", "indispensable pour réussir", "en fin de collège/lycée", "pour l\'examen", "pour la suite de la scolarité". Même avec un profil fragile, la dernière phrase donne confiance et une direction.'}
-9. Répondre UNIQUEMENT avec le bilan rédigé, sans guillemets, sans titre, sans commentaire.${profileWordingCtx(PP_BOXES,st.boxes,PP_FORMS,'eleve')}${sharedWordingRules(pp.periodType,period,checked,!!(st.viesco&&parseInt(st.viesco.absences)>0))}`;
+8. ${isLastPP?'Termine par un conseil, un encouragement ou une mise en garde ferme selon le ton.':'Termine par un encouragement ou un conseil CONCRET et tourné vers le progrès : il reste du temps pour progresser, c\'est cela qu\'il faut pousser (ex. : s\'appuyer sur ses points forts, un effort précis à engager). INTERDIT de conclure sur un constat sombre ou sur l\'enjeu d\'une échéance : pas de "éléments essentiels à la réussite", "indispensable pour réussir", "en fin de collège/lycée", "pour l\'examen", "pour la suite de la scolarité". Même avec un profil fragile, la dernière phrase donne confiance et une direction. Les encouragements viennent directement du professeur ("à poursuivre", "il peut s\'appuyer sur"), jamais d\'un sujet institutionnel (pas de "le conseil de classe lui adresse/l\'invite…", "l\'équipe l\'encourage…").'}
+9. Répondre UNIQUEMENT avec le bilan rédigé, sans guillemets, sans titre, sans commentaire.${profileWordingCtx(PP_BOXES,st.boxes,PP_FORMS,'eleve')}${sharedWordingRules(pp.periodType,period,checked,!!(st.viesco&&parseInt(st.viesco.absences)>0))}
+RAPPEL FINAL — mots et tournures INTERDITS dans ce bilan : "conseil de classe", "équipe pédagogique", "ensemble des professeurs", "ensemble des apprentissages", "ensemble des matières", "réel/réelle", "atout", "précieux", "constitue", "pour la suite", "consolider ses acquis", "gagner en confiance". Phrases courtes, vocabulaire courant, une idée par phrase ; ne répète pas deux fois la même idée (investissement, implication, sérieux, application sont UNE seule idée à dire une fois).`;
 }
 
 // ── PP GENERATION ─────────────────────────────────────────────────────────────
