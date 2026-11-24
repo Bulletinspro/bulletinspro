@@ -4653,11 +4653,11 @@ function buildPrompt(st,cls,period,seed,memSamp){
     ? `\nREDOUBLEMENT ENVISAGÉ : la conclusion ne doit PAS évoquer "${nextYearLabel}" ni une progression de niveau — rester sur "l'année prochaine" de façon neutre, sans préciser la classe, ou évoquer un nouveau départ ("repartir sur de meilleures bases l'année prochaine").`
     : (nextYearLabel ? `\nNIVEAU SUIVANT : ${nextYearLabel}. Un professeur ne précise PAS systématiquement la classe suivante dans chaque conclusion — "l'année prochaine" générique suffit dans la majorité des cas. Réserver "${nextYearLabel}" UNIQUEMENT pour : (a) un profil nécessitant un vrai changement de dynamique (ex: "Le respect des règles sera essentiel pour bien aborder ${nextYearLabel}.") où nommer le niveau suivant donne du poids/de l'urgence, ou (b) un profil très positif où l'élève est clairement prêt(e) ("Elle est prête pour ${nextYearLabel}."). Pour un profil moyen/intermédiaire, "l'année prochaine" sans préciser le niveau reste préférable.` : '');
   const periodCtx=(cls.periodType==='semestre'?{
-    1:"Premier semestre — premier bilan. Pas de référence au passé. Ton : mise en route, potentiel.",
+    1:"Premier semestre — premier bilan. Pas de référence au passé. Ton : mise en route, potentiel. INTERDIT : \"l'année prochaine\", \"la rentrée\", \"classe supérieure\" — l'année est en cours : ne nomme AUCUNE période future (ni \"semestre prochain\", ni \"suite de l'année\") ; le futur est sous-entendu (\"il faudra\", \"devra\").",
     2:"Second et dernier semestre. La dernière phrase conclut l'année et dit si l'élève est prêt(e) pour l'année suivante. Cette phrase remplace la conclusion habituelle, elle ne s'y ajoute pas.",
   }:{
-    1:"Premier trimestre — premier bilan. Pas de référence au passé. Ton : mise en route, potentiel.",
-    2:"Deuxième trimestre — mi-parcours. Ton : évolution depuis le début d'année, cap pour la fin. Ne pas ajouter de contenu supplémentaire, juste nuancer le ton en ce sens.",
+    1:"Premier trimestre — premier bilan. Pas de référence au passé. Ton : mise en route, potentiel. INTERDIT : \"l'année prochaine\", \"la rentrée\", \"classe supérieure\" — l'année est en cours : ne nomme AUCUNE période future (ni \"trimestre prochain\", ni \"suite de l'année\") ; le futur est sous-entendu (\"il faudra\", \"devra\").",
+    2:"Deuxième trimestre — mi-parcours. Ton : évolution depuis le début d'année, cap pour la fin. Ne pas ajouter de contenu supplémentaire, juste nuancer le ton en ce sens. INTERDIT : \"l'année prochaine\", \"la rentrée\", \"la suite de l'année\", \"le trimestre prochain\" — le futur est sous-entendu (\"il faudra\", \"devra\").",
     3:"Troisième trimestre — fin d'année. La dernière phrase conclut l'année. INTERDIT : formulations génériques/robotiques type \"des efforts sont attendus pour le prochain trimestre\", \"au trimestre suivant\", \"prochain trimestre\", \"trimestre à venir\", \"classe supérieure\". En revanche, une conclusion PERSONNELLE et chaleureuse évoquant l'année prochaine EST AUTORISÉE et encouragée, surtout pour un profil en difficulté nécessitant un vrai changement de dynamique. VARIER la formulation — exemples : \"Il faudra repartir sur de bonnes bases l'année prochaine, il/elle en a les capacités.\", \"Il faudra repartir sur de meilleures bases l'année prochaine.\", \"Aborder l'année prochaine avec plus de motivation lui permettra de progresser.\", \"Il faudra prendre en compte ces conseils dès la rentrée prochaine.\", \"Il est indispensable de réagir dès l'année prochaine pour inverser la tendance.\", \"Il faudra persévérer davantage l'année prochaine pour consolider ces bases.\", \"Cette dynamique positive est à poursuivre l'année prochaine.\" Ne pas toujours utiliser la même formulation — choisir celle qui correspond le mieux à la sévérité du profil. Utilise \"l'année prochaine\" ou \"en seconde\" / \"au lycée\" si le niveau le justifie. Cette phrase remplace la conclusion habituelle, elle ne s'y ajoute pas.",
   })[period]||'';
   const gender=st.gender==='F' ? 'FILLE — pronom : ELLE. Article démonstratif : CETTE (pas cet). Adjectifs au FÉMININ : sérieuse, appliquée, investie, motivée, régulière. JAMAIS "il", JAMAIS "cet élève" (toujours "cette élève").' : 'GARÇON — pronom : IL. Article démonstratif : CET (pas cette). Adjectifs au MASCULIN : sérieux, appliqué, investi, motivé, régulier. JAMAIS "elle", JAMAIS "cette élève" (toujours "cet élève").';
@@ -5012,16 +5012,17 @@ ${checkedConseilsActionable.length ? (() => {
   const isMixed = checkedPos.length>0 && checkedNeg.length>0;
   const actionsLower = checkedConseilsActionable.map(c => c.split('—')[0].trim()).map(c => c.charAt(0).toLowerCase()+c.slice(1));
   const isLastPerYM = (cls.periodType==='semestre' && period===2) || (cls.periodType!=='semestre' && period===3);
-  const yearMention = !isLastPerYM ? "la suite de l'année" : (isRedouble ? "l'année prochaine" : (nextYearLabel || "l'année prochaine"));
+  const yearMention = !isLastPerYM ? "" : (isRedouble ? "l'année prochaine" : (nextYearLabel || "l'année prochaine"));
   const redLabel = checkedConseilsRed.length ? checkedConseilsRed[0].split('—')[0].trim() : null;
   const redLower = redLabel ? redLabel.charAt(0).toLowerCase()+redLabel.slice(1) : null;
   let out = '\n⛔ CONCLUSION OBLIGATOIRE — CONSEILS À TRAITER : '+checkedConseilsActionable.join(', ')+'.';
   if(isMixed) out += ' (PROFIL MIXTE pos+neg — cas où la conclusion est le plus souvent oubliée. Sois vigilant.)';
   if(checkedConseilsRed.length) out += '\n🔥 Conseil ROUGE/URGENT présent : "'+checkedConseilsRed[0]+'" — ce point doit être nommé fermement dans la conclusion (ton "'+tone+'").';
   out += '\nTA DERNIÈRE PHRASE DOIT ÊTRE UNE CONCLUSION SUR CE MODÈLE — adapte le gabarit suivant à 1-2 des conseils ci-dessus (ne les énumère pas tous mécaniquement, choisis les plus pertinents) :';
-  out += '\n  • "Il faudra '+(actionsLower[0]||'approfondir le travail')+(actionsLower[1]?' et '+actionsLower[1]:'')+' pour bien aborder '+yearMention+'."';
-  out += '\n  • "Il/elle devra '+(actionsLower[0]||"s'investir davantage")+' pour aborder '+yearMention+' avec de meilleures bases'+(checkedPos.length>checkedNeg.length?', il/elle en a les capacités.':'.')+'"';
-  if(redLower) out += '\n  • "'+redLower.charAt(0).toUpperCase()+redLower.slice(1)+' sera essentiel pour bien aborder '+yearMention+'."';
+  out += '\n  • "Il faudra '+(actionsLower[0]||'approfondir le travail')+(actionsLower[1]?' et '+actionsLower[1]:'')+(yearMention?' pour bien aborder '+yearMention:'')+'."';
+  out += '\n  • "Il/elle devra '+(actionsLower[0]||"s'investir davantage")+(yearMention?' pour aborder '+yearMention+' avec de meilleures bases':'')+(checkedPos.length>checkedNeg.length?', il/elle en a les capacités.':'.')+'"';
+  if(redLower) out += '\n  • "'+redLower.charAt(0).toUpperCase()+redLower.slice(1)+' sera essentiel'+(yearMention?' pour bien aborder '+yearMention:'')+'."';
+  if(!yearMention) out += '\n⛔ PÉRIODE EN COURS (pas la dernière) : NE PAS nommer de période future — ni "l\'année prochaine", ni "la suite de l\'année", ni "le trimestre/semestre prochain", ni "la rentrée". Le futur est sous-entendu par "il faudra" / "devra" / "permettra de progresser". Conclusion courte, sans complément de temps.';
   out += '\nNE PAS systématiquement référencer "les conseils du trimestre précédent" — si l\'espace est compté, SAUTE cette référence au passé et UTILISE la place pour la conclusion ci-dessus, qui est PLUS IMPORTANTE.';
   out += '\nTa réponse est INVALIDE si elle se termine par un simple constat (ex: "...manque de maturité évident.", "...n\'ont pas été suivis d\'effet.") sans une phrase de ce type après.';
   return out;
@@ -5475,7 +5476,7 @@ function buildConclusionFixPrompt(txt, st, cls, period, checkedConseilsActionabl
   const isRedouble = !!(st.redoublement && st.redoublement[period]);
   const nextYearLabel = NEXT_YEAR_LABEL[cls.classYear];
   const isLastPerYM = (cls.periodType==='semestre' && period===2) || (cls.periodType!=='semestre' && period===3);
-  const yearMention = !isLastPerYM ? "la suite de l'année" : (isRedouble ? "l'année prochaine" : (nextYearLabel || "l'année prochaine"));
+  const yearMention = !isLastPerYM ? "" : (isRedouble ? "l'année prochaine" : (nextYearLabel || "l'année prochaine"));
   const limit=Math.min(1000,cls.charLimit||750);
 
   // Tous les conseils ROUGES (sans hiérarchie entre eux)
@@ -5504,13 +5505,13 @@ function buildConclusionFixPrompt(txt, st, cls, period, checkedConseilsActionabl
   let targetSentence;
   const redPart = redLower.length ? redLower.join(' et ') : null;
   if(redPart && yellowActions.length){
-    targetSentence = `${redPart.charAt(0).toUpperCase()+redPart.slice(1)} et ${yellowActions[0]} devront être des priorités pour bien aborder ${yearMention}.`;
+    targetSentence = `${redPart.charAt(0).toUpperCase()+redPart.slice(1)} et ${yellowActions[0]} devront être des priorités${yearMention?` pour bien aborder ${yearMention}`:''}.`;
   } else if(redPart){
-    targetSentence = `${redPart.charAt(0).toUpperCase()+redPart.slice(1)} sera${redLower.length>1?'ont':''} essentiel${redLower.length>1?'s':''} pour bien aborder ${yearMention}.`;
+    targetSentence = `${redPart.charAt(0).toUpperCase()+redPart.slice(1)} sera${redLower.length>1?'ont':''} essentiel${redLower.length>1?'s':''}${yearMention?` pour bien aborder ${yearMention}`:''}.`;
   } else if(yellowActions.length){
-    targetSentence = `Il faudra ${yellowActions[0]}${yellowActions[1]?` et ${yellowActions[1]}`:''} pour bien aborder ${yearMention}.`;
+    targetSentence = `Il faudra ${yellowActions[0]}${yellowActions[1]?` et ${yellowActions[1]}`:''}${yearMention?` pour bien aborder ${yearMention}`:''}.`;
   } else {
-    targetSentence = `Une implication accrue sera nécessaire pour bien aborder ${yearMention}.`;
+    targetSentence = `Une implication accrue sera nécessaire${yearMention?` pour bien aborder ${yearMention}`:''}.`;
   }
   if(isRedouble && isLastPerYM) targetSentence = targetSentence.replace(new RegExp(yearMention.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'g'), "l'année prochaine");
 
@@ -5538,6 +5539,15 @@ Si le total dépasse ${limit} caractères, raccourcis légèrement une autre phr
 Réponds UNIQUEMENT avec le texte COMPLET corrigé (corps + nouvelle conclusion), sans guillemets ni commentaire ni explication.`;
 }
 
+// Filet : hors dernière période, jamais "l'année prochaine" (T1/T2 ou S1)
+function fixNextYearLeak(txt,cls,period){
+  const last=(cls.periodType==='semestre' && period===2)||(cls.periodType!=='semestre' && period===3);
+  if(last||!txt) return txt;
+  const nxt=cls.periodType==='semestre'?'le semestre prochain':'le trimestre prochain';
+  return txt.replace(/\b(?:pour|à|de|dès)\s+(?:aborder|bien aborder)\s+l['’]année prochaine/gi,m=>m.replace(/l['’]année prochaine/i,nxt))
+            .replace(/\b(?:à|pour|dès|durant|sur)\s+la\s+rentrée(?:\s+prochaine)?/gi,m=>m.replace(/la\s+rentrée(?:\s+prochaine)?/i,nxt))
+            .replace(/l['’]année prochaine|l['’]année suivante|l['’]an prochain/gi,nxt);
+}
 async function genOne(sid){
   if(!checkGenLimit(1)) return;
   const cls=S.classes[S.active]; const st=getSt(sid); if(!st)return;
@@ -5590,6 +5600,7 @@ async function genOne(sid){
         }
       }
     }
+    finalTxt=fixNextYearLeak(finalTxt,cls,S.period);
     // RGPD swap — replace placeholder with real name
     if(cls.useName && st.name){
       const parts=st.name.trim().split(/\s+/);
@@ -5766,6 +5777,7 @@ async function generateAll(){
           }
         }
 
+        txt=fixNextYearLeak(txt,cls,S.period);
         // Save immediately to state
         if(!st.comments)st.comments={};
         if(!st.commentTs)st.commentTs={};
