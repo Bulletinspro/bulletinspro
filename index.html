@@ -4597,11 +4597,11 @@ function submitQuickRate(id, rating, btn){
 // ── FORMULATIONS SELON LE PROFIL (pills sensibles) ─────────────────────────
 // bon = profils excellent + bon ; mitige ; fragile. Servent de repère au modèle (à reformuler, jamais recopier).
 const PROFILE_FORMS={
-  tr4:{bon:"un travail sérieux, qui gagnerait à être davantage investi",mitige:"un travail satisfaisant mais encore peu investi",fragile:"un travail qui manque d'investissement"},
+  tr4:{bon:"un travail sérieux et régulier, qui gagnerait à aller plus loin",mitige:"un travail satisfaisant, qui pourrait aller plus loin si l'élève se dépassait davantage",fragile:"un travail qui reste en deçà de ce que l'élève pourrait fournir"},
   tr4b:{bon:"un travail qui gagnerait à être approfondi",mitige:"un manque d'approfondissement",fragile:"un travail peu approfondi, qui limite la progression"},
   tr5:{bon:"un travail qui pourrait gagner en régularité",mitige:"un travail irrégulier",fragile:"un travail irrégulier, qui nuit à la progression"},
   tr19:{bon:"pourrait s'investir davantage au-delà de l'essentiel",mitige:"se limite à l'essentiel",fragile:"reste centré sur l'essentiel, ce qui limite sa progression"},
-  pa9:{bon:"pourrait s'impliquer davantage au-delà de ce qui est demandé",mitige:"s'implique peu au-delà de ce qui est demandé",fragile:"ne s'implique pas au-delà de ce qui est demandé"},
+  pa9:{bon:"pourrait aller au-delà de ce qui est demandé",mitige:"s'en tient à ce qui est demandé",fragile:"s'en tient à ce qui est demandé, sans aller plus loin"},
   tr25:{bon:"des leçons à apprendre plus sérieusement",mitige:"des leçons insuffisamment apprises, qui laissent des lacunes",fragile:"des leçons insuffisamment apprises et des lacunes qui s'accumulent"},
   qa11:{bon:"un potentiel à exploiter davantage",mitige:"un potentiel encore sous-exploité",fragile:"un potentiel sous-exploité faute d'ambition"},
   qa18:{bon:"gagnerait à se relire davantage pour éviter quelques erreurs",mitige:"travaille rapidement, avec des erreurs qu'une relecture éviterait",fragile:"des erreurs évitables par manque de relecture"},
@@ -4614,6 +4614,59 @@ const PROFILE_FORMS={
   co23:{bon:"se laisse parfois distraire",mitige:"se laisse facilement distraire, ce qui nuit à la concentration",fragile:"un manque de concentration en classe, qui freine la progression"},
   co21:{bon:"des retards à corriger",mitige:"des retards qui perturbent parfois le cours",fragile:"des retards fréquents qui perturbent le déroulement du cours"},
   co22:{bon:"doit prendre le cours dans son intégralité",mitige:"ne prend pas toujours le cours en entier, ce qui crée des lacunes",fragile:"un cours incomplet, avec des lacunes qui s'accumulent"},
+ pr4:{bon:"des résultats à consolider",mitige:"des résultats encore fragiles",fragile:"des résultats fragiles, qui demandent un soutien régulier"},
+ pr9:{bon:"une progression régulière",mitige:"une progression stable, sans accélération",fragile:"une progression qui se maintient mais reste lente"},
+ pr10:{bon:"une progression un peu irrégulière",mitige:"une progression irrégulière",fragile:"une progression irrégulière, qui ne s'installe pas"},
+ pr5:{bon:"des résultats à améliorer",mitige:"des résultats encore insuffisants",fragile:"des résultats insuffisants"},
+ pr6:{bon:"des résultats en dessous des attentes",mitige:"des résultats nettement insuffisants",fragile:"des résultats très insuffisants"},
+ pr11:{bon:"un léger fléchissement",mitige:"une légère baisse des résultats",fragile:"une baisse des résultats à enrayer"},
+ pr12:{bon:"une baisse des résultats à surveiller",mitige:"une baisse notable des résultats",fragile:"une baisse marquée des résultats"},
+ pr24:{bon:"des résultats qui pourraient refléter davantage ses capacités",mitige:"des résultats en dessous de ses capacités",fragile:"des résultats nettement en dessous de ses capacités"},
+ pr13:{bon:"quelques difficultés",mitige:"des difficultés",fragile:"des difficultés importantes"},
+ as6:{bon:"une présence un peu irrégulière",mitige:"une présence irrégulière qui nuit aux résultats",fragile:"une présence irrégulière qui nuit aux résultats"},
+ as7:{bon:"quelques retards",mitige:"des retards répétés",fragile:"des retards fréquents"},
+ tr16:{bon:"des difficultés compensées par une bonne mobilisation",mitige:"des difficultés, mais une mobilisation à saluer",fragile:"des difficultés, mais des efforts à encourager"},
+ tr17:{bon:"quelques difficultés qui persistent malgré les efforts",mitige:"des difficultés qui persistent malgré les efforts",fragile:"des difficultés qui persistent malgré les efforts, à accompagner"},
+ tr6:{bon:"un investissement qui pourrait être à la hauteur de ses capacités",mitige:"un investissement en deçà de ses capacités",fragile:"un investissement nettement en deçà de ses capacités"},
+ tr27:{bon:"un travail à renforcer",mitige:"un travail encore insuffisant",fragile:"un travail insuffisant"},
+ tr8:{bon:"des efforts à fournir en classe",mitige:"peu d'efforts en classe",fragile:"un manque d'effort en classe"},
+ tr18:{bon:"des difficultés et des efforts à développer",mitige:"des difficultés et peu d'efforts visibles",fragile:"des difficultés sans effort visible"},
+ tr23:{bon:"une attention qui s'évade parfois",mitige:"une attention souvent ailleurs",fragile:"une attention absente en classe"},
+ tr24:{bon:"quelques moments de fatigue en classe",mitige:"une fatigue visible en classe",fragile:"des endormissements en classe"},
+ tr10:{bon:"un travail à la maison à renforcer",mitige:"un travail à la maison insuffisant",fragile:"un travail à la maison très insuffisant"},
+ tr9:{bon:"très peu de travail à la maison",mitige:"peu de travail à la maison",fragile:"aucun travail à la maison"},
+ tr26:{bon:"un matériel à ne pas oublier",mitige:"un matériel parfois oublié ou incomplet",fragile:"un matériel oublié ou incomplet, qui gêne le travail en classe"},
+ tr12:{bon:"quelques devoirs non rendus",mitige:"des devoirs régulièrement non rendus",fragile:"de nombreux devoirs non rendus"},
+ tr14:{bon:"un travail parfois rapide, à soigner",mitige:"un travail souvent expédié",fragile:"un travail bâclé"},
+ tr21:{bon:"quelques copies rendues vides",mitige:"des copies rendues sans production",fragile:"des feuilles blanches rendues"},
+ tr22:{bon:"peu de travaux rendus",mitige:"très peu de travaux rendus",fragile:"aucun travail rendu"},
+ pa4:{bon:"une participation correcte",mitige:"une participation correcte, sans être très active",fragile:"une participation correcte"},
+ pa5:{bon:"une participation un peu timide",mitige:"une participation timide",fragile:"une participation timide, à encourager"},
+ pa13:{bon:"une participation freinée par l'ambiance de classe",mitige:"une participation freinée par l'ambiance de classe",fragile:"une participation freinée par l'ambiance de classe"},
+ pa14:{bon:"de très bons résultats, mais une participation orale à développer",mitige:"un bon niveau, mais une participation orale à développer",fragile:"un bon niveau, mais une participation orale à développer"},
+ pa6:{bon:"une participation orale à développer",mitige:"une participation orale limitée",fragile:"une participation orale très limitée"},
+ pa7:{bon:"quelques moments de distraction",mitige:"une attention qui se relâche en classe",fragile:"une distraction fréquente en classe"},
+ pa8:{bon:"une prise de parole à oser davantage",mitige:"une prise de parole souvent évitée",fragile:"une prise de parole évitée"},
+ pa10:{bon:"un peu plus de curiosité et d'initiative serait bienvenu",mitige:"peu de curiosité et d'initiative",fragile:"un manque de curiosité et d'initiative"},
+ qa8:{bon:"une méthode de travail à affiner",mitige:"une méthode de travail à construire",fragile:"un manque de méthode qui freine le travail"},
+ qa9:{bon:"une autonomie à développer",mitige:"une autonomie encore limitée",fragile:"un manque d'autonomie"},
+ qa16:{bon:"une écriture à soigner",mitige:"une écriture parfois difficile à lire",fragile:"une écriture difficilement lisible, qui nuit à la compréhension"},
+ qa17:{bon:"une écriture à soigner",mitige:"une écriture à améliorer",fragile:"une écriture à améliorer pour être lue facilement"},
+ qa19:{bon:"quelques consignes à lire plus attentivement",mitige:"des consignes parfois mal lues",fragile:"des consignes souvent mal lues ou mal suivies"},
+ qa20:{bon:"une mémorisation à consolider",mitige:"une mémorisation encore insuffisante",fragile:"une mémorisation insuffisante des notions"},
+ qa21:{bon:"un rythme d'écriture un peu lent",mitige:"une certaine lenteur à l'écrit",fragile:"une lenteur à l'écrit qui limite la production en classe"},
+ co4:{bon:"un comportement correct",mitige:"un comportement correct",fragile:"un comportement correct"},
+ co12:{bon:"un caractère discret et réservé",mitige:"un caractère discret et réservé",fragile:"un caractère discret et réservé"},
+ co16:{bon:"une confiance en soi à renforcer",mitige:"un manque de confiance en soi",fragile:"un manque de confiance en soi qui freine l'élève"},
+ co5:{bon:"une concentration à soutenir",mitige:"une concentration insuffisante",fragile:"un manque de concentration qui pénalise les apprentissages"},
+ co24:{bon:"quelques moments de dissipation",mitige:"une dissipation selon les séances",fragile:"une dissipation fréquente selon les séances"},
+ co6:{bon:"quelques bavardages",mitige:"des bavardages à limiter",fragile:"des bavardages qui gênent la classe"},
+ co7:{bon:"des bavardages fréquents",mitige:"des bavardages fréquents",fragile:"des bavardages constants qui gênent le travail"},
+ co8:{bon:"quelques perturbations en classe",mitige:"des perturbations occasionnelles",fragile:"des perturbations qui gênent la classe"},
+ co9:{bon:"un comportement perturbant à corriger",mitige:"un comportement très perturbant",fragile:"un comportement très perturbateur"},
+ ob10:{bon:"une attitude plus constructive est attendue",mitige:"une attitude constructive est attendue",fragile:"une attitude constructive est attendue"},
+ ob11:{bon:"un respect des règles à rappeler",mitige:"un respect des règles à retrouver",fragile:"un comportement respectueux est attendu"},
+ ob12:{bon:"un investissement plus soutenu permettrait de progresser",mitige:"un investissement plus soutenu est nécessaire pour progresser",fragile:"un investissement plus soutenu est attendu pour progresser"}
 };
 
 function buildPromptMeta(st,cls){
@@ -4810,7 +4863,7 @@ function buildPrompt(st,cls,period,seed,memSamp){
   else if(/fragile|insuffisant|décevant|inquiétant|préoccupant|catastroph|en deçà|difficulté/.test(_vl)) _profil='fragile';
   else if(/satisfaisant|encourageant|demi|assez|mitigé/.test(_vl)) _profil='mitige';
   else if(/\bbon\b/.test(_vl)) _profil='bon';
-  else _profil=(checkedNeg.length===0&&checkedPos.length>=3)?'excellent':(checkedNeg.length>checkedPos.length?'fragile':((checkedNeg.length>0&&checkedPos.length>0)?'mitige':'bon'));
+  else _profil=(checkedNeg.length===0&&checkedPos.length>=3)?'excellent':(checkedNeg.length>checkedPos.length?'fragile':((checkedNeg.length>0&&checkedPos.length>0)?(checkedPos.length>=2*checkedNeg.length?'bon':'mitige'):'bon'));
   const _intensRule={
     excellent:'Registre valorisant : un adjectif fort est permis (remarquable, exemplaire, sincère…), 2 maximum dans tout le texte, jamais côte à côte. Points à travailler : formulés avec douceur.',
     bon:'Registre positif et sobre : adjectifs modérés (bon, solide, sérieux, régulier). AUCUN intensif (pas de "remarquable", "exemplaire", "sincère", "irréprochable", "réel"). Points à travailler : simples et mesurés.',
@@ -5059,7 +5112,7 @@ EXCEPTION — CONCLUSION FERME AVEC POINT PRÉCIS : "Il sera essentiel de [actio
 8f. PAS DE REDONDANCE — ne pas exprimer la même idée deux fois avec des mots différents. Si "travail sérieux et approfondi" est dit en phrase 1, ne pas redire "applique avec rigueur" ou "méthode rigoureuse" en phrase 2. Chaque phrase apporte une information nouvelle. Ne jamais répéter le verdict dans le corps de l'appréciation — "Il est en difficulté et son travail est insuffisant" après un verdict "Trimestre insuffisant" est une répétition inutile.
 ⚠️ CAS FRÉQUENT — REDONDANCE SUR UN POINT NÉGATIF : "travail irrégulier" + "manque d'approfondissement" + "se contente du minimum requis" sont TROIS FAÇONS DE DIRE LA MÊME CHOSE (le travail n'est pas assez poussé). Choisis-en UNE SEULE formulation, pas un cumul des trois — ex: "son travail manque encore d'approfondissement." (une seule phrase, pas trois ; "strict nécessaire"/"minimum" UNIQUEMENT si une pill le dit). Même logique pour le comportement : "bavardages incessants" + "comportement très perturbateur" + "nuisent à la concentration" + "rappels constants" + "manque de maturité" sont 5 angles du MÊME constat — UNE phrase suffit, dont l'intensité suit le profil et les pills réellement cochées (ex. profil positif : "Son comportement manque parfois de maturité." ; ne reprends "très perturbateur", "incessants" ou "constants" QUE si coché) (pas besoin d'ajouter "nuit à la concentration" ET "manque de maturité" en plus). Cette compression est ESSENTIELLE : elle libère de la place pour la CONCLUSION (règle 8r), qui est PRIORITAIRE sur l'exhaustivité du corps. Si tu approches la limite de caractères et n'as pas encore écrit ta conclusion, COMPRESSE le corps en éliminant ces reformulations redondantes plutôt que de sacrifier la conclusion.
 8i. NE PAS COPIER LES LABELS — reformuler les observations avec des mots naturels. JAMAIS recopier mot pour mot le libellé d'une observation. Ex: "Très bonnes connaissances" → dire "Ses connaissances sont solides et bien ancrées" ou "Il maîtrise bien le programme". "Participation orale riche et pertinente" → "Il s'exprime avec aisance et apporte des contributions de qualité".
-8v. SOBRIÉTÉ — LES PILLS SONT DES IDÉES, PAS DES FORMULES. (a) Dans un libellé, tout ce qui suit un tiret "—" est une EXPLICATION pour l'enseignant : ne jamais le recopier ni le paraphraser de près (ex : "Approfondir les apprentissages — ne pas se contenter du minimum" → dire simplement "approfondir davantage son travail" ; ne JAMAIS écrire "ne pas se contenter du minimum", "se limite au strict nécessaire", "au strict minimum" ni "se contente de" sauf si "Ne s'implique pas au-delà du strict nécessaire" ou "Se contente du minimum requis" est coché, ni suggérer que l'élève fait le minimum). (b) L'intensité des adjectifs ("sincère", "remarquable", "exemplaire"…) dépend du PROFIL (cf. bloc INTENSITÉ DES FORMULATIONS), jamais du libellé de la pill. Ne qualifie jamais l'élève ni la période par un jugement absent des observations cochées (pas de "décevant", "préoccupant", "alarmant" dans le CORPS du texte ; l'expression d'ouverture du bilan global, choisie par l'enseignant ou par toi selon le guide, est exclue de cette règle) ; décris les faits cochés sans les durcir : pas de "ne parvient pas à", "n'arrive pas à", "incapable de", "sans chercher à progresser", "sans aucun effort" (ajouts qui accusent l'élève d'un manque de volonté) quand le libellé dit seulement "pas encore", "pas pleinement" ou "à renforcer" (dis plutôt "n'exploite pas encore", "pourrait mieux exploiter"). (c0) TRAVAIL ≠ APPRENTISSAGES : "travail" = ce que l'élève fait (devoirs, exercices, régularité, soin, approfondissement) ; "apprendre/retenir ses leçons" = ce qu'il mémorise et maîtrise. Si les deux sont cochés, ce sont DEUX idées distinctes à garder séparées (ex : "Il devra approfondir son travail et mieux apprendre ses leçons"), sans les fondre ni les répéter l'une par l'autre. (c) Une consigne de conseil est un cap à donner, pas un constat : "Approfondir", "Gagner en confiance" = conseil formulé simplement, jamais présenté comme un défaut déjà décrit si la pill correspondante n'est pas cochée. (d) MATURITÉ / RAPPELS : "Manque de maturité — a besoin de rappels pour se recentrer" se dit avec douceur selon le profil (excellent/bon/mitigé → "gagnerait à gagner en maturité", "a parfois besoin d'être recentré(e)" ; fragile → "a besoin de rappels"). JAMAIS "rappels réguliers", "rappels fréquents", "constamment", "sans cesse" sauf si un comportement coché le dit explicitement (bavardages incessants, très perturbateur). Même principe pour toute fréquence ("régulièrement", "souvent", "fréquemment") : ne jamais l'ajouter si elle n'est pas dans la pill cochée. (f) LIBELLÉS AVEC TIRET (toute pill du type "Idée — précision") : seule l'idée avant le tiret compte ; la précision après le tiret n'est jamais reprise telle quelle. Elle sert uniquement à te faire comprendre le sens. La formulation finale se décide en regardant le PROFIL ENTIER (bilan choisi, équilibre des pills, remarque personnelle, ton) et change d'une appréciation à l'autre : ne reprends jamais la même tournure pour la même pill chez deux élèves. (e) AUCUN renforcement ajouté : jamais "trop", "trop souvent", "bien trop", "reste en surface", "en surface", "de surface" sauf si une pill le dit mot pour mot. "Manque d'approfondissement" se dit simplement : "son travail manque d'approfondissement" ou "gagnerait à être approfondi" — sans "trop souvent", sans "en surface". Un point à travailler se formule à l'intensité de la pill cochée, jamais au-dessus. En cas de doute, la formulation la plus simple et la plus sobre l'emporte.
+8v. SOBRIÉTÉ — LES PILLS SONT DES IDÉES, PAS DES FORMULES. (a) Dans un libellé, tout ce qui suit un tiret "—" est une EXPLICATION pour l'enseignant : ne jamais le recopier ni le paraphraser de près (ex : "Approfondir les apprentissages — ne pas se contenter du minimum" → dire simplement "approfondir davantage son travail" ; ne JAMAIS écrire "ne pas se contenter du minimum", "se limite au strict nécessaire", "au strict minimum" ni "se contente de" sauf si "Ne s'implique pas au-delà du strict nécessaire" ou "Se contente du minimum requis" est coché, ni suggérer que l'élève fait le minimum). (b) L'intensité des adjectifs ("sincère", "remarquable", "exemplaire"…) dépend du PROFIL (cf. bloc INTENSITÉ DES FORMULATIONS), jamais du libellé de la pill. Ne qualifie jamais l'élève ni la période par un jugement absent des observations cochées (pas de "décevant", "préoccupant", "alarmant" dans le CORPS du texte ; l'expression d'ouverture du bilan global, choisie par l'enseignant ou par toi selon le guide, est exclue de cette règle) ; décris les faits cochés sans les durcir : pas de "ne parvient pas à", "n'arrive pas à", "incapable de", "sans chercher à progresser", "sans aucun effort" (ajouts qui accusent l'élève d'un manque de volonté) quand le libellé dit seulement "pas encore", "pas pleinement" ou "à renforcer" (dis plutôt "n'exploite pas encore", "pourrait mieux exploiter"). (c1) INVESTISSEMENT ≠ DÉPASSEMENT : "pas pleinement investi", "n'approfondit pas", "ne s'implique pas au-delà du nécessaire" veulent dire que l'élève FAIT son travail correctement mais ne se dépasse pas, ne cherche pas à donner son maximum. Pour un profil BON ou MITIGÉ, n'écris JAMAIS "manque d'investissement", "ne témoigne pas d'investissement personnel", "aucun investissement" (cela dit qu'elle ne s'investit pas du tout) : c'est trop dur pour quelqu'un qui travaille sérieusement. Pour un profil FRAGILE, "manque d'investissement" est permis si le profil l'exige. Dans les deux cas, un libellé coché qui le dit exactement reste autorisé. Pour un profil bon ou mitigé, dis plutôt "pourrait aller plus loin", "gagnerait à se dépasser", "pourrait donner davantage". (c0) TRAVAIL ≠ APPRENTISSAGES : "travail" = ce que l'élève fait (devoirs, exercices, régularité, soin, approfondissement) ; "apprendre/retenir ses leçons" = ce qu'il mémorise et maîtrise. Si les deux sont cochés, ce sont DEUX idées distinctes à garder séparées (ex : "Il devra approfondir son travail et mieux apprendre ses leçons"), sans les fondre ni les répéter l'une par l'autre. (c) Une consigne de conseil est un cap à donner, pas un constat : "Approfondir", "Gagner en confiance" = conseil formulé simplement, jamais présenté comme un défaut déjà décrit si la pill correspondante n'est pas cochée. (d) MATURITÉ / RAPPELS : "Manque de maturité — a besoin de rappels pour se recentrer" se dit avec douceur selon le profil (excellent/bon/mitigé → "gagnerait à gagner en maturité", "a parfois besoin d'être recentré(e)" ; fragile → "a besoin de rappels"). JAMAIS "rappels réguliers", "rappels fréquents", "constamment", "sans cesse" sauf si un comportement coché le dit explicitement (bavardages incessants, très perturbateur). Même principe pour toute fréquence ("régulièrement", "souvent", "fréquemment") : ne jamais l'ajouter si elle n'est pas dans la pill cochée. (f) LIBELLÉS AVEC TIRET (toute pill du type "Idée — précision") : seule l'idée avant le tiret compte ; la précision après le tiret n'est jamais reprise telle quelle. Elle sert uniquement à te faire comprendre le sens. La formulation finale se décide en regardant le PROFIL ENTIER (bilan choisi, équilibre des pills, remarque personnelle, ton) et change d'une appréciation à l'autre : ne reprends jamais la même tournure pour la même pill chez deux élèves. (e) AUCUN renforcement ajouté : jamais "trop", "trop souvent", "bien trop", "reste en surface", "en surface", "de surface" sauf si une pill le dit mot pour mot. "Manque d'approfondissement" se dit simplement : "son travail manque d'approfondissement" ou "gagnerait à être approfondi" — sans "trop souvent", sans "en surface". Un point à travailler se formule à l'intensité de la pill cochée, jamais au-dessus. En cas de doute, la formulation la plus simple et la plus sobre l'emporte.
 8g. BREVET / BAC / EXAMENS — ne jamais mentionner le Brevet, le Bac, ou tout examen sauf si une pill "Brevet" ou "Bac" est explicitement cochée. Même en 3e ou Terminale, ne pas inférer l'examen du niveau scolaire. De même, ne jamais écrire "attentes du lycée", "exigences du lycée", "niveau lycée", "attentes du collège" sauf si explicitement coché.
 8h. ENCOURAGEMENTS / FÉLICITATIONS — si "Encouragements" est coché, le sens réel est : l'enseignant CROIT en la capacité de l'élève à progresser et veut l'exprimer. La conclusion doit transmettre cette CONFIANCE — le mot "Encouragements" lui-même n'est PAS obligatoire et sonne souvent comme une étiquette collée. VARIER parmi ces formulations (ne pas toujours choisir la même) : "Il/elle en est tout à fait capable.", "Il/elle en a les capacités.", "Il/elle a les moyens d'y arriver avec un peu plus de persévérance.", "Les capacités sont là pour progresser.", "Rien ne s'oppose à de réels progrès avec un peu plus de constance.", "Avec un peu plus de régularité, les progrès suivront.", "Cette progression est tout à fait à sa portée.", "Il/elle a tout ce qu'il faut pour y arriver." Choisir la formulation la plus naturelle selon le contexte de la phrase précédente — éviter la répétition d'une génération à l'autre. Si le mot "encouragements" est utilisé malgré tout, l'intégrer pleinement dans une phrase avec du sens, jamais comme sous-titre plaqué ("Encouragements pour cette persévérance." est interdit). Si "Félicitations" est coché → terminer par "Félicitations." seul, pas "je félicite" ou "mérite des félicitations". Si "Félicitations" ET "Continuer sur cette lancée" sont tous deux cochés → intégrer "continuer sur cette lancée" dans le corps du texte, pas comme deuxième phrase de conclusion.
 8k. STRUCTURE DES PHRASES — ANTI-LISTE (règle consolidée) :
@@ -5083,9 +5136,9 @@ ${checkedConseilsActionable.length ? (() => {
   if(isMixed) out += ' (PROFIL MIXTE pos+neg — cas où la conclusion est le plus souvent oubliée. Sois vigilant.)';
   if(checkedConseilsRed.length) out += '\n🔥 Conseil ROUGE/URGENT présent : "'+checkedConseilsRed[0]+'" — ce point doit être nommé fermement dans la conclusion (ton "'+tone+'").';
   out += '\nTA DERNIÈRE PHRASE DOIT ÊTRE UNE CONCLUSION SUR CE MODÈLE — adapte le gabarit suivant à 1-2 des conseils ci-dessus (ne les énumère pas tous mécaniquement, choisis les plus pertinents) :';
-  out += '\n  • "Il faudra '+(actionsLower[0]||'approfondir le travail')+(actionsLower[1]?' et '+actionsLower[1]:'')+(yearMention?' pour bien aborder '+yearMention:'')+'."';
-  out += '\n  • "Il/elle aura intérêt à '+(actionsLower[0]||"s'investir davantage")+(yearMention?' pour aborder '+yearMention+' avec de meilleures bases':'')+(checkedPos.length>checkedNeg.length?', il/elle en a les capacités.':'.')+'"';
-  out += '\nTON DE LA CONCLUSION : constructif et tourné vers le progrès possible, jamais un simple rappel à l\'ordre. 2 conseils MAXIMUM dans cette phrase, formulés différemment l\'un de l\'autre (pas deux fois la même tournure, pas de "devra" ni de "plus" répétés).';
+  out += '\n  • "Il faudra '+(actionsLower[0]||'approfondir le travail')+(actionsLower[1]?' et '+actionsLower[1]:'')+(yearMention?' pour bien aborder '+yearMention:' pour progresser davantage')+'."';
+  out += '\n  • "Il/elle aura intérêt à '+(actionsLower[0]||"s'investir davantage")+(yearMention?' pour aborder '+yearMention+' avec de meilleures bases':' pour progresser davantage')+(checkedPos.length>checkedNeg.length?', il/elle en a les capacités.':'.')+'"';
+  out += '\nTON DE LA CONCLUSION : constructif et tourné vers le progrès possible, jamais un simple rappel à l\'ordre. Le conseil DOIT toujours être suivi de son BUT ("pour progresser davantage", "pour aller plus loin", "pour mieux réussir", "pour exploiter son potentiel" — varie le but d\'un élève à l\'autre) ; un conseil sans but sonne comme un ordre. 2 conseils MAXIMUM dans cette phrase, formulés différemment l\'un de l\'autre (pas deux fois la même tournure, pas de "devra" ni de "plus" répétés).';
   if(redLower) out += '\n  • "'+redLower.charAt(0).toUpperCase()+redLower.slice(1)+' sera essentiel'+(yearMention?' pour bien aborder '+yearMention:'')+'."';
   if(!yearMention) out += '\n⛔ PÉRIODE EN COURS (pas la dernière) : NE PAS nommer de période future — ni "l\'année prochaine", ni "la suite de l\'année", ni "le trimestre/semestre prochain", ni "la rentrée". Le futur est sous-entendu par "il faudra" / "devra" / "permettra de progresser". Conclusion courte, sans complément de temps.';
   out += '\nNE PAS systématiquement référencer "les conseils du trimestre précédent" — si l\'espace est compté, SAUTE cette référence au passé et UTILISE la place pour la conclusion ci-dessus, qui est PLUS IMPORTANTE.';
@@ -5642,16 +5695,20 @@ function swapPlaceholderName(txt,st,cls){
 }
 function polishStudentText(txt,st,cls){
   // Fiche élève : même filtre que PP/CPE/classe, mais "réel" est conservé pour un profil excellent (adjectif fort permis)
-  let keep=false;
+  let keep=false, investNeg=false, fragileProf=false;
   try{
     const m=buildPromptMeta(st,cls);
     const vid=getStudentVerdict(st);
     const v=vid?getVerdictPills(cls.periodType).find(x=>x.id===vid):null;
     const vl=(v?v.l:'').toLowerCase();
+    investNeg=m.checkedNeg.some(x=>/investissement/i.test(x));
+    fragileProf=/fragile|insuffisant|inquiétant|décevant|difficult|en deçà/.test(vl)||(!vl&&m.checkedNeg.length>m.checkedPos.length);
     if(/excellent|très bon/.test(vl)) keep=true;
     else if(!/fragile|insuffisant|décevant|inquiétant|préoccupant|catastroph|en deçà|difficulté|satisfaisant|encourageant|demi|assez|mitigé|\bbon\b/.test(vl)) keep=(m.checkedNeg.length===0&&m.checkedPos.length>=3);
   }catch(e){}
   let out=polishNoIntensifiers(txt,keep);
+  // Investissement : "ne témoigne pas d'investissement personnel" durcit "pas pleinement investi" (sauf pill négative explicite)
+  if(!investNeg&&!fragileProf) out=out.replace(/ne (?:témoigne|montre) pas (?:encore )?d['’]un investissement personnel/gi,'pourrait encore se dépasser').replace(/manque d['’]investissement personnel/gi,'pourrait aller plus loin');
   // Fin d'appréciation hors dernière période : on garde les conseils mais on adoucit l'injonction ("il devra" -> "il aura intérêt à")
   const lastP=(cls.periodType==='semestre'&&S.period===2)||(cls.periodType!=='semestre'&&S.period===3);
   if(!lastP){
@@ -5661,11 +5718,20 @@ function polishStudentText(txt,st,cls){
       if(soft!==m[2]) out=m[1]+soft;
     }
   }
+  // Un conseil de conclusion doit avoir un but : "aura intérêt à X" sans "pour/afin" -> ajoute "pour progresser davantage"
+  {
+    const m2=out.match(/^([\s\S]*?[.!?]\s+)([^.!?]*\baura intérêt à[^.!?]*)([.!?])\s*$/);
+    if(m2&&!/\b(pour|afin)\b/i.test(m2[2])){
+      const body=m2[2].replace(/(,\s*(?:il|elle) en a (?:toutes )?les capacités)\s*$/i,' pour progresser davantage$1');
+      out=m2[1]+(body!==m2[2]?body:m2[2]+' pour progresser davantage')+m2[3];
+    }
+  }
   return out;
 }
 function polishNoIntensifiers(txt,keepReel){
   // Filet côté code (PP, CPE, bilan de classe) : le modèle ignore parfois l'interdit des intensifs "trop" et "réel(le)"
   if(!txt) return txt;
+  txt=txt.replace(/\s+([,.;:!?])/g,'$1').replace(/\ben a toutes les capacités\b/gi,'en a les capacités');
   const before=txt;
   let t=(keepReel?txt:txt.replace(/\s+r[ée]el(?:le)?s?(?=[\s,.;:!?)])/gi,'')).replace(/(?<!\bpas|\bbeaucoup)\s+trop(?=\s)/gi,'').replace(/\s+(?:pleinement|dès maintenant|dès à présent|immédiatement|malheureusement)(?=[\s,.;:!?)])/gi,'').replace(/\bse contente du (?:strict )?(?:minimum|nécessaire)(?: requis| demandé| exigé)?/gi,'se limite à l\'essentiel').replace(/\b(possède|a) de (capacités|qualités|ressources|moyens)\b/gi,'$1 des $2').replace(/\b(rencontre|rencontrent|connaît|connaissent|présente|présentent) de (difficultés|lacunes|fragilités)\b/gi,'$1 des $2').replace(/\bspirale d['’]échec\b/gi,'dynamique difficile').replace(/\b(il|Il) est (?:important|essentiel|nécessaire|indispensable) qu(['’])/g,'$1 serait bon qu$2');
   if(t!==before) t=t.replace(/([.!?]\s+)([a-zà-ÿ])/g,(m,a,b)=>a+b.toUpperCase()).replace(/^([a-zà-ÿ])/,(m,b)=>b.toUpperCase()).replace(/\s{2,}/g,' ');
@@ -5749,7 +5815,7 @@ function profileWordingCtx(sections, boxes, formsMap, kind){
     if(boxes&&boxes[it.id]){ labs[it.id]=it.l; if(it.v==='pos')pos++; else if(it.v==='neg')neg++; else neu++; }
   }));
   if(pos+neg+neu===0) return '';
-  const profil = (neg===0&&pos>=3)?'excellent' : (neg>pos?'fragile' : ((neg>0&&pos>0)||(neg===0&&neu>pos)?'mitige':'bon'));
+  const profil = (neg===0&&pos>=3)?'excellent' : (neg>pos?'fragile' : ((neg>0&&pos>0)?(pos>=2*neg?'bon':'mitige'):((neg===0&&neu>pos)?'mitige':'bon')));
   const groupe = kind==='groupe';
   const rules = groupe ? {
     excellent:"Registre valorisant : un adjectif fort est permis (très bonne, remarquable…), 2 maximum, jamais côte à côte. Points à améliorer : formulés avec douceur.",
