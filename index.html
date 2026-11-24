@@ -5633,7 +5633,7 @@ function polishNoIntensifiers(txt){
   // Filet côté code (PP, CPE, bilan de classe) : le modèle ignore parfois l'interdit des intensifs "trop" et "réel(le)"
   if(!txt) return txt;
   const before=txt;
-  let t=txt.replace(/\s+r[ée]el(?:le)?s?(?=[\s,.;:!?)])/gi,'').replace(/(?<!\bpas|\bbeaucoup)\s+trop(?=\s)/gi,'');
+  let t=txt.replace(/\s+r[ée]el(?:le)?s?(?=[\s,.;:!?)])/gi,'').replace(/(?<!\bpas|\bbeaucoup)\s+trop(?=\s)/gi,'').replace(/\s+(?:pleinement|dès maintenant|dès à présent|immédiatement)(?=[\s,.;:!?)])/gi,'');
   if(t!==before) t=t.replace(/([.!?]\s+)([a-zà-ÿ])/g,(m,a,b)=>a+b.toUpperCase()).replace(/^([a-zà-ÿ])/,(m,b)=>b.toUpperCase()).replace(/\s{2,}/g,' ');
   return t;
 }
