@@ -4689,11 +4689,11 @@ function buildPrompt(st,cls,period,seed,memSamp){
     ? `\nREDOUBLEMENT ENVISAGÉ : la conclusion ne doit PAS évoquer "${nextYearLabel}" ni une progression de niveau — rester sur "l'année prochaine" de façon neutre, sans préciser la classe, ou évoquer un nouveau départ ("repartir sur de meilleures bases l'année prochaine").`
     : (nextYearLabel ? `\nNIVEAU SUIVANT : ${nextYearLabel}. Un professeur ne précise PAS systématiquement la classe suivante dans chaque conclusion — "l'année prochaine" générique suffit dans la majorité des cas. Réserver "${nextYearLabel}" UNIQUEMENT pour : (a) un profil nécessitant un vrai changement de dynamique (ex: "Le respect des règles sera essentiel pour bien aborder ${nextYearLabel}.") où nommer le niveau suivant donne du poids/de l'urgence, ou (b) un profil très positif où l'élève est clairement prêt(e) ("Elle est prête pour ${nextYearLabel}."). Pour un profil moyen/intermédiaire, "l'année prochaine" sans préciser le niveau reste préférable.` : '');
   const periodCtx=(cls.periodType==='semestre'?{
-    1:"Premier semestre — premier bilan. Pas de référence au passé. Ton : mise en route, potentiel. INTERDIT : \"l'année prochaine\", \"la rentrée\", \"classe supérieure\" — l'année est en cours : ne nomme AUCUNE période future (ni \"semestre prochain\", ni \"suite de l'année\") ; le futur est sous-entendu (\"il faudra\", \"devra\").",
+    1:"Premier semestre — premier bilan. Pas de référence au passé. Ton : mise en route, potentiel. INTERDIT : \"l'année prochaine\", \"la rentrée\", \"classe supérieure\" — l'année est en cours : ne nomme AUCUNE période future (ni \"semestre prochain\", ni \"suite de l'année\", ni \"les semaines/mois à venir\", \"les prochaines semaines\") ; le futur est sous-entendu (\"il faudra\", \"devra\").",
     2:"Second et dernier semestre. La dernière phrase conclut l'année et dit si l'élève est prêt(e) pour l'année suivante. Cette phrase remplace la conclusion habituelle, elle ne s'y ajoute pas.",
   }:{
-    1:"Premier trimestre — premier bilan. Pas de référence au passé. Ton : mise en route, potentiel. INTERDIT : \"l'année prochaine\", \"la rentrée\", \"classe supérieure\" — l'année est en cours : ne nomme AUCUNE période future (ni \"trimestre prochain\", ni \"suite de l'année\") ; le futur est sous-entendu (\"il faudra\", \"devra\").",
-    2:"Deuxième trimestre — mi-parcours. Ton : évolution depuis le début d'année, cap pour la fin. Ne pas ajouter de contenu supplémentaire, juste nuancer le ton en ce sens. INTERDIT : \"l'année prochaine\", \"la rentrée\", \"la suite de l'année\", \"le trimestre prochain\" — le futur est sous-entendu (\"il faudra\", \"devra\").",
+    1:"Premier trimestre — premier bilan. Pas de référence au passé. Ton : mise en route, potentiel. INTERDIT : \"l'année prochaine\", \"la rentrée\", \"classe supérieure\" — l'année est en cours : ne nomme AUCUNE période future (ni \"trimestre prochain\", ni \"suite de l'année\", ni \"les semaines/mois à venir\", \"les prochaines semaines\") ; le futur est sous-entendu (\"il faudra\", \"devra\").",
+    2:"Deuxième trimestre — mi-parcours. Ton : évolution depuis le début d'année, cap pour la fin. Ne pas ajouter de contenu supplémentaire, juste nuancer le ton en ce sens. INTERDIT : \"l'année prochaine\", \"la rentrée\", \"la suite de l'année\", \"le trimestre prochain\", \"les semaines à venir\", \"les prochaines semaines\", \"les mois à venir\" — le futur est sous-entendu (\"il faudra\", \"devra\").",
     3:"Troisième trimestre — fin d'année. La dernière phrase conclut l'année. INTERDIT : formulations génériques/robotiques type \"des efforts sont attendus pour le prochain trimestre\", \"au trimestre suivant\", \"prochain trimestre\", \"trimestre à venir\", \"classe supérieure\". En revanche, une conclusion PERSONNELLE et chaleureuse évoquant l'année prochaine EST AUTORISÉE et encouragée, surtout pour un profil en difficulté nécessitant un vrai changement de dynamique. VARIER la formulation — exemples : \"Il faudra repartir sur de bonnes bases l'année prochaine, il/elle en a les capacités.\", \"Il faudra repartir sur de meilleures bases l'année prochaine.\", \"Aborder l'année prochaine avec plus de motivation lui permettra de progresser.\", \"Il faudra prendre en compte ces conseils dès la rentrée prochaine.\", \"Il est indispensable de réagir dès l'année prochaine pour inverser la tendance.\", \"Il faudra persévérer davantage l'année prochaine pour consolider ces bases.\", \"Cette dynamique positive est à poursuivre l'année prochaine.\" Ne pas toujours utiliser la même formulation — choisir celle qui correspond le mieux à la sévérité du profil. Utilise \"l'année prochaine\" ou \"en seconde\" / \"au lycée\" si le niveau le justifie. Cette phrase remplace la conclusion habituelle, elle ne s'y ajoute pas.",
   })[period]||'';
   const gender=st.gender==='F' ? 'FILLE — pronom : ELLE. Article démonstratif : CETTE (pas cet). Adjectifs au FÉMININ : sérieuse, appliquée, investie, motivée, régulière. JAMAIS "il", JAMAIS "cet élève" (toujours "cette élève").' : 'GARÇON — pronom : IL. Article démonstratif : CET (pas cette). Adjectifs au MASCULIN : sérieux, appliqué, investi, motivé, régulier. JAMAIS "elle", JAMAIS "cette élève" (toujours "cet élève").';
@@ -4977,7 +4977,7 @@ RÈGLES STRICTES :
 5. ${cls.pronounStyle==='noje'||cls.noJe?'Jamais de "je" — 3e personne uniquement.':cls.pronounStyle==='vous'?'Vouvoiement : "Vous…", "Votre…"':'3e personne ou "je note que", "nous avons observé".'}
 6. INTERDITS : "trimestre", "résultats", "notes", "matières", "cours", "travail scolaire", "participation en classe".
 
-Génère uniquement l'appréciation CPE, sans guillemets ni explication.${intensityCtx}${formsCtx}${sharedWordingRules(cls.periodType,period,checked,true)}`;
+Génère uniquement l'appréciation CPE, sans guillemets ni explication.${styleCtx}${intensityCtx}${formsCtx}${sharedWordingRules(cls.periodType,period,checked,true)}`;
   }
 
   // Vie de classe — short, focused on collective life
@@ -4999,7 +4999,7 @@ RÈGLES STRICTES :
 3. Longueur : 2-3 phrases maximum. Concis et ciblé.
 4. ${cls.pronounStyle==='noje'||cls.noJe?'Jamais de "je" — 3e personne uniquement.':cls.pronounStyle==='vous'?'Vouvoiement.':'3e personne ou "je".'}
 
-Génère uniquement l'appréciation, sans guillemets.${intensityCtx}${formsCtx}${sharedWordingRules(cls.periodType,period,checked,false)}`;
+Génère uniquement l'appréciation, sans guillemets.${styleCtx}${intensityCtx}${formsCtx}${sharedWordingRules(cls.periodType,period,checked,false)}`;
   }
 
   return `Tu es un professeur français rédigeant une appréciation de bulletin scolaire.
@@ -5120,7 +5120,7 @@ RÈGLES :
 4. Ton : ${toneDesc}.
 5. INTERDIT : "il est essentiel", "il est important", "il est nécessaire", "sont attendus pour permettre", ainsi que les intensifs solennels : "indéniable", "indispensable(s)", "impératif", "atout", "pleinement". Registre naturel et simple, celui d'un professeur qui parle de sa classe, pas un style administratif.
 ${periodRule}
-7. Répondre UNIQUEMENT avec l'appréciation, sans guillemets ni commentaire.${profileWordingCtx(CLASS_BOXES,cls.classBoxes,CLASS_FORMS,'groupe')}${sharedWordingRules(cls.periodType,period,checked,false)}`;
+7. Répondre UNIQUEMENT avec l'appréciation, sans guillemets ni commentaire.${getStylePersoCtx()}${profileWordingCtx(CLASS_BOXES,cls.classBoxes,CLASS_FORMS,'groupe')}${sharedWordingRules(cls.periodType,period,checked,false)}`;
 }
 
 // ── CLAUDE API ────────────────────────────────────────────────────────────────
@@ -5629,6 +5629,15 @@ function softenPPEnding(txt,pp,period){
   const alts=["Il reste du temps pour progresser, et chaque effort régulier compte.","Le niveau actuel n'est pas définitif : en s'appuyant sur ce qui fonctionne déjà, une progression reste possible.","Un objectif simple et atteignable, comme rendre tous les devoirs, peut déjà changer la dynamique.","Avec de petites étapes et l'appui des professeurs, ce qui n'est pas encore acquis peut être rattrapé."];
   return m[1]+' '+alts[Math.floor(Math.random()*alts.length)];
 }
+function swapPlaceholderName(txt,st,cls){
+  // RGPD : le prénom réel n'est jamais envoyé à l'API ; le nom de remplacement "Alex" est remis au vrai prénom après génération
+  if(!txt||!cls||!cls.useName||!st||!st.name) return txt;
+  const parts=st.name.trim().split(/\s+/);
+  let realName=parts.find(p=>p!==p.toUpperCase()&&p.length>1);
+  if(!realName) realName=parts[parts.length-1];
+  if(realName) realName=realName.charAt(0).toUpperCase()+realName.slice(1).toLowerCase();
+  return realName?txt.replace(/Alex/g,realName):txt;
+}
 function polishStudentText(txt,st,cls){
   // Fiche élève : même filtre que PP/CPE/classe, mais "réel" est conservé pour un profil excellent (adjectif fort permis)
   let keep=false;
@@ -5751,7 +5760,7 @@ function sharedWordingRules(periodType, period, labels, forceAbsences){
   const last=(periodType==='semestre' && period===2)||(periodType!=='semestre' && period===3);
   const lab=(labels||[]).join(' ').toLowerCase();
   let t="\nSOBRIÉTÉ ET LANGUE — OBLIGATOIRE : (a) Les observations sont des IDÉES : ne recopie jamais un libellé tel quel ; ce qui suit un tiret \"—\" dans un libellé est une explication pour l'enseignant, jamais à reprendre. (b) Respecte l'intensité exacte de ce qui est coché : n'ajoute jamais \"trop\", \"trop souvent\", \"en surface\", \"de surface\", ni de fréquence (\"régulièrement\", \"souvent\", \"fréquemment\", \"rappels réguliers/fréquents/constants\") absente des observations. (c) L'intensité des adjectifs suit l'ensemble du profil : un profil globalement positif reste mesuré sur ses points à travailler ; un adjectif fort (remarquable, exemplaire, sincère) seulement si le profil est quasi entièrement très positif, une fois au plus. (d) Chaque verbe a le bon sujet : \"son travail reste approximatif et elle manque de régularité\" (jamais \"son travail reste approximatif et manque de régularité\"). (e) Varie les tournures d'une appréciation à l'autre.";
-  if(!last) t+=" (f) Période en cours (pas la dernière) : ne nomme AUCUNE période future (ni \"l'année prochaine\", ni \"la rentrée\", ni \"la suite de l'année\", ni \"le trimestre/semestre prochain\") ; le futur est sous-entendu (\"il faudra\", \"devra\").";
+  if(!last) t+=" (f) Période en cours (pas la dernière) : ne nomme AUCUNE période future (ni \"l'année prochaine\", ni \"la rentrée\", ni \"la suite de l'année\", ni \"le trimestre/semestre prochain\", ni \"les semaines à venir\", \"les prochaines semaines\", \"les mois à venir\") ; le futur est sous-entendu (\"il faudra\", \"devra\").";
   if(forceAbsences || /absen|assidu|retard|présence/.test(lab)) t+=" (g) ABSENCES / ASSIDUITÉ : n'adresse jamais d'injonction à être \"plus présent(e)\" ou \"plus assidu(e)\", ne parle pas d'absentéisme ni de manque de sérieux et ne suppose aucune cause (santé, situation personnelle) ; reste factuel et bienveillant (suivi interrompu, rattrapage du travail manqué).";
   return t;
 }
@@ -6056,7 +6065,7 @@ async function genBulk(sid){
   try{
     const seed=STYLE_SEEDS[Math.floor(Math.random()*STYLE_SEEDS.length)];
     const raw=await callClaude(buildPrompt(st,cls,S.period,seed,sampMem(S.active)), 3, true);
-    const txt=polishStudentText(fixNextYearLeak(fitToLimit(raw.replace(/\n+/g,' ').trim(), cls.charLimit||750),cls,S.period),st,cls);
+    const txt=polishStudentText(swapPlaceholderName(fixNextYearLeak(fitToLimit(raw.replace(/\n+/g,' ').trim(), cls.charLimit||750),cls,S.period),st,cls),st,cls);
     if(!txt) throw new Error('empty text after processing');
     // Save directly to state — don't depend on DOM being intact
     if(!st.comments)st.comments={};
@@ -7960,7 +7969,7 @@ RÈGLES STRICTES :
 6. INTERDIT : "il est essentiel", "il est important", "il est nécessaire".
 7. Terminer par une décision ou une attente concrète si négatif.
 
-Génère uniquement le suivi CPE, sans guillemets ni explication.${profileWordingCtx(CPE_BOXES,st.boxes,CPE_FORMS,'eleve')}${sharedWordingRules(c.periodType,activeCPEPeriod,obs,true)}`;
+Génère uniquement le suivi CPE, sans guillemets ni explication.${getStylePersoCtx()}${profileWordingCtx(CPE_BOXES,st.boxes,CPE_FORMS,'eleve')}${sharedWordingRules(c.periodType,activeCPEPeriod,obs,true)}`;
 
   try{
     const txt=polishNoIntensifiers(fixNextYearLeak(await callClaude(prompt),c,activeCPEPeriod));
