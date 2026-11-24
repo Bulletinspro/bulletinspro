@@ -5618,6 +5618,17 @@ Réponds UNIQUEMENT avec le texte COMPLET corrigé (corps + nouvelle conclusion)
 }
 
 // Filet : hors dernière période, jamais "l'année prochaine" (T1/T2 ou S1)
+function softenPPEnding(txt,pp,period){
+  // Filet côté code (PP, hors dernière période) : si la dernière phrase est un reproche/une injonction, elle est remplacée par une phrase de confiance neutre (genre et sujet indifférents)
+  if(!txt) return txt;
+  const last=(pp.periodType==='semestre'&&period===2)||(pp.periodType!=='semestre'&&period===3);
+  if(last) return txt;
+  const m=txt.match(/^([\s\S]*?[.!?])\s+([^.!?]*[.!?])\s*$/);
+  if(!m) return txt;
+  if(!/(sursaut|\bdevr(a|ont|ait)\b|\bdoit\b|\bdoivent\b|s'impos|plus sérieux|indispensable|impératif|urgen|redresser|décevan|préoccupan|alarman)/i.test(m[2])) return txt;
+  const alts=["Il reste du temps pour progresser, et chaque effort régulier compte.","Le niveau actuel n'est pas définitif : en s'appuyant sur ce qui fonctionne déjà, une progression reste possible.","Un objectif simple et atteignable, comme rendre tous les devoirs, peut déjà changer la dynamique.","Avec de petites étapes et l'appui des professeurs, ce qui n'est pas encore acquis peut être rattrapé."];
+  return m[1]+' '+alts[Math.floor(Math.random()*alts.length)];
+}
 function polishNoIntensifiers(txt){
   // Filet côté code (PP, CPE, bilan de classe) : le modèle ignore parfois l'interdit des intensifs "trop" et "réel(le)"
   if(!txt) return txt;
@@ -9109,7 +9120,7 @@ async function ppGenOne(sid){
   ta.classList.add('gen'); ta.value='Rédaction du bilan en cours…';
   try{
     const seed=PP_STYLE_SEEDS[Math.floor(Math.random()*PP_STYLE_SEEDS.length)];
-    const txt=polishNoIntensifiers(fixNextYearLeak(fitToLimit(await callClaude(buildPPPrompt(st,pp,activePPPeriod,seed,sampPPMem(activePP))), pp.charLimit||750),pp,activePPPeriod));
+    const txt=softenPPEnding(polishNoIntensifiers(fixNextYearLeak(fitToLimit(await callClaude(buildPPPrompt(st,pp,activePPPeriod,seed,sampPPMem(activePP))), pp.charLimit||750),pp,activePPPeriod)),pp,activePPPeriod);
     ta.classList.remove('gen'); ta.value=txt;
     addPPMem(activePP,txt); ppOnCI(sid,txt);
   }catch(e){ta.classList.remove('gen');ta.value='';toast('Erreur de génération');}
@@ -9164,7 +9175,7 @@ async function ppGenOneBulk(sid){
   ta.classList.add('gen');
   try{
     const seed=PP_STYLE_SEEDS[Math.floor(Math.random()*PP_STYLE_SEEDS.length)];
-    const txt=polishNoIntensifiers(fixNextYearLeak(fitToLimit(await callClaude(buildPPPrompt(st,pp,activePPPeriod,seed,sampPPMem(activePP))), pp.charLimit||750),pp,activePPPeriod));
+    const txt=softenPPEnding(polishNoIntensifiers(fixNextYearLeak(fitToLimit(await callClaude(buildPPPrompt(st,pp,activePPPeriod,seed,sampPPMem(activePP))), pp.charLimit||750),pp,activePPPeriod)),pp,activePPPeriod);
     ta.classList.remove('gen'); ta.value=txt;
     addPPMem(activePP,txt); ppBulkSave(sid,txt);
   }catch(e){ta.classList.remove('gen');toast('Erreur génération');}
