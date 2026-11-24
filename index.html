@@ -5618,6 +5618,14 @@ Réponds UNIQUEMENT avec le texte COMPLET corrigé (corps + nouvelle conclusion)
 }
 
 // Filet : hors dernière période, jamais "l'année prochaine" (T1/T2 ou S1)
+function polishNoIntensifiers(txt){
+  // Filet côté code (PP, CPE, bilan de classe) : le modèle ignore parfois l'interdit des intensifs "trop" et "réel(le)"
+  if(!txt) return txt;
+  const before=txt;
+  let t=txt.replace(/\s+r[ée]el(?:le)?s?(?=[\s,.;:!?)])/gi,'').replace(/(?<!\bpas|\bbeaucoup)\s+trop(?=\s)/gi,'');
+  if(t!==before) t=t.replace(/([.!?]\s+)([a-zà-ÿ])/g,(m,a,b)=>a+b.toUpperCase()).replace(/^([a-zà-ÿ])/,(m,b)=>b.toUpperCase()).replace(/\s{2,}/g,' ');
+  return t;
+}
 function fixNextYearLeak(txt,cls,period){
   const last=(cls.periodType==='semestre' && period===2)||(cls.periodType!=='semestre' && period===3);
   if(last||!txt) return txt;
@@ -6093,7 +6101,7 @@ function onCRI(val){const cls=S.classes[S.active];if(!cls.classComments)cls.clas
 async function genClassRev(){
   const cls=S.classes[S.active]; const ta=document.getElementById('cr-ta'); if(!ta)return;
   ta.classList.add('gen'); ta.value='Rédaction en cours…';
-  try{const txt=fixNextYearLeak(fitToLimit(await callClaude(buildClassPrompt(cls,S.period)), cls.charLimit||750),cls,S.period);ta.classList.remove('gen');ta.value=txt;onCRI(txt);}
+  try{const txt=polishNoIntensifiers(fixNextYearLeak(fitToLimit(await callClaude(buildClassPrompt(cls,S.period)), cls.charLimit||750),cls,S.period));ta.classList.remove('gen');ta.value=txt;onCRI(txt);}
   catch(e){ta.classList.remove('gen');ta.value='';toast('Erreur');}
 }
 function copyCR(){const ta=document.getElementById('cr-ta');if(!ta?.value)return;navigator.clipboard.writeText(ta.value).then(()=>{const b=document.getElementById('cr-cp');b.textContent='✓ Copié';b.classList.add('copied');setTimeout(()=>{b.textContent='Copier';b.classList.remove('copied');},1800);});}
@@ -7931,7 +7939,7 @@ RÈGLES STRICTES :
 Génère uniquement le suivi CPE, sans guillemets ni explication.${profileWordingCtx(CPE_BOXES,st.boxes,CPE_FORMS,'eleve')}${sharedWordingRules(c.periodType,activeCPEPeriod,obs,true)}`;
 
   try{
-    const txt=fixNextYearLeak(await callClaude(prompt),c,activeCPEPeriod);
+    const txt=polishNoIntensifiers(fixNextYearLeak(await callClaude(prompt),c,activeCPEPeriod));
     incrementGenCount(1);
     ta.classList.remove('gen'); ta.value=txt;
     cpeOnCI(sid,txt);updateGenCounter();
@@ -9082,9 +9090,9 @@ RÈGLES STRICTES — toutes obligatoires :
 5. Accord grammatical au ${accord} SANS EXCEPTION.
 6. Ne commence PAS par "Il / Elle" seul : ouvre par une idée sur le profil de l'élève (son investissement, son attitude, ses résultats, ses capacités) avec une tournure simple. Pas de formule d'ouverture solennelle.
 7. Ton : ${toneDesc}.
-8. ${isLastPP?'Termine par un conseil, un encouragement ou une mise en garde ferme selon le ton.':'Termine par un encouragement ou un conseil CONCRET et tourné vers le progrès : il reste du temps pour progresser, c\'est cela qu\'il faut pousser (ex. : s\'appuyer sur ses points forts, un effort précis à engager). INTERDIT de conclure sur un constat sombre ou sur l\'enjeu d\'une échéance : pas de "éléments essentiels à la réussite", "indispensable pour réussir", "en fin de collège/lycée", "pour l\'examen", "pour la suite de la scolarité". Même avec un profil fragile, la dernière phrase donne confiance et une direction. Les encouragements viennent directement du professeur ("à poursuivre", "il peut s\'appuyer sur"), jamais d\'un sujet institutionnel (pas de "le conseil de classe lui adresse/l\'invite…", "l\'équipe l\'encourage…").'}
+8. ${isLastPP?'Termine par un conseil, un encouragement ou une mise en garde ferme selon le ton.':'Termine par un encouragement ou un conseil CONCRET et tourné vers le progrès : il reste du temps pour progresser, c\'est cela qu\'il faut pousser (ex. : s\'appuyer sur ses points forts, un effort précis à engager). INTERDIT de conclure sur un constat sombre ou sur l\'enjeu d\'une échéance : pas de "éléments essentiels à la réussite", "indispensable pour réussir", "en fin de collège/lycée", "pour l\'examen", "pour la suite de la scolarité". Même avec un profil fragile, la dernière phrase donne confiance et une direction : dis que progresser est possible et nomme UN seul objectif concret et réaliste (ex. : rendre les devoirs, s\'appuyer sur ce qui fonctionne déjà, se fixer un petit objectif par matière). Pas de reproche final : pas de "il devra", "il doit", "plus sérieux", "dès maintenant", "immédiatement". Les encouragements viennent directement du professeur ("à poursuivre", "il peut s\'appuyer sur"), jamais d\'un sujet institutionnel (pas de "le conseil de classe lui adresse/l\'invite…", "l\'équipe l\'encourage…").'}
 9. Répondre UNIQUEMENT avec le bilan rédigé, sans guillemets, sans titre, sans commentaire.${profileWordingCtx(PP_BOXES,st.boxes,PP_FORMS,'eleve')}${sharedWordingRules(pp.periodType,period,checked,!!(st.viesco&&parseInt(st.viesco.absences)>0))}
-RAPPEL FINAL — mots et tournures INTERDITS dans ce bilan : "conseil de classe", "équipe pédagogique", "ensemble des professeurs", "ensemble des apprentissages", "ensemble des matières", "réel/réelle", "atout", "précieux", "constitue", "pour la suite", "consolider ses acquis", "gagner en confiance". Phrases courtes, vocabulaire courant, une idée par phrase ; ne répète pas deux fois la même idée (investissement, implication, sérieux, application sont UNE seule idée à dire une fois).`;
+RAPPEL FINAL — ne qualifie jamais la période ni l'élève par un jugement absent des observations cochées (pas de "trimestre décevant", "décevant", "préoccupant", "alarmant", "insuffisant" seul comme verdict) ; décris les faits cochés, sans les durcir. Mots et tournures INTERDITS dans ce bilan : "trop" ("trop limités", "trop peu"…), "conseil de classe", "équipe pédagogique", "ensemble des professeurs", "ensemble des apprentissages", "ensemble des matières", "réel/réelle", "atout", "précieux", "constitue", "pour la suite", "consolider ses acquis", "gagner en confiance". Phrases courtes, vocabulaire courant, une idée par phrase ; ne répète pas deux fois la même idée (investissement, implication, sérieux, application sont UNE seule idée à dire une fois).`;
 }
 
 // ── PP GENERATION ─────────────────────────────────────────────────────────────
@@ -9094,7 +9102,7 @@ async function ppGenOne(sid){
   ta.classList.add('gen'); ta.value='Rédaction du bilan en cours…';
   try{
     const seed=PP_STYLE_SEEDS[Math.floor(Math.random()*PP_STYLE_SEEDS.length)];
-    const txt=fixNextYearLeak(fitToLimit(await callClaude(buildPPPrompt(st,pp,activePPPeriod,seed,sampPPMem(activePP))), pp.charLimit||750),pp,activePPPeriod);
+    const txt=polishNoIntensifiers(fixNextYearLeak(fitToLimit(await callClaude(buildPPPrompt(st,pp,activePPPeriod,seed,sampPPMem(activePP))), pp.charLimit||750),pp,activePPPeriod));
     ta.classList.remove('gen'); ta.value=txt;
     addPPMem(activePP,txt); ppOnCI(sid,txt);
   }catch(e){ta.classList.remove('gen');ta.value='';toast('Erreur de génération');}
@@ -9149,7 +9157,7 @@ async function ppGenOneBulk(sid){
   ta.classList.add('gen');
   try{
     const seed=PP_STYLE_SEEDS[Math.floor(Math.random()*PP_STYLE_SEEDS.length)];
-    const txt=fixNextYearLeak(fitToLimit(await callClaude(buildPPPrompt(st,pp,activePPPeriod,seed,sampPPMem(activePP))), pp.charLimit||750),pp,activePPPeriod);
+    const txt=polishNoIntensifiers(fixNextYearLeak(fitToLimit(await callClaude(buildPPPrompt(st,pp,activePPPeriod,seed,sampPPMem(activePP))), pp.charLimit||750),pp,activePPPeriod));
     ta.classList.remove('gen'); ta.value=txt;
     addPPMem(activePP,txt); ppBulkSave(sid,txt);
   }catch(e){ta.classList.remove('gen');toast('Erreur génération');}
