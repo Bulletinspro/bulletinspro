@@ -4690,6 +4690,7 @@ function buildPrompt(st,cls,period,seed,memSamp){
 
   const charLimit=Math.min(1000,cls.charLimit||750);
   const targetMax=Math.round(charLimit*0.92);
+  const targetMin=Math.round(charLimit*0.70);
 
   // Count distinct thematic groups (not raw pill count)
   // Pills saying the same thing from different angles count as 1
@@ -5007,7 +5008,7 @@ ${checked.some(c=>c.toLowerCase().includes('régress')&&(isDiscreet||checkedNeg.
 ${aeshCtx}${orientCtx}${classCtx}${prevCtx}${compCtx}${freeNotesCtx}${intensityCtx}${formsCtx}${memCtx}${styleCtx}
 
 RÈGLES DE SYNTHÈSE — OBLIGATOIRES :
-0. Longueur : maximum ${targetMax} caractères. Synthétise — 4-5 observations liées = 1 phrase fluide.
+0. Longueur : ${((checked.length+(st.freeNotes&&st.freeNotes.trim()?2:0))>=5)?`entre ${targetMin} et ${targetMax} caractères — exploite cet espace : chaque point coché et la remarque personnelle du professeur doivent apparaître, chacun développé dans une phrase complète (pas une simple mention). Ne raccourcis pas l'appréciation quand il y a matière à dire`:`maximum ${targetMax} caractères`}. Synthétise — 4-5 observations liées = 1 phrase fluide.
 0b. COUVERTURE : les domaines suivants cochés DOIVENT apparaître : ${[...new Set([...checkedPos,...checkedNeutral,...checkedNeg].map(c=>{
   if(c.toLowerCase().includes('résultat')||c.toLowerCase().includes('progress')||c.toLowerCase().includes('régress')) return 'résultats';
   if(c.toLowerCase().includes('travail')||c.toLowerCase().includes('effort')||c.toLowerCase().includes('devoir')) return 'travail';
@@ -5621,12 +5622,22 @@ async function genOne(sid){
     const extraAllowed=((st.freeNotes||'')+' '+_metaA.checkedConseilsActionable.join(' ')).toLowerCase();
     const minLen=Math.max(Math.round((cls.charLimit||750)*0.70),(cls.charLimit||750)-200);
     let txt='';
+    // Profil riche (>=5 éléments cochés ou remarque personnelle) : on évite un texte trop court (2 relances max)
+    const _rich=(checkedNeg.length+checkedPos.length+(st.freeNotes&&st.freeNotes.trim()?2:0))>=5;
+    const minLenEff=_rich?minLen:0;
+    let shortTries=0, bestShort='';
     for(let attempt=0;attempt<5;attempt++){
       txt=fitToLimit((await callClaude(prompt)).replace(/\n+/g,' ').trim(), cls.charLimit||750);
       const hallucinated=hasHallucination(txt,checkedNeg,checkedPos,getStudentVerdict(st),extraAllowed);
-      if(!hallucinated) break;
+      if(!hallucinated){
+        if(txt.length>=minLenEff||shortTries>=2) break;
+        shortTries++; if(txt.length>bestShort.length) bestShort=txt;
+        console.warn('Texte trop court, nouvelle tentative…');
+        continue;
+      }
       console.warn('Hallucination detected, retrying...');
     }
+    if(bestShort && txt.length<bestShort.length) txt=bestShort;
     ta.classList.remove('gen');
     // Safety strip — only apply if result is non-empty
     const cleanTxt=stripHallucinatedSentences(txt,checkedNeg,checkedPos,getStudentVerdict(st),extraAllowed);
