@@ -9088,7 +9088,7 @@ function buildPPPrompt(st,pp,period,seed,memSamp){
   Object.values(PP_BOXES).forEach(sec=>sec.items.forEach(it=>{if(st.boxes&&st.boxes[it.id]){if(it.v==='pos')_ppPos++;else if(it.v==='neg')_ppNeg++;}}));
   const _endFragile=["dire que le niveau actuel n'est pas définitif : il y a de la marge pour progresser","s'appuyer sur ce qui fonctionne déjà pour reprendre confiance dans les autres matières","fixer un objectif simple et atteignable à court terme (par exemple rendre tous les devoirs)","rattraper progressivement ce qui n'est pas acquis, étape par étape","avancer avec l'aide des professeurs : ne pas hésiter à demander de l'aide quand quelque chose bloque"];
   const _endGood=["poursuivre sur cette lancée en gardant le même sérieux","s'appuyer sur ses points forts pour viser un cran de plus","oser davantage s'investir là où l'élève est encore en retrait","continuer ainsi : la progression est bien engagée"];
-  const _endList=_ppNeg>=_ppPos?_endFragile:_endGood;
+  const _endList=_ppNeg>=_ppPos?(_ppPos>0?_endFragile:_endFragile.filter(x=>!/ce qui fonctionne déjà/.test(x))):_endGood;
   const endDir=isLastPP?'':_endList[Math.floor(Math.random()*_endList.length)];
   return `Tu es un professeur principal expérimenté rédigeant le bilan trimestriel global d'un élève pour le bulletin scolaire.
 
