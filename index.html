@@ -1447,6 +1447,9 @@ const CORE_BOXES = {
       {id:'pr25',l:'Nette amélioration par rapport au trimestre précédent',v:'pos'},
       {id:'pr26',l:'Évolution positive en comportement et en investissement',v:'pos'},
       {id:'pr28',l:'Bases globalement acquises',v:'pos'},
+      {id:'pr33',l:'Niveau difficile à évaluer faute d\'évaluations ce trimestre',v:'neutral'},
+      {id:'pr34',l:'Élève encore peu connu(e) à ce stade',v:'neutral'},
+      {id:'pr35',l:'Élève arrivé(e) en cours de trimestre — période d\'adaptation',v:'neutral'},
       {id:'pr29',l:'Notions bien maîtrisées dans l\'ensemble',v:'pos'},
       {id:'pr19',l:'Résultats obtenus dans une classe à l\'ambiance difficile — mérite d\'être souligné',v:'pos'},
       {id:'pr20',l:'Redressement positif en fin de trimestre — à confirmer',v:'neutral'},
@@ -1525,6 +1528,7 @@ const CORE_BOXES = {
       {id:'pa3',l:'Engagement actif',v:'pos'},
       {id:'pa11',l:'Moteur de la classe',v:'pos'},
       {id:'pa12',l:'Participation pertinente et réfléchie',v:'pos'},
+      {id:'pa15',l:'À l\'écoute et attentif(ve) en classe',v:'pos'},
       {id:'pa4',l:'Participation correcte',v:'neutral'},
       {id:'pa5',l:'Participation timide',v:'neutral'},
       {id:'pa13',l:'Participation décevante liée à l\'ambiance de classe',v:'neutral'},
@@ -4812,6 +4816,8 @@ function buildPrompt(st,cls,period,seed,memSamp){
   const _absIds=['pr14','pr22','pr15','pr17','pr18','ob30','ob31'];
   const _absOn=_absIds.some(id=>st.boxes&&st.boxes[id]);
   const absencesCtx=_absOn?`\nABSENCES / SUIVI IMPOSSIBLE — SENSIBLE : l'élève est très souvent absent(e) ou son niveau est difficile à évaluer. NE JAMAIS lui demander d'être "plus présent(e)", "plus assidu(e)", ni parler d'"absentéisme" ou de "manque de sérieux" : la cause peut être médicale ou personnelle (santé, phobie scolaire, contexte familial) — ne la suppose jamais et ne la nomme pas. Reste factuel et bienveillant : dire que le niveau reste difficile à évaluer faute d'éléments, que le suivi des cours est interrompu, et que sans rattrapage du travail manqué l'écart risque de se creuser. Conclure sur le rattrapage ou un accompagnement (ex : "Un rattrapage du travail manqué sera nécessaire pour ne pas se laisser distancer."), jamais sur une injonction de présence.`:'';
+  const _noMarks=['pr33','pr34','pr35'].some(id=>st.boxes&&st.boxes[id]);
+  const noMarksCtx=_noMarks?`\nÉVALUATION LIMITÉE : le professeur dispose de peu d'éléments (pas d'évaluations notées ce trimestre, élève encore peu connu et/ou élève arrivé(e) en cours de trimestre, donc en période d'adaptation). N'invente NI difficultés NI niveau NI résultats : reste strictement sur les observations cochées (écoute, sérieux, réserve, attitude…). Dis simplement que le niveau est difficile à évaluer à ce stade et reste à confirmer. Une élève réservée n'est pas "en difficulté" : ne suppose aucune difficulté sans pill qui le dise. Ton bienveillant, conclusion encourageante (confiance, prise de parole) seulement si un conseil correspondant est coché.`:'';
   const _regKey=(_profil==='excellent'||_profil==='bon')?'bon':_profil;
   const _coreLabels={};
   Object.values(CORE_BOXES).forEach(sec=>sec.items.forEach(it=>{_coreLabels[it.id]=it.l;}));
@@ -5010,7 +5016,7 @@ ${checkedNeg.length
 ${checkedNeutral.length ? '\n⚠️ OBSERVATIONS INTERMÉDIAIRES — thèmes à représenter (regrouper les similaires) : '+checkedNeutral.join(' | ') : ''}
 ${isDiscreet ? '\n⛔ Discret/réservé → INTERDIRE : "participe activement", "participe régulièrement". Dire : "suit attentivement", "s\'implique discrètement".' : ''}
 ${checked.some(c=>c.toLowerCase().includes('régress')&&(isDiscreet||checkedNeg.length>=2)) ? '\n⚠️ RÉGRESSION + profil fragile : ne pas mentionner la régression brutalement. Dire plutôt : "des efforts supplémentaires permettront de retrouver une dynamique positive" ou "il lui faudra redoubler d\'efforts pour inverser la tendance". L\'objectif est d\'encourager, pas de décourager.' : ''}
-${aeshCtx}${orientCtx}${classCtx}${prevCtx}${compCtx}${freeNotesCtx}${intensityCtx}${formsCtx}${absencesCtx}${memCtx}${styleCtx}
+${aeshCtx}${orientCtx}${classCtx}${prevCtx}${compCtx}${freeNotesCtx}${intensityCtx}${formsCtx}${absencesCtx}${noMarksCtx}${memCtx}${styleCtx}
 
 RÈGLES DE SYNTHÈSE — OBLIGATOIRES :
 0. Longueur : ${((checked.length+(st.freeNotes&&st.freeNotes.trim()?2:0))>=5)?`entre ${targetMin} et ${targetMax} caractères — exploite cet espace : chaque point coché et la remarque personnelle du professeur doivent apparaître, chacun développé dans une phrase complète (pas une simple mention). Ne raccourcis pas l'appréciation quand il y a matière à dire`:`maximum ${targetMax} caractères`}. Synthétise — 4-5 observations liées = 1 phrase fluide.
