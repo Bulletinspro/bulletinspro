@@ -59,6 +59,8 @@ body.dark-mode .pill.neutral.sel{background:#854d0e;border-color:#fbbf24;color:#
 /* Textarea & inputs */
 body.dark-mode .appre-ta{background:#17142a;color:#e9e6f0;border-color:#3d3660;}
 body.dark-mode .appre-ta:focus{border-color:#7c3aed;background:#1e1b30;}
+body.dark-mode .st-freetext{background:#17142a;color:#e9e6f0;border-color:#3d3660;}
+body.dark-mode .st-freetext:focus{border-color:#7c3aed;background:#1e1b30;}
 body.dark-mode .cmt-ta{background:#17142a;color:#e9e6f0;border-color:#3d3660;}
 body.dark-mode .cmt-ta:focus{border-color:#7c3aed;}
 body.dark-mode .add-inp{background:#17142a;color:#e9e6f0;border-color:#3d3660;}
@@ -507,6 +509,9 @@ body{font-family:'DM Sans',sans-serif;font-weight:300;background:var(--bg);color
 .cpe-card-hd{padding:11px 16px;border-bottom:1px solid #f1f0f5;font-family:'DM Mono',monospace;font-size:.68rem;text-transform:uppercase;letter-spacing:.09em;color:var(--ink2);font-weight:600;display:flex;justify-content:space-between;align-items:center;background:#faf9fd;}
 .cpe-ed-hdr{display:flex;align-items:center;gap:14px;margin-bottom:20px;background:linear-gradient(135deg,#b45309,#d97706);border-radius:16px;padding:16px;color:#fff;}
 .pp-freetext:focus{border-color:var(--teal);background:#fff;}
+.st-freetext{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:6px;font-family:'DM Sans',sans-serif;font-size:.84rem;line-height:1.6;background:var(--bg);outline:none;resize:vertical;min-height:50px;max-height:120px;}
+.st-freetext:focus{border-color:var(--accent);background:#fff;}
+.st-freetext-wrap{padding:10px 16px;}
 .pp-vsco-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:10px 14px;}
 .pp-vsco-item{display:flex;flex-direction:column;gap:4px;}
 .pp-vsco-lbl{font-size:.68rem;color:var(--muted);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.05em;}
@@ -4287,6 +4292,15 @@ function renderEditor(id){
     html+=`</div></div>`;
   });
 
+  // PERSONAL NOTE (optional free text to personalize AI output)
+  html+=`
+    <div class="card" style="margin-bottom:8px">
+      <div class="st-freetext-wrap">
+        <label style="font-size:.72rem;color:var(--muted);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.06em;display:block;margin-bottom:5px">✏️ Remarque personnelle <span style="text-transform:none;letter-spacing:0;opacity:.7">(facultatif — sera intégré dans l'appréciation)</span></label>
+        <textarea class="st-freetext" placeholder="Ex : a beaucoup progressé à l'oral ce trimestre, contexte familial difficile, fait de gros efforts malgré ses difficultés…" onchange="setStFreeNotes('${id}',this.value)" oninput="setStFreeNotes('${id}',this.value)">${st.freeNotes||''}</textarea>
+      </div>
+    </div>`;
+
   // COMMENT
   html+=`
     <div class="card">
@@ -4337,6 +4351,7 @@ function renderCompetences(st){
 
 // ── STUDENT SETTERS ───────────────────────────────────────────────────────────
 function getSt(id){return S.classes[S.active].students.find(s=>s.id===id);}
+function setStFreeNotes(id,val){const st=getSt(id);if(st){st.freeNotes=val;save();}}
 
 function resetAllBoxes(id){
   const st=getSt(id);
@@ -4730,6 +4745,7 @@ function buildPrompt(st,cls,period,seed,memSamp){
 
   const memCtx=memSamp?`\nEXPRESSIONS DÉJÀ UTILISÉES POUR CETTE CLASSE (à éviter absolument pour garantir la variété) :\n${memSamp}`:'';
   const styleCtx=getStylePersoCtx();
+  const freeNotesCtx=st.freeNotes&&st.freeNotes.trim()?`\nREMARQUE PERSONNELLE DU PROFESSEUR (à intégrer naturellement dans l'appréciation sans recopier mot pour mot — reformuler et tisser dans le texte) : ${st.freeNotes.trim()}`:'';
   const per = cls.periodType==='semestre' ? 'semestre' : 'trimestre';
   const Per = cls.periodType==='semestre' ? 'Semestre' : 'Trimestre';
   // Previous appreciation context for continuity between terms
@@ -4889,7 +4905,7 @@ ${verdictCtx}
 
 OBSERVATIONS CPE :
 ${checked.length ? checked.map(i=>'• '+i).join('\n') : '• Élève sans signalement particulier'}
-${checkedNeg.length ? '\n⚠️ POINTS À MENTIONNER : '+checkedNeg.join(' | ') : ''}
+${checkedNeg.length ? '\n⚠️ POINTS À MENTIONNER : '+checkedNeg.join(' | ') : ''}${freeNotesCtx}
 
 RÈGLES STRICTES :
 1. Tu es CPE, PAS un professeur de matière. INTERDIT : tout commentaire sur les résultats scolaires, le travail en cours, la participation aux cours.
@@ -4913,7 +4929,7 @@ ${verdictCtx}
 
 OBSERVATIONS :
 ${checked.length ? checked.map(i=>'• '+i).join('\n') : '• Profil standard'}
-${checkedNeg.length ? '\n⚠️ POINTS À MENTIONNER : '+checkedNeg.join(' | ') : ''}
+${checkedNeg.length ? '\n⚠️ POINTS À MENTIONNER : '+checkedNeg.join(' | ') : ''}${freeNotesCtx}
 
 RÈGLES STRICTES :
 1. UNIQUEMENT : attitude collective, intégration dans la classe, esprit de groupe, orientation si pertinent.
@@ -4943,7 +4959,7 @@ ${checkedNeg.length
 ${checkedNeutral.length ? '\n⚠️ OBSERVATIONS INTERMÉDIAIRES — thèmes à représenter (regrouper les similaires) : '+checkedNeutral.join(' | ') : ''}
 ${isDiscreet ? '\n⛔ Discret/réservé → INTERDIRE : "participe activement", "participe régulièrement". Dire : "suit attentivement", "s\'implique discrètement".' : ''}
 ${checked.some(c=>c.toLowerCase().includes('régress')&&(isDiscreet||checkedNeg.length>=2)) ? '\n⚠️ RÉGRESSION + profil fragile : ne pas mentionner la régression brutalement. Dire plutôt : "des efforts supplémentaires permettront de retrouver une dynamique positive" ou "il lui faudra redoubler d\'efforts pour inverser la tendance". L\'objectif est d\'encourager, pas de décourager.' : ''}
-${aeshCtx}${orientCtx}${classCtx}${prevCtx}${compCtx}${memCtx}${styleCtx}
+${aeshCtx}${orientCtx}${classCtx}${prevCtx}${compCtx}${freeNotesCtx}${memCtx}${styleCtx}
 
 RÈGLES DE SYNTHÈSE — OBLIGATOIRES :
 0. Longueur : maximum ${targetMax} caractères. Synthétise — 4-5 observations liées = 1 phrase fluide.
