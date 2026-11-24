@@ -5667,7 +5667,7 @@ function polishNoIntensifiers(txt,keepReel){
   // Filet côté code (PP, CPE, bilan de classe) : le modèle ignore parfois l'interdit des intensifs "trop" et "réel(le)"
   if(!txt) return txt;
   const before=txt;
-  let t=(keepReel?txt:txt.replace(/\s+r[ée]el(?:le)?s?(?=[\s,.;:!?)])/gi,'')).replace(/(?<!\bpas|\bbeaucoup)\s+trop(?=\s)/gi,'').replace(/\s+(?:pleinement|dès maintenant|dès à présent|immédiatement|malheureusement)(?=[\s,.;:!?)])/gi,'').replace(/\bse contente du (?:strict )?(?:minimum|nécessaire)(?: requis| demandé| exigé)?/gi,'se limite à l\'essentiel').replace(/\b(possède|a) de (capacités|qualités|ressources|moyens)\b/gi,'$1 des $2');
+  let t=(keepReel?txt:txt.replace(/\s+r[ée]el(?:le)?s?(?=[\s,.;:!?)])/gi,'')).replace(/(?<!\bpas|\bbeaucoup)\s+trop(?=\s)/gi,'').replace(/\s+(?:pleinement|dès maintenant|dès à présent|immédiatement|malheureusement)(?=[\s,.;:!?)])/gi,'').replace(/\bse contente du (?:strict )?(?:minimum|nécessaire)(?: requis| demandé| exigé)?/gi,'se limite à l\'essentiel').replace(/\b(possède|a) de (capacités|qualités|ressources|moyens)\b/gi,'$1 des $2').replace(/\b(rencontre|rencontrent|connaît|connaissent|présente|présentent) de (difficultés|lacunes|fragilités)\b/gi,'$1 des $2').replace(/\bspirale d['’]échec\b/gi,'dynamique difficile').replace(/\b(il|Il) est (?:important|essentiel|nécessaire|indispensable) qu(['’])/g,'$1 serait bon qu$2');
   if(t!==before) t=t.replace(/([.!?]\s+)([a-zà-ÿ])/g,(m,a,b)=>a+b.toUpperCase()).replace(/^([a-zà-ÿ])/,(m,b)=>b.toUpperCase()).replace(/\s{2,}/g,' ');
   return t;
 }
