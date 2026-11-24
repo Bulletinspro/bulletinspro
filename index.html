@@ -4297,7 +4297,8 @@ function renderEditor(id){
     <div class="card" style="margin-bottom:8px">
       <div class="st-freetext-wrap">
         <label style="font-size:.72rem;color:var(--muted);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.06em;display:block;margin-bottom:5px">✏️ Remarque personnelle <span style="text-transform:none;letter-spacing:0;opacity:.7">(facultatif — sera intégré dans l'appréciation)</span></label>
-        <textarea class="st-freetext" placeholder="Ex : a beaucoup progressé à l'oral ce trimestre, contexte familial difficile, fait de gros efforts malgré ses difficultés…" onchange="setStFreeNotes('${id}',this.value)" oninput="setStFreeNotes('${id}',this.value)">${st.freeNotes||''}</textarea>
+        <textarea class="st-freetext" placeholder="Ex : a beaucoup progressé à l'oral ce trimestre, très investi dans le projet de groupe, fait de gros efforts en mathématiques…" onchange="setStFreeNotes('${id}',this.value)" oninput="setStFreeNotes('${id}',this.value)">${st.freeNotes||''}</textarea>
+        <div style="font-size:.68rem;color:var(--muted);margin-top:5px">🔒 Évitez les informations médicales ou familiales sensibles, et n'écrivez pas de nom d'élève : cette remarque est transmise à l'IA.</div>
       </div>
     </div>`;
 
