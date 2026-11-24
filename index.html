@@ -5193,7 +5193,7 @@ async function bpRedeemCode(code){
 }
 
 // ── GENERATION COUNTER ────────────────────────────────────────────────────────
-const FREE_LIMIT = 25;        // Limite visiteurs sans code
+const FREE_LIMIT = 3;         // Limite visiteurs sans code
 const BETA_LIMIT = 200;       // Limite bêta testeurs
 const STANDARD_MONTHLY = 200; // Standard mensuel
 const PRO_MONTHLY = 400;      // Pro mensuel
@@ -5639,7 +5639,7 @@ async function genOne(sid){
     let txt='';
     // Profil riche (>=5 éléments cochés ou remarque personnelle) : on évite un texte trop court (2 relances max)
     const _rich=(checkedNeg.length+checkedPos.length+(st.freeNotes&&st.freeNotes.trim()?2:0))>=5;
-    const minLenEff=_rich?minLen:0;
+    const minLenEff=0; // relance 'texte trop court' désactivée : le Worker compte chaque appel dans le quota de l'utilisateur
     let shortTries=0, bestShort='';
     for(let attempt=0;attempt<5;attempt++){
       txt=fitToLimit((await callClaude(prompt)).replace(/\n+/g,' ').trim(), cls.charLimit||750);
