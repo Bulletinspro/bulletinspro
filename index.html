@@ -4975,7 +4975,7 @@ RÈGLES STRICTES :
 5. ${cls.pronounStyle==='noje'||cls.noJe?'Jamais de "je" — 3e personne uniquement.':cls.pronounStyle==='vous'?'Vouvoiement : "Vous…", "Votre…"':'3e personne ou "je note que", "nous avons observé".'}
 6. INTERDITS : "trimestre", "résultats", "notes", "matières", "cours", "travail scolaire", "participation en classe".
 
-Génère uniquement l'appréciation CPE, sans guillemets ni explication.`;
+Génère uniquement l'appréciation CPE, sans guillemets ni explication.${intensityCtx}${formsCtx}${sharedWordingRules(cls.periodType,period,checked,true)}`;
   }
 
   // Vie de classe — short, focused on collective life
@@ -4997,7 +4997,7 @@ RÈGLES STRICTES :
 3. Longueur : 2-3 phrases maximum. Concis et ciblé.
 4. ${cls.pronounStyle==='noje'||cls.noJe?'Jamais de "je" — 3e personne uniquement.':cls.pronounStyle==='vous'?'Vouvoiement.':'3e personne ou "je".'}
 
-Génère uniquement l'appréciation, sans guillemets.`;
+Génère uniquement l'appréciation, sans guillemets.${intensityCtx}${formsCtx}${sharedWordingRules(cls.periodType,period,checked,false)}`;
   }
 
   return `Tu es un professeur français rédigeant une appréciation de bulletin scolaire.
@@ -5118,7 +5118,7 @@ RÈGLES :
 4. Ton : ${toneDesc}.
 5. INTERDIT : "il est essentiel", "il est important", "il est nécessaire", "sont attendus pour permettre".
 ${periodRule}
-7. Répondre UNIQUEMENT avec l'appréciation, sans guillemets ni commentaire.`;
+7. Répondre UNIQUEMENT avec l'appréciation, sans guillemets ni commentaire.${profileWordingCtx(CLASS_BOXES,cls.classBoxes,CLASS_FORMS,'groupe')}${sharedWordingRules(cls.periodType,period,checked,false)}`;
 }
 
 // ── CLAUDE API ────────────────────────────────────────────────────────────────
@@ -5624,6 +5624,103 @@ function fixNextYearLeak(txt,cls,period){
             .replace(/\b(?:à|pour|dès|durant|sur)\s+la\s+rentrée(?:\s+prochaine)?/gi,m=>m.replace(/la\s+rentrée(?:\s+prochaine)?/i,nxt))
             .replace(/l['’]année prochaine|l['’]année suivante|l['’]an prochain/gi,nxt);
 }
+// Règles de formulation communes à tous les modes (PP, CPE, vie de classe, bilan de classe)
+// ── PROFIL GLOBAL + FORMULATIONS PAR PROFIL pour PP / CPE / bilan de classe ──
+const PP_FORMS={
+ th7:{bon:"quelques efforts à fournir dans certaines matières",mitige:"des efforts à accentuer dans plusieurs matières",fragile:"des efforts encore insuffisants dans plusieurs matières, à encourager"},
+ th9:{bon:"un travail personnel à étoffer",mitige:"un travail personnel à renforcer dans plusieurs disciplines",fragile:"un travail personnel encore insuffisant, à reconstruire pas à pas"},
+ th10:{bon:"quelques moments d'agitation en cours",mitige:"un comportement parfois gênant pour le déroulement des cours",fragile:"un comportement qui perturbe les cours et doit évoluer"},
+ th11:{bon:"quelques devoirs non rendus",mitige:"des devoirs non rendus à rattraper",fragile:"des devoirs non rendus qui fragilisent le travail, à rattraper"},
+ th12:{bon:"une concentration à soutenir par moments",mitige:"une concentration à renforcer dans plusieurs matières",fragile:"une concentration qui fait défaut dans plusieurs matières"},
+ th13:{bon:"quelques bavardages à limiter",mitige:"des bavardages à limiter pour mieux se concentrer",fragile:"des bavardages qui gênent l'écoute et le travail"},
+ th22:{bon:"un peu plus de méthode serait profitable",mitige:"une méthode et une rigueur à développer",fragile:"une méthode de travail à construire avec de la rigueur"},
+ th23:{bon:"une maturité qui va encore s'affirmer",mitige:"un gain de maturité et de sérieux attendu",fragile:"un sérieux et une maturité à développer"},
+ th24:{bon:"un peu d'agitation à canaliser",mitige:"une tendance à se dissiper, à canaliser",fragile:"une dissipation qui nuit à la concentration et au travail"},
+ th21:{bon:"un peu plus d'approfondissement à l'écrit",mitige:"des écrits à approfondir dans plusieurs matières",fragile:"des écrits encore peu développés, à étoffer"},
+ th26:{bon:"un potentiel que l'élève peut encore mieux exploiter",mitige:"des capacités à mieux mobiliser",fragile:"des capacités à mobiliser davantage"},
+ pg10:{bon:"un potentiel que l'élève peut encore mieux exploiter",mitige:"des capacités à mieux mobiliser",fragile:"des capacités à mobiliser davantage"},
+ th20:{bon:"une bonne culture générale et des propos pertinents à l'oral",mitige:"une culture générale et des prises de parole pertinentes",fragile:"une culture générale et des prises de parole appréciables"},
+ pg6:{bon:"une période un peu en retrait",mitige:"une période en retrait par rapport aux attentes",fragile:"une période en retrait, à redresser"},
+ pg7:{bon:"un léger recul à enrayer",mitige:"un recul à enrayer",fragile:"un recul des résultats qui appelle de la vigilance"},
+ pg8:{bon:"une situation à redresser",mitige:"une situation à redresser rapidement",fragile:"une situation à redresser avec un accompagnement"},
+ pg13:{bon:"des connaissances à consolider",mitige:"des connaissances et compétences encore à acquérir",fragile:"des acquis fragiles à consolider pas à pas"},
+ cp11:{bon:"une participation orale à encourager",mitige:"une participation orale à développer",fragile:"une participation orale encore timide, à encourager"},
+ cp12:{bon:"une autonomie à affirmer",mitige:"une autonomie à développer",fragile:"une autonomie à construire progressivement"},
+ cp17:{bon:"une organisation du travail à affiner",mitige:"une méthode d'organisation à développer",fragile:"une organisation du travail à structurer"},
+ cp19:{bon:"un passage à l'écrit à approfondir",mitige:"des écrits à approfondir",fragile:"des écrits encore peu développés, à étoffer"}
+};
+const CPE_FORMS={
+ cpe5:{bon:"quelques retards à corriger",mitige:"des retards répétés à corriger",fragile:"des retards répétés à corriger avec l'appui de la famille"},
+ cpe6:{bon:"des absences à suivre",mitige:"des absences répétées, situation suivie",fragile:"des absences répétées, un suivi est mis en place"},
+ cpe7:{bon:"des absences non justifiées, famille informée",mitige:"des absences non justifiées, famille contactée",fragile:"des absences non justifiées, un dialogue est engagé avec la famille"},
+ cpe11:{bon:"des absences qui pèsent sur la scolarité",mitige:"des absences nombreuses qui pèsent sur la scolarité",fragile:"des absences nombreuses, un suivi est mis en place pour soutenir la scolarité"},
+ cpe8:{bon:"une vigilance sur la scolarité",mitige:"un risque de décrochage à prévenir",fragile:"un accompagnement pour prévenir le décrochage"},
+ cpb5:{bon:"un comportement à faire évoluer",mitige:"un comportement à améliorer nettement",fragile:"un comportement à améliorer, avec un accompagnement"},
+ cpb6:{bon:"quelques incidents à ne pas renouveler",mitige:"des incidents répétés à ne pas renouveler",fragile:"des incidents répétés, un suivi éducatif est en place"},
+ cpb7:{bon:"quelques tensions avec les camarades",mitige:"des relations avec les camarades à apaiser",fragile:"des relations difficiles avec les camarades, un accompagnement est proposé"},
+ cpb8:{bon:"un manque de respect envers un adulte, à ne pas renouveler",mitige:"un irrespect envers les adultes à corriger",fragile:"un irrespect envers les adultes qui doit cesser, un dialogue est engagé"},
+ cpb12:{bon:"des exclusions de cours à éviter",mitige:"des exclusions de cours répétées à éviter",fragile:"des exclusions de cours répétées, un suivi est mis en place"},
+ cps5:{bon:"un suivi plus attentif",mitige:"un suivi renforcé",fragile:"un suivi renforcé avec l'appui de l'équipe"},
+ cps6:{bon:"un entretien avec la famille",mitige:"un entretien avec la famille est prévu",fragile:"un entretien avec la famille est prévu pour faire le point"},
+ cps7:{bon:"l'équipe éducative reste attentive",mitige:"l'équipe éducative est mobilisée",fragile:"l'équipe éducative est mobilisée autour de l'élève"},
+ cpc5:{bon:"un sursaut est attendu",mitige:"un sursaut est attendu",fragile:"un sursaut est attendu, avec l'appui de l'équipe"},
+ cpc6:{bon:"la situation doit évoluer",mitige:"la situation doit s'améliorer",fragile:"la situation doit s'améliorer, avec l'appui de l'équipe"}
+};
+const CLASS_FORMS={
+ cn5:{bon:"un niveau encore fragile",mitige:"un niveau global à consolider",fragile:"un niveau global à consolider avec de l'accompagnement"},
+ cn8:{bon:"quelques perturbations",mitige:"des perturbations qui pèsent sur le climat de classe",fragile:"un climat de classe à apaiser"},
+ cn9:{bon:"une cohésion à renforcer",mitige:"une cohésion à construire",fragile:"une cohésion encore à construire"},
+ cc2:{bon:"quelques perturbations",mitige:"des perturbations à réduire",fragile:"des perturbations qui gênent le travail du groupe"},
+ cc4:{bon:"quelques bavardages à limiter",mitige:"des bavardages à limiter",fragile:"des bavardages qui nuisent à la concentration du groupe"},
+ cc6:{bon:"une concentration à soutenir",mitige:"une concentration collective à renforcer",fragile:"une concentration collective qui fait défaut"},
+ cc7:{bon:"une participation à stimuler",mitige:"une participation à développer",fragile:"une participation encore timide, à encourager"},
+ cf12:{bon:"une participation à stimuler",mitige:"une participation à développer",fragile:"une participation encore timide, à encourager"},
+ cf13:{bon:"quelques tensions dans le climat de classe",mitige:"un climat de classe à améliorer",fragile:"un climat de classe à apaiser"},
+ cf14:{bon:"des niveaux variés à accompagner",mitige:"des niveaux hétérogènes qui demandent de l'adaptation",fragile:"des niveaux hétérogènes qui compliquent le travail collectif"},
+ cf16:{bon:"une maturité collective qui va s'affirmer",mitige:"une maturité collective à développer",fragile:"une maturité collective à construire"},
+ cf19:{bon:"un travail à renforcer pour une partie de la classe",mitige:"un travail et des apprentissages à renforcer pour une partie de la classe",fragile:"un travail et des apprentissages insuffisants pour une partie de la classe"},
+ cf20:{bon:"des leçons à mieux retenir",mitige:"des leçons qui ne sont pas encore bien retenues",fragile:"des leçons peu retenues, à reprendre régulièrement"},
+ cf21:{bon:"un travail et des apprentissages à renforcer",mitige:"un travail et des apprentissages à renforcer nettement",fragile:"un travail et des apprentissages insuffisants dans l'ensemble"},
+ cf10:{bon:"un travail de groupe à rendre plus efficace",mitige:"un travail de groupe à rendre plus efficace",fragile:"un travail de groupe qui manque d'efficacité"},
+ cf11:{bon:"un petit groupe qui perturbe parfois",mitige:"un petit groupe qui perturbe la dynamique",fragile:"un petit groupe dont l'attitude pèse sur la dynamique générale"},
+ ca3:{bon:"un peu plus de rigueur",mitige:"plus de rigueur dans le travail",fragile:"plus de rigueur dans le travail, pas à pas"},
+ ca10:{bon:"le petit groupe concerné est invité à réagir",mitige:"le petit groupe concerné doit réagir",fragile:"le petit groupe concerné doit réagir, avec l'appui de l'équipe"},
+ ca11:{bon:"un investissement un peu plus soutenu",mitige:"un investissement plus soutenu est attendu",fragile:"un investissement plus soutenu est attendu, progressivement"},
+ ca13:{bon:"un nouvel élan collectif",mitige:"un élan collectif est attendu",fragile:"un élan collectif est attendu, avec l'appui de l'équipe"}
+};
+function profileWordingCtx(sections, boxes, formsMap, kind){
+  let pos=0,neg=0,neu=0; const labs={};
+  Object.values(sections).forEach(sec=>sec.items.forEach(it=>{
+    if(boxes&&boxes[it.id]){ labs[it.id]=it.l; if(it.v==='pos')pos++; else if(it.v==='neg')neg++; else neu++; }
+  }));
+  if(pos+neg+neu===0) return '';
+  const profil = (neg===0&&pos>=3)?'excellent' : (neg>pos?'fragile' : ((neg>0&&pos>0)||(neg===0&&neu>pos)?'mitige':'bon'));
+  const groupe = kind==='groupe';
+  const rules = groupe ? {
+    excellent:"Registre valorisant : un adjectif fort est permis (très bonne, remarquable…), 2 maximum, jamais côte à côte. Points à améliorer : formulés avec douceur.",
+    bon:"Registre positif et sobre : adjectifs modérés (bonne, sérieuse, agréable). AUCUN intensif (pas de \"remarquable\", \"exemplaire\", \"réel\"). Points à améliorer : simples et mesurés.",
+    mitige:"Registre neutre et factuel : les points positifs sont énoncés simplement, sans intensif ; les points à améliorer sont dits clairement, sans dramatiser.",
+    fragile:"Registre mesuré : les points positifs restent modestes, sans intensif ; les difficultés sont dites clairement, sans aggraver au-delà de ce qui est coché ; ton constructif, sans stigmatiser le groupe."
+  } : {
+    excellent:"Registre valorisant : un adjectif fort est permis (remarquable, exemplaire…), 2 maximum, jamais côte à côte. Points à travailler : formulés avec douceur.",
+    bon:"Registre positif et sobre : adjectifs modérés (bon, solide, sérieux, régulier). AUCUN intensif (pas de \"remarquable\", \"exemplaire\", \"irréprochable\", \"réel\"). Points à travailler : simples et mesurés.",
+    mitige:"Registre neutre et factuel : les points positifs sont énoncés simplement, sans intensif ; les points à travailler sont dits clairement, sans dramatiser.",
+    fragile:"Registre mesuré : les points positifs restent modestes, sans intensif ; les points à travailler sont dits clairement, sans aggraver au-delà de ce qui est coché ; ton bienveillant."
+  };
+  let out=`\nINTENSITÉ DES FORMULATIONS (profil retenu : ${profil}) — les adjectifs et intensifs présents dans les libellés cochés ("exemplaire", "remarquable", "urgent", "inacceptable", "trop"…) ne sont PAS à recopier : c'est le PROFIL GLOBAL ${groupe?'de la classe':'de l\'élève'} qui fixe l'intensité, pas le libellé. ${rules[profil]}`;
+  const k=(profil==='excellent'||profil==='bon')?'bon':profil;
+  const lines=Object.keys(labs).filter(id=>formsMap&&formsMap[id]).map(id=>'• '+labs[id].split('—')[0].trim()+' → '+formsMap[id][k]);
+  if(lines.length) out+=`\nFORMULATIONS ADAPTÉES AU PROFIL (${profil}) — voici comment dire chaque observation ci-dessous POUR CE PROFIL. Ce sont des repères d'intensité : reformule avec tes propres mots, ne recopie jamais mot pour mot, et ne reprends pas la même tournure d'un ${groupe?'bilan':'élève'} à l'autre.\n${lines.join('\n')}`;
+  return out;
+}
+function sharedWordingRules(periodType, period, labels, forceAbsences){
+  const last=(periodType==='semestre' && period===2)||(periodType!=='semestre' && period===3);
+  const lab=(labels||[]).join(' ').toLowerCase();
+  let t="\nSOBRIÉTÉ ET LANGUE — OBLIGATOIRE : (a) Les observations sont des IDÉES : ne recopie jamais un libellé tel quel ; ce qui suit un tiret \"—\" dans un libellé est une explication pour l'enseignant, jamais à reprendre. (b) Respecte l'intensité exacte de ce qui est coché : n'ajoute jamais \"trop\", \"trop souvent\", \"en surface\", \"de surface\", ni de fréquence (\"régulièrement\", \"souvent\", \"fréquemment\", \"rappels réguliers/fréquents/constants\") absente des observations. (c) L'intensité des adjectifs suit l'ensemble du profil : un profil globalement positif reste mesuré sur ses points à travailler ; un adjectif fort (remarquable, exemplaire, sincère) seulement si le profil est quasi entièrement très positif, une fois au plus. (d) Chaque verbe a le bon sujet : \"son travail reste approximatif et elle manque de régularité\" (jamais \"son travail reste approximatif et manque de régularité\"). (e) Varie les tournures d'une appréciation à l'autre.";
+  if(!last) t+=" (f) Période en cours (pas la dernière) : ne nomme AUCUNE période future (ni \"l'année prochaine\", ni \"la rentrée\", ni \"la suite de l'année\", ni \"le trimestre/semestre prochain\") ; le futur est sous-entendu (\"il faudra\", \"devra\").";
+  if(forceAbsences || /absen|assidu|retard|présence/.test(lab)) t+=" (g) ABSENCES / ASSIDUITÉ : n'adresse jamais d'injonction à être \"plus présent(e)\" ou \"plus assidu(e)\", ne parle pas d'absentéisme ni de manque de sérieux et ne suppose aucune cause (santé, situation personnelle) ; reste factuel et bienveillant (suivi interrompu, rattrapage du travail manqué).";
+  return t;
+}
 async function genOne(sid){
   if(!checkGenLimit(1)) return;
   const cls=S.classes[S.active]; const st=getSt(sid); if(!st)return;
@@ -5925,7 +6022,7 @@ async function genBulk(sid){
   try{
     const seed=STYLE_SEEDS[Math.floor(Math.random()*STYLE_SEEDS.length)];
     const raw=await callClaude(buildPrompt(st,cls,S.period,seed,sampMem(S.active)), 3, true);
-    const txt=fitToLimit(raw.replace(/\n+/g,' ').trim(), cls.charLimit||750);
+    const txt=fixNextYearLeak(fitToLimit(raw.replace(/\n+/g,' ').trim(), cls.charLimit||750),cls,S.period);
     if(!txt) throw new Error('empty text after processing');
     // Save directly to state — don't depend on DOM being intact
     if(!st.comments)st.comments={};
@@ -5994,7 +6091,7 @@ function onCRI(val){const cls=S.classes[S.active];if(!cls.classComments)cls.clas
 async function genClassRev(){
   const cls=S.classes[S.active]; const ta=document.getElementById('cr-ta'); if(!ta)return;
   ta.classList.add('gen'); ta.value='Rédaction en cours…';
-  try{const txt=fitToLimit(await callClaude(buildClassPrompt(cls,S.period)), cls.charLimit||750);ta.classList.remove('gen');ta.value=txt;onCRI(txt);}
+  try{const txt=fixNextYearLeak(fitToLimit(await callClaude(buildClassPrompt(cls,S.period)), cls.charLimit||750),cls,S.period);ta.classList.remove('gen');ta.value=txt;onCRI(txt);}
   catch(e){ta.classList.remove('gen');ta.value='';toast('Erreur');}
 }
 function copyCR(){const ta=document.getElementById('cr-ta');if(!ta?.value)return;navigator.clipboard.writeText(ta.value).then(()=>{const b=document.getElementById('cr-cp');b.textContent='✓ Copié';b.classList.add('copied');setTimeout(()=>{b.textContent='Copier';b.classList.remove('copied');},1800);});}
@@ -7829,10 +7926,10 @@ RÈGLES STRICTES :
 6. INTERDIT : "il est essentiel", "il est important", "il est nécessaire".
 7. Terminer par une décision ou une attente concrète si négatif.
 
-Génère uniquement le suivi CPE, sans guillemets ni explication.`;
+Génère uniquement le suivi CPE, sans guillemets ni explication.${profileWordingCtx(CPE_BOXES,st.boxes,CPE_FORMS,'eleve')}${sharedWordingRules(c.periodType,activeCPEPeriod,obs,true)}`;
 
   try{
-    const txt=await callClaude(prompt);
+    const txt=fixNextYearLeak(await callClaude(prompt),c,activeCPEPeriod);
     incrementGenCount(1);
     ta.classList.remove('gen'); ta.value=txt;
     cpeOnCI(sid,txt);updateGenCounter();
@@ -8984,7 +9081,7 @@ RÈGLES STRICTES — toutes obligatoires :
 6. Ne commence PAS par "Il / Elle" seul. Commence par une formule plus élaborée : "Au terme de ce trimestre,", "Le conseil de classe souligne…", "L'ensemble des professeurs…", "Au fil de ce semestre…", etc.
 7. Ton : ${toneDesc}.
 8. Termine par un conseil, un encouragement ou une mise en garde ferme selon le ton.
-9. Répondre UNIQUEMENT avec le bilan rédigé, sans guillemets, sans titre, sans commentaire.`;
+9. Répondre UNIQUEMENT avec le bilan rédigé, sans guillemets, sans titre, sans commentaire.${profileWordingCtx(PP_BOXES,st.boxes,PP_FORMS,'eleve')}${sharedWordingRules(pp.periodType,period,checked,!!(st.viesco&&parseInt(st.viesco.absences)>0))}`;
 }
 
 // ── PP GENERATION ─────────────────────────────────────────────────────────────
@@ -8994,7 +9091,7 @@ async function ppGenOne(sid){
   ta.classList.add('gen'); ta.value='Rédaction du bilan en cours…';
   try{
     const seed=PP_STYLE_SEEDS[Math.floor(Math.random()*PP_STYLE_SEEDS.length)];
-    const txt=fitToLimit(await callClaude(buildPPPrompt(st,pp,activePPPeriod,seed,sampPPMem(activePP))), pp.charLimit||750);
+    const txt=fixNextYearLeak(fitToLimit(await callClaude(buildPPPrompt(st,pp,activePPPeriod,seed,sampPPMem(activePP))), pp.charLimit||750),pp,activePPPeriod);
     ta.classList.remove('gen'); ta.value=txt;
     addPPMem(activePP,txt); ppOnCI(sid,txt);
   }catch(e){ta.classList.remove('gen');ta.value='';toast('Erreur de génération');}
@@ -9049,7 +9146,7 @@ async function ppGenOneBulk(sid){
   ta.classList.add('gen');
   try{
     const seed=PP_STYLE_SEEDS[Math.floor(Math.random()*PP_STYLE_SEEDS.length)];
-    const txt=fitToLimit(await callClaude(buildPPPrompt(st,pp,activePPPeriod,seed,sampPPMem(activePP))), pp.charLimit||750);
+    const txt=fixNextYearLeak(fitToLimit(await callClaude(buildPPPrompt(st,pp,activePPPeriod,seed,sampPPMem(activePP))), pp.charLimit||750),pp,activePPPeriod);
     ta.classList.remove('gen'); ta.value=txt;
     addPPMem(activePP,txt); ppBulkSave(sid,txt);
   }catch(e){ta.classList.remove('gen');toast('Erreur génération');}
